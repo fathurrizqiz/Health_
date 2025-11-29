@@ -4,6 +4,7 @@ namespace App\Http\Controllers\KaryawanDiklat;
 
 use App\Http\Controllers\Controller;
 use App\Models\DiklatKaryawan;
+use App\Models\HLCManajement;
 use App\Models\karyawans;
 use App\Models\RekapJamDiklat;
 use App\Models\TargetJamModels;
@@ -36,9 +37,11 @@ class DiklatController extends Controller
 
         // Ambil semua diklat user sesuai NRP
         $diklat = DiklatKaryawan::where('nrp', $karyawan->nrp)->get();
+        $admin = HLCManajement::where('nrp', $karyawan->nrp)->get();
 
         // Total jam
-        $totalJam = $diklat->where('status', 'approved')->sum('jam_diklat');
+        $totalJam = $diklat->where('status', 'approved')->sum('jam_diklat')
+            + $admin->where('status', 'approved')->sum('jam_diklat');
 
         // Persentase
         $percentage = $target > 0 ? min(100, ($totalJam / $target) * 100) : 0;
@@ -50,6 +53,7 @@ class DiklatController extends Controller
             'totalJam' => $totalJam,
             'percentage' => round($percentage),
             'karyawan' => $karyawan,
+            'admin' => $admin
         ]);
     }
 
@@ -105,11 +109,18 @@ class DiklatController extends Controller
 
     public function updateRekapBulanan($nrp, $tahun, $bulan)
     {
-        $totalJam = DiklatKaryawan::where('nrp', $nrp)
-            ->where('status', 'approved')
-            ->whereRaw('EXTRACT(YEAR FROM tanggal_mulai) = ?', [$tahun])
-            ->whereRaw('EXTRACT(MONTH FROM tanggal_mulai) = ?', [$bulan])
-            ->sum('jam_diklat');
+        $totalJam = (
+            DiklatKaryawan::where('nrp', $nrp)->where('status', 'approved')
+                ->whereYear('tanggal_mulai', $tahun)
+                ->whereMonth('tanggal_mulai', $bulan)
+                ->sum('jam_diklat')
+        ) +
+            (
+                HLCManajement::where('nrp', $nrp)->where('status', 'approved')
+                    ->whereYear('tanggal_mulai', $tahun)
+                    ->whereMonth('tanggal_mulai', $bulan)
+                    ->sum('jam_diklat')
+            );
 
         RekapJamDiklat::updateOrCreate(
             [

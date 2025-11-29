@@ -55,7 +55,9 @@ Route::get('/RencanaDiklat/jadwal', [JadwalDiklatController::class, 'index']);
 Route::get('/silabus/diklat', [SilabusController::class, 'index']);
 
 // HLC
-Route::get('/HLC/Home/manajemen', [HLCController::class, 'index']);
+Route::get('/HLC/Home/manajemen', [HLCController::class, 'index'])->name('diklat.hlc.admin');
+Route::post('/HLC/Home/storeProgram', [HLCController::class, 'storeProgram'])->name('diklat.hlc.admin.store-program');
+Route::post('/HLC/Home/storeDetail', [HLCController::class, 'storeDetail'])->name('diklat.hlc.admin.store-detail');
 
 // Master Data
 Route::get('/MasterData/home', [MasterDataController::class, 'index']);

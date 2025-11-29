@@ -4,6 +4,7 @@ namespace App\Http\Controllers\KaryawanDiklat;
 
 use App\Http\Controllers\Controller;
 use App\Models\DiklatKaryawan;
+use App\Models\HLCManajement;
 use App\Models\RekapJamDiklat;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,11 +22,18 @@ class ApprovDiklateController extends Controller
 
     public function updateRekapBulanan($nrp, $tahun, $bulan)
     {
-        $totalJam = DiklatKaryawan::where('nrp', $nrp)
-            ->where('status', 'approved')
-            ->whereRaw('EXTRACT(YEAR FROM tanggal_mulai) = ?', [$tahun])
-            ->whereRaw('EXTRACT(MONTH FROM tanggal_mulai) = ?', [$bulan])
-            ->sum('jam_diklat');
+        $totalJam =(
+            DiklatKaryawan::where('nrp', $nrp)->where('status', 'approved')
+                ->whereYear('tanggal_mulai', $tahun)
+                ->whereMonth('tanggal_mulai', $bulan)
+                ->sum('jam_diklat')
+        ) +
+            (
+                HLCManajement::where('nrp', $nrp)->where('status', 'approved')
+                    ->whereYear('tanggal_mulai', $tahun)
+                    ->whereMonth('tanggal_mulai', $bulan)
+                    ->sum('jam_diklat')
+            );
 
         RekapJamDiklat::updateOrCreate(
             [

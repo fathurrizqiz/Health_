@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
+import { formatDate } from '@/helpers/date';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
-import { formatDate } from "@/helpers/date";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -19,10 +19,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface Karyawan {
-    nama_karyawan:string;
+    nama_karyawan: string;
     nrp: string;
     bagian: string;
-    unit_kerja:string;
+    unit_kerja: string;
     posisi_jabatan: string;
     klinis_non_klinis: string;
     jenis_kelamin: string;
@@ -41,7 +41,20 @@ interface Diklat {
     file_path: string | null;
     created_at: string;
     updated_at: string;
-    
+    source: 'user' | 'admin';
+}
+interface Admin {
+    id: number;
+    nama_diklat: string;
+    tanggal_mulai: string | null;
+    tanggal_selesai: string | null;
+    pengajar: string;
+    penyelenggara: string;
+    diklat: string;
+    jam_diklat: number;
+    status: string;
+    file_path: string | null;
+    source: 'user' | 'admin';
 }
 
 const props = defineProps<{
@@ -51,20 +64,32 @@ const props = defineProps<{
     percentage: number;
     kategori: string;
     karyawan: Karyawan;
+    admin: Admin[];
 }>();
 
 const genderLabel = computed(() => {
     const g = props.karyawan.jenis_kelamin;
-    if (g == 'L') return "LAKI-LAKI";
-    if (g == 'P') return "PEREMPUAN";
+    if (g == 'L') return 'LAKI-LAKI';
+    if (g == 'P') return 'PEREMPUAN';
     return '-';
-})
+});
 
-const daftarDiklat = ref(props.diklat);
+const daftarDiklat = computed(() => {
+    // Gabungkan kedua array dan tambahkan penanda sumber jika perlu
+    const userDiklat = (props.diklat || []).map((item) => ({
+        ...item,
+        source: 'user',
+    }));
+    const adminDiklat = (props.admin || []).map((item) => ({
+        ...item,
+        source: 'admin',
+        file_path: null,
+    }));
+    return [...userDiklat, ...adminDiklat];
+});
 
 // State management
 const searchQuery = ref('');
-const selectedStatus = ref('all');
 
 // Lifecycle
 onMounted(() => {});
@@ -97,11 +122,10 @@ function destroy(id: number | null) {
     });
 }
 
-const page = usePage();
-const auth = page.props.auth;
-const user = auth.user;
-const rawRole = auth.user?.role || [];
-const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
+// const page = usePage();
+// const auth = page.props.auth;
+// const rawRole = auth.user?.role || [];
+// const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 </script>
 
 <template>
@@ -113,22 +137,33 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
         >
             <!-- Statistics Cards -->
             <div class="m-5">
-                <p class="py-5 text-xl font-bold text-gray-500">{{ props.karyawan.nama_karyawan}}</p>
+                <p class="py-5 text-xl font-bold text-gray-500">
+                    {{ props.karyawan.nama_karyawan }}
+                </p>
                 <div class="h-56 w-full rounded bg-white shadow">
                     <div class="flex justify-between p-3 py-3">
                         <div>
-                            <div class="py-2">NRP : {{ props.karyawan.nrp }}</div>
-                            <div class="py-2">Unit Kerja : {{ props.karyawan.unit_kerja }}</div>
                             <div class="py-2">
-                                KLINIS / NON KLINIS : {{ props.karyawan.klinis_non_klinis }}
+                                NRP : {{ props.karyawan.nrp }}
                             </div>
-                            
+                            <div class="py-2">
+                                Unit Kerja : {{ props.karyawan.unit_kerja }}
+                            </div>
+                            <div class="py-2">
+                                KLINIS / NON KLINIS :
+                                {{ props.karyawan.klinis_non_klinis }}
+                            </div>
                         </div>
                         <div>
-                            <div class="py-2">BAGIAN : {{ props.karyawan.bagian }}</div>
-                            <div class="py-2">POSISI JABATAN : {{ props.karyawan.posisi_jabatan }}</div>
                             <div class="py-2">
-                                JENIS KELAMIN : {{ genderLabel}}
+                                BAGIAN : {{ props.karyawan.bagian }}
+                            </div>
+                            <div class="py-2">
+                                POSISI JABATAN :
+                                {{ props.karyawan.posisi_jabatan }}
+                            </div>
+                            <div class="py-2">
+                                JENIS KELAMIN : {{ genderLabel }}
                             </div>
                         </div>
                     </div>
@@ -142,22 +177,20 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                     <div
                         class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
                     >
-                    <div>
+                        <div>
+                            <h4>
+                                Target ({{ props.kategori }}):
+                                {{ props.totalJam }} / {{ props.target }} Jam
+                                ({{ props.percentage }}%)
+                            </h4>
 
-                        <h4>
-                            Target ({{ props.kategori }}):
-                            {{ props.totalJam }} / {{ props.target }} Jam ({{
-                                props.percentage
-                            }}%)
-                        </h4>
-
-                        <div class="mt-2 h-3 w-52 rounded-full bg-gray-200">
-                            <div
-                                class="h-3 rounded-full bg-blue-600"
-                                :style="{ width: props.percentage + '%' }" 
-                            ></div>
+                            <div class="mt-2 h-3 w-52 rounded-full bg-gray-200">
+                                <div
+                                    class="h-3 rounded-full bg-blue-600"
+                                    :style="{ width: props.percentage + '%' }"
+                                ></div>
+                            </div>
                         </div>
-                    </div>
 
                         <div class="flex flex-col gap-3 sm:flex-row">
                             <!-- Search -->
@@ -183,7 +216,7 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                 </svg>
                             </div>
                             <!-- Status Filter -->
-                            
+
                             <!-- Add Button -->
                             <button
                                 @click="jadwal"
@@ -301,12 +334,14 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                 <td
                                     class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                                 >
-                                    {{ formatDate (item.tanggal_mulai) ?? '-' }}
+                                    {{ formatDate(item.tanggal_mulai) ?? '-' }}
                                 </td>
                                 <td
                                     class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                                 >
-                                    {{ formatDate(item.tanggal_selesai) ?? '-' }}
+                                    {{
+                                        formatDate(item.tanggal_selesai) ?? '-'
+                                    }}
                                 </td>
                                 <td
                                     class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
@@ -343,6 +378,7 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                 >
                                     <div class="flex gap-2">
                                         <a
+                                            v-if="item.file_path"
                                             :href="
                                                 route('diklat.preview', item.id)
                                             "
@@ -366,6 +402,7 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                             </svg>
                                         </a>
                                         <a
+                                            v-if="item.source === 'user'"
                                             :href="
                                                 route('diklat.edit', item.id)
                                             "
@@ -416,6 +453,7 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                             </svg>
                                         </a>
                                         <button
+                                            v-if="item.source === 'user'"
                                             @click="openModal(item.id)"
                                             class="cursor-pointer"
                                         >

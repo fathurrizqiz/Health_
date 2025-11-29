@@ -23,5 +23,9 @@ class Karyawans extends Model
     {
         return $this->hasMany(DiklatKaryawan::class, 'karyawan_id', 'id');
     }
+    public function diklatHlc()
+    {
+        return $this->hasMany(HLCManajement::class, 'nrp', 'nrp');
+    }
 
 }
