@@ -57,6 +57,19 @@ interface Admin {
     source: 'user' | 'admin';
 }
 
+interface DiklatEksternal {
+    id: number;
+    nama_diklat?:string;
+    program_id: number;
+    nama_karyawan: string;
+    tanggal_mulai: string;
+    tanggal_selesai: string;
+    jam_diklat: number;
+    penyelenggara: string;
+    nrp: string;
+    status: string;
+}
+
 const props = defineProps<{
     diklat: Diklat[];
     totalJam: number;
@@ -65,6 +78,7 @@ const props = defineProps<{
     kategori: string;
     karyawan: Karyawan;
     admin: Admin[];
+    eksternal: DiklatEksternal[];
 }>();
 
 const genderLabel = computed(() => {
@@ -85,7 +99,12 @@ const daftarDiklat = computed(() => {
         source: 'admin',
         file_path: null,
     }));
-    return [...userDiklat, ...adminDiklat];
+    const diklatEksternal = (props.eksternal || []).map((item) => ({
+        ...item,
+        source: 'admin',
+        file_path: null,
+    }));
+    return [...userDiklat, ...adminDiklat, ...diklatEksternal];
 });
 
 // State management

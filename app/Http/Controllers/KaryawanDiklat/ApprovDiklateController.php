@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\KaryawanDiklat;
 
 use App\Http\Controllers\Controller;
+use App\Models\DiklatEksternal;
 use App\Models\DiklatKaryawan;
 use App\Models\HLCManajement;
 use App\Models\RekapJamDiklat;
@@ -30,6 +31,12 @@ class ApprovDiklateController extends Controller
         ) +
             (
                 HLCManajement::where('nrp', $nrp)->where('status', 'approved')
+                    ->whereYear('tanggal_mulai', $tahun)
+                    ->whereMonth('tanggal_mulai', $bulan)
+                    ->sum('jam_diklat')
+            ) +
+            (
+                DiklatEksternal::where('nrp', $nrp)->where('status', 'approved')
                     ->whereYear('tanggal_mulai', $tahun)
                     ->whereMonth('tanggal_mulai', $bulan)
                     ->sum('jam_diklat')

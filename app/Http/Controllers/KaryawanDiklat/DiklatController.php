@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\KaryawanDiklat;
 
 use App\Http\Controllers\Controller;
+use App\Models\DiklatEksternal;
 use App\Models\DiklatKaryawan;
 use App\Models\HLCManajement;
 use App\Models\karyawans;
@@ -38,10 +39,14 @@ class DiklatController extends Controller
         // Ambil semua diklat user sesuai NRP
         $diklat = DiklatKaryawan::where('nrp', $karyawan->nrp)->get();
         $admin = HLCManajement::where('nrp', $karyawan->nrp)->get();
+        $eksternal = DiklatEksternal::with('program')
+            ->where('nrp', $karyawan->nrp)
+            ->get();
+
 
         // Total jam
         $totalJam = $diklat->where('status', 'approved')->sum('jam_diklat')
-            + $admin->where('status', 'approved')->sum('jam_diklat');
+            + $admin->where('status', 'approved')->sum('jam_diklat') + $eksternal->where('status', 'approved')->sum('jam_diklat');
 
         // Persentase
         $percentage = $target > 0 ? min(100, ($totalJam / $target) * 100) : 0;
@@ -53,7 +58,8 @@ class DiklatController extends Controller
             'totalJam' => $totalJam,
             'percentage' => round($percentage),
             'karyawan' => $karyawan,
-            'admin' => $admin
+            'admin' => $admin,
+            'eksternal' => $eksternal
         ]);
     }
 
@@ -117,6 +123,12 @@ class DiklatController extends Controller
         ) +
             (
                 HLCManajement::where('nrp', $nrp)->where('status', 'approved')
+                    ->whereYear('tanggal_mulai', $tahun)
+                    ->whereMonth('tanggal_mulai', $bulan)
+                    ->sum('jam_diklat')
+            ) +
+            (
+                DiklatEksternal::where('nrp', $nrp)->where('status', 'approved')
                     ->whereYear('tanggal_mulai', $tahun)
                     ->whereMonth('tanggal_mulai', $bulan)
                     ->sum('jam_diklat')

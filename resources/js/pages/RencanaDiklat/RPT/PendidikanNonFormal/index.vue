@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, usePage, router } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
 import HeaderMenu from '@/components/HeaderMenu.vue';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { toast } from 'vue3-toastify';
 
-// --- Breadcrumbs & Menu (sama seperti sebelumnya) ---
+// --- Breadcrumbs & Menu ---
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Rencana Program Tahunan', href: '/rencana-diklat' },
@@ -22,36 +23,44 @@ const menuItems = [
     { title: 'Pendidikan Non Formal', href: '/RencanaDiklat/RPT/PN' },
     { title: 'HLC', href: '/HLC/Home/manajemen' },
     { title: 'Jadwal Non Formal', href: '/RencanaDiklat/jadwal' },
-    // { title: 'Eksternal', href: '/RencanaDiklat/RPT/EKST' },
 ];
 
-// --- Data Program ---
-interface DiklatRow {
+// --- Data from Controller ---
+interface Karyawan {
     id: number;
-    nama: string;
-    peserta: string;
-    pengajar: string;
-    keterangan: string;
-    biaya: number | null;
-    total_biaya: number | null;
+    nrp: string;
+    nama_karyawan: string;
+    bagian: string;
+    unit_kerja:string;
+    posisi_jabatan:string;
+    klinis_non_klinis:string;
+    jenis_kelamin:string;
 }
 
-interface Program {
+interface DiklatEksternal {
     id: number;
-    nama_program: string;
+    program_id: number;
+    nama_karyawan: string;
+    tanggal_mulai: string;
+    tanggal_selesai: string;
+    jam_diklat: number;
+    penyelenggara: string;
+    nrp: string;
+    status: string;
+}
+
+interface ProgramEksternal {
+    id: number;
+    nama_diklat: string;
     tahun: string;
-    rows: DiklatRow[];
+    eksternal: DiklatEksternal[];
 }
 
-const programs = ref<Program[]>([
-    // Contoh data awal (opsional)
-    // {
-    //     id: 1,
-    //     nama_program: "Pelatihan Public Speaking",
-    //     tahun: "2025",
-    //     rows: []
-    // }
-]);
+// Get data from controller
+const props = defineProps<{
+    karyawan: Karyawan[];
+    program: ProgramEksternal[];
+}>();
 
 // --- Filter & Pagination State ---
 const searchQuery = ref('');
@@ -60,17 +69,35 @@ const itemsPerPage = ref(5);
 const currentPage = ref(1);
 
 // --- Modal State ---
-const isModalOpen = ref(false);
+const isProgramModalOpen = ref(false);
+const isDetailModalOpen = ref(false);
+const selectedProgramId = ref<number | null>(null);
+
 const newProgram = ref({
-    nama_program: '',
+    nama_diklat: '',
     tahun: new Date().getFullYear().toString(),
 });
 
+const newDetail = ref({
+    program_id: '',
+    nama_karyawan: '',
+    tanggal_mulai: '',
+    tanggal_selesai: '',
+    jam_diklat: 0,
+    penyelenggara: '',
+    nrp: '',
+});
+
+// Autocomplete state
+const employeeSearchQuery = ref('');
+const showEmployeeResults = ref(false);
+const selectedEmployeeIndex = ref(-1);
+
 // --- Computed: Data yang difilter & dipaginasi ---
 const filteredPrograms = computed(() => {
-    return programs.value.filter(program => {
-        const matchesSearch = program.nama_program.toLowerCase().includes(searchQuery.value.toLowerCase());
-        const matchesYear = selectedYear.value === 'all' || program.tahun === selectedYear.value;
+    return props.program.filter(p => {
+        const matchesSearch = p.nama_diklat.toLowerCase().includes(searchQuery.value.toLowerCase());
+        const matchesYear = selectedYear.value === 'all' || p.tahun === selectedYear.value;
         return matchesSearch && matchesYear;
     });
 });
@@ -86,8 +113,19 @@ const totalPages = computed(() => {
 });
 
 const availableYears = computed(() => {
-    const years = programs.value.map(p => p.tahun);
+    const years = props.program.map(p => p.tahun);
     return ['all', ...Array.from(new Set(years)).sort((a, b) => parseInt(b) - parseInt(a))];
+});
+
+// Filtered employees for autocomplete
+const filteredEmployees = computed(() => {
+    if (!employeeSearchQuery.value) return [];
+    
+    const query = employeeSearchQuery.value.toLowerCase();
+    return props.karyawan.filter(k => 
+        k.nama_karyawan.toLowerCase().includes(query) || 
+        k.nrp.toLowerCase().includes(query)
+    ).slice(0, 10); // Limit to 10 results
 });
 
 // --- Fungsi Navigasi ---
@@ -114,63 +152,157 @@ const resetToPage1 = () => {
     currentPage.value = 1;
 };
 
-// Watcher tidak digunakan, jadi kita panggil reset manual saat filter berubah
-// (dilakukan via @input/@change di template)
-
-// --- Fungsi CRUD (sama seperti sebelumnya) ---
-const openModal = () => {
-    newProgram.value = { nama_program: '', tahun: new Date().getFullYear().toString() };
-    isModalOpen.value = true;
+// --- Fungsi CRUD ---
+const openProgramModal = () => {
+    newProgram.value = { nama_diklat: '', tahun: new Date().getFullYear().toString() };
+    isProgramModalOpen.value = true;
 };
 
-const closeModal = () => {
-    isModalOpen.value = false;
+const closeProgramModal = () => {
+    isProgramModalOpen.value = false;
+};
+
+const openDetailModal = (programId: number) => {
+    selectedProgramId.value = programId;
+    newDetail.value = {
+        program_id: programId.toString(),
+        nama_karyawan: '',
+        tanggal_mulai: '',
+        tanggal_selesai: '',
+        jam_diklat: 0,
+        penyelenggara: '',
+        nrp: '',
+    };
+    // Reset autocomplete state
+    employeeSearchQuery.value = '';
+    showEmployeeResults.value = false;
+    selectedEmployeeIndex.value = -1;
+    isDetailModalOpen.value = true;
+};
+
+const closeDetailModal = () => {
+    isDetailModalOpen.value = false;
+    selectedProgramId.value = null;
 };
 
 const tambahProgram = () => {
-    if (!newProgram.value.nama_program.trim()) {
-        alert('Nama program tidak boleh kosong!');
+    if (!newProgram.value.nama_diklat.trim()) {
+        toast.error('Nama program tidak boleh kosong!');
         return;
     }
-    programs.value.push({
-        id: Date.now(),
-        nama_program: newProgram.value.nama_program,
-        tahun: newProgram.value.tahun,
-        rows: [],
+    
+    router.post('/RencanaDiklat/RPT/PN/Program', newProgram.value, {
+        onSuccess: () => {
+            closeProgramModal();
+            toast.success('Program Berhasil dibuat!')
+            resetToPage1();
+        },
+        onError: (errors) => {
+            toast.error('Gagal membuat program: ' + Object.values(errors).join(', '));
+        }
     });
-    closeModal();
-    resetToPage1(); // Reset ke halaman 1 setelah tambah
 };
 
-const tambahBaris = (programId: number) => {
-    const program = programs.value.find(p => p.id === programId);
-    if (program) {
-        program.rows.push({
-            id: Date.now(),
-            nama: '',
-            peserta: '',
-            pengajar: '',
-            keterangan: '',
-            biaya: null,
-            total_biaya: null,
-           
-        });
+const tambahDetail = () => {
+    if (!newDetail.value.nama_karyawan.trim() || !newDetail.value.tanggal_mulai || !newDetail.value.tanggal_selesai) {
+        toast.error('Mohon lengkapi data yang diperlukan!');
+        return;
     }
-};
-
-const hapusBaris = (programId: number, rowId: number) => {
-    const program = programs.value.find(p => p.id === programId);
-    if (program) {
-        program.rows = program.rows.filter(row => row.id !== rowId);
-    }
+    
+    router.post('/RencanaDiklat/RPT/PN/Detail', newDetail.value, {
+        onSuccess: () => {
+            closeDetailModal();
+            toast.success('Diklat Eksternal Berhasil dibuat!')
+            resetToPage1();
+        },
+        onError: (errors) => {
+            toast.error('Gagal menambah detail: ' + Object.values(errors).join(', '));
+        }
+    });
 };
 
 const hapusProgram = (programId: number) => {
     if (confirm('Hapus program ini beserta semua datanya?')) {
-        programs.value = programs.value.filter(p => p.id !== programId);
-        resetToPage1();
+        router.delete(`/rencana-diklat/non-formal/program/${programId}`, {
+            onSuccess: () => {
+                toast.success('Program berhasil dihapus!');
+                resetToPage1();
+            },
+            onError: (errors) => {
+                toast.error('Gagal menghapus program: ' + Object.values(errors).join(', '));
+            }
+        });
     }
 };
+
+const hapusDetail = (detailId: number) => {
+    if (confirm('Hapus data diklat ini?')) {
+        router.delete(`/rencana-diklat/non-formal/detail/${detailId}`, {
+            onSuccess: () => {
+                toast.success('Detail diklat berhasil dihapus!');
+                resetToPage1();
+            },
+            onError: (errors) => {
+                toast.error('Gagal menghapus detail: ' + Object.values(errors).join(', '));
+            }
+        });
+    }
+};
+
+// Autocomplete functions
+const selectEmployee = (employee: Karyawan) => {
+    newDetail.value.nrp = employee.nrp;
+    newDetail.value.nama_karyawan = employee.nama_karyawan;
+    employeeSearchQuery.value = `${employee.nrp} - ${employee.nama_karyawan}`;
+    showEmployeeResults.value = false;
+    selectedEmployeeIndex.value = -1;
+};
+
+const handleEmployeeSearch = () => {
+    showEmployeeResults.value = employeeSearchQuery.value.length > 0;
+    selectedEmployeeIndex.value = -1;
+};
+
+const handleKeyDown = (event: KeyboardEvent) => {
+    if (!showEmployeeResults.value || filteredEmployees.value.length === 0) return;
+    
+    switch (event.key) {
+        case 'ArrowDown':
+            event.preventDefault();
+            selectedEmployeeIndex.value = Math.min(selectedEmployeeIndex.value + 1, filteredEmployees.value.length - 1);
+            break;
+        case 'ArrowUp':
+            event.preventDefault();
+            selectedEmployeeIndex.value = Math.max(selectedEmployeeIndex.value - 1, -1);
+            break;
+        case 'Enter':
+            event.preventDefault();
+            if (selectedEmployeeIndex.value >= 0) {
+                selectEmployee(filteredEmployees.value[selectedEmployeeIndex.value]);
+            }
+            break;
+        case 'Escape':
+            showEmployeeResults.value = false;
+            selectedEmployeeIndex.value = -1;
+            break;
+    }
+};
+
+const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.autocomplete-container')) {
+        showEmployeeResults.value = false;
+        selectedEmployeeIndex.value = -1;
+    }
+};
+
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+});
 </script>
 
 <template>
@@ -184,7 +316,7 @@ const hapusProgram = (programId: number) => {
             <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h2 class="text-2xl font-bold text-gray-800">Pendidikan Non Formal</h2>
                 <button
-                    @click="openModal"
+                    @click="openProgramModal"
                     class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md transition"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,27 +377,18 @@ const hapusProgram = (programId: number) => {
             <!-- Daftar Program -->
             <div v-if="paginatedPrograms.length > 0" class="space-y-8">
                 <div
-                    v-for="program in paginatedPrograms"
-                    :key="program.id"
+                    v-for="prog in paginatedPrograms"
+                    :key="prog.id"
                     class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
                 >
                     <div class="bg-gray-50 px-6 py-4 flex justify-between items-center">
                         <div>
-                            <h3 class="text-xl font-semibold text-gray-800">{{ program.nama_program }}</h3>
-                            <p class="text-sm text-gray-500">Tahun: {{ program.tahun }}</p>
+                            <h3 class="text-xl font-semibold text-gray-800">{{ prog.nama_diklat }}</h3>
+                            <p class="text-sm text-gray-500">Tahun: {{ prog.tahun }}</p>
                         </div>
-                        <button
-                            @click="hapusProgram(program.id)"
-                            class="text-red-600 hover:text-red-800 font-medium text-sm"
-                        >
-                            Hapus Program
-                        </button>
-                    </div>
-
-                    <div class="p-6">
-                        <div class="mb-4">
+                        <div class="flex gap-2">
                             <button
-                                @click="tambahBaris(program.id)"
+                                @click="openDetailModal(prog.id)"
                                 class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm"
                             >
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,43 +396,40 @@ const hapusProgram = (programId: number) => {
                                 </svg>
                                 Tambah Diklat
                             </button>
+                            <button
+                                @click="hapusProgram(prog.id)"
+                                class="text-red-600 hover:text-red-800 font-medium text-sm"
+                            >
+                                Hapus Program
+                            </button>
                         </div>
+                    </div>
 
-                        <div v-if="program.rows.length > 0" class="overflow-x-auto">
+                    <div class="p-6">
+                        <div v-if="prog.eksternal && prog.eksternal.length > 0" class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nama Diklat</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Peserta</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pengajar</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Keterangan</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Biaya</th>
-                                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Total Biaya</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nama Karyawan</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">NRP</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Mulai</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Selesai</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Jam Diklat</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Penyelenggara</th>
                                         <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
-                                    <tr v-for="row in program.rows" :key="row.id" class="hover:bg-gray-50">
-                                        <td class="px-4 py-3"><input v-model="row.nama" class="w-full text-sm border rounded px-2 py-1" /></td>
-                                        <td class="px-4 py-3"><input v-model="row.peserta" class="w-full text-sm border rounded px-2 py-1" /></td>
-                                        <td class="px-4 py-3"><input v-model.number="row.pengajar" class="w-full text-sm border rounded px-2 py-1" /></td>
-                                        <td class="px-4 py-3">
-                                            <select name="keterangan" v-model.number="row.keterangan" id="keterangan">
-                                                <option value="EKSTERNAL">EKSTERNAL</option>
-                                                <option value="INTERNAL">INTERNAL</option>
-                                            </select>
-                                        </td>
-                                        <td class="px-4 py-3"><input v-model="row.biaya" class="w-full text-sm border rounded px-2 py-1" type="number" /></td>
-                                        <td class="px-4 py-3"><input v-model.number="row.total_biaya" type="number" class="w-full text-sm border rounded px-2 py-1" /></td>
+                                    <tr v-for="detail in prog.eksternal" :key="detail.id" class="hover:bg-gray-50">
+                                        <td class="px-4 py-3">{{ detail.nama_karyawan }}</td>
+                                        <td class="px-4 py-3">{{ detail.nrp }}</td>
+                                        <td class="px-4 py-3">{{ detail.tanggal_mulai }}</td>
+                                        <td class="px-4 py-3">{{ detail.tanggal_selesai }}</td>
+                                        <td class="px-4 py-3">{{ detail.jam_diklat }}</td>
+                                        <td class="px-4 py-3">{{ detail.penyelenggara }}</td>
                                         <td class="px-4 py-3 text-center">
                                             <button
-                                                @click="hapusBaris(program.id, row.id)"
-                                                class="text-blue-600 hover:text-blue-800 text-sm"
-                                            >
-                                                Simpan
-                                            </button>
-                                            <button
-                                                @click="hapusBaris(program.id, row.id)"
+                                                @click="hapusDetail(detail.id)"
                                                 class="text-red-600 hover:text-red-800 text-sm"
                                             >
                                                 Hapus
@@ -332,7 +452,7 @@ const hapusProgram = (programId: number) => {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <h3 class="mt-4 text-lg font-medium text-gray-900">Tidak ada program yang sesuai</h3>
-                <p class="mt-1 text-gray-500">Coba ubah filter pencarian.</p>
+                <p class="mt-1 text-gray-500">Coba ubah filter pencarian atau tambah program baru.</p>
             </div>
 
             <!-- Pagination -->
@@ -361,8 +481,8 @@ const hapusProgram = (programId: number) => {
         </div>
 
         <!-- Modal Tambah Program -->
-        <div v-if="isModalOpen" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeModal"></div>
+        <div v-if="isProgramModalOpen" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeProgramModal"></div>
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="relative w-full max-w-md rounded-lg bg-white shadow-xl" @click.stop>
                     <div class="px-6 py-4">
@@ -371,7 +491,7 @@ const hapusProgram = (programId: number) => {
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Nama Program</label>
                                 <input
-                                    v-model="newProgram.nama_program"
+                                    v-model="newProgram.nama_diklat"
                                     type="text"
                                     class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Contoh: Pelatihan Public Speaking"
@@ -388,10 +508,118 @@ const hapusProgram = (programId: number) => {
                         </div>
                     </div>
                     <div class="bg-gray-50 px-6 py-3 flex justify-end gap-3">
-                        <button @click="closeModal" class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">
+                        <button @click="closeProgramModal" class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">
                             Batal
                         </button>
                         <button @click="tambahProgram" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded">
+                            Simpan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Tambah Detail -->
+        <div v-if="isDetailModalOpen" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeDetailModal"></div>
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative w-full max-w-md rounded-lg bg-white shadow-xl" @click.stop>
+                    <div class="px-6 py-4">
+                        <h3 class="text-lg font-medium text-gray-900">Tambah Diklat Baru</h3>
+                        <div class="mt-4 space-y-4">
+                            <div class="autocomplete-container relative">
+                                <label class="block text-sm font-medium text-gray-700">Cari Karyawan (NRP/Nama)</label>
+                                <input
+                                    v-model="employeeSearchQuery"
+                                    @input="handleEmployeeSearch"
+                                    @keydown="handleKeyDown"
+                                    type="text"
+                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Ketik NRP atau nama karyawan..."
+                                />
+                                
+                                <!-- Autocomplete Results -->
+                                <div v-if="showEmployeeResults && filteredEmployees.length > 0" class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md overflow-auto">
+                                    <ul class="py-1">
+                                        <li 
+                                            v-for="(employee, index) in filteredEmployees" 
+                                            :key="employee.id"
+                                            :class="[
+                                                'px-3 py-2 cursor-pointer',
+                                                index === selectedEmployeeIndex ? 'bg-blue-100' : 'hover:bg-gray-100'
+                                            ]"
+                                            @click="selectEmployee(employee)"
+                                        >
+                                            <div class="font-medium">{{ employee.nama_karyawan }}</div>
+                                            <div class="text-sm text-gray-500">{{ employee.nrp }}</div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">NRP Karyawan</label>
+                                <input
+                                    v-model="newDetail.nrp"
+                                    type="text"
+                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    readonly
+                                />
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Nama Karyawan</label>
+                                <input
+                                    v-model="newDetail.nama_karyawan"
+                                    type="text"
+                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    readonly
+                                />
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                                <input
+                                    v-model="newDetail.tanggal_mulai"
+                                    type="date"
+                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Tanggal Selesai</label>
+                                <input
+                                    v-model="newDetail.tanggal_selesai"
+                                    type="date"
+                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Jam Diklat per Hari</label>
+                                <input
+                                    v-model.number="newDetail.jam_diklat"
+                                    type="number"
+                                    min="1"
+                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Penyelenggara</label>
+                                <input
+                                    v-model="newDetail.penyelenggara"
+                                    type="text"
+                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-3 flex justify-end gap-3">
+                        <button @click="closeDetailModal" class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">
+                            Batal
+                        </button>
+                        <button @click="tambahDetail" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded">
                             Simpan
                         </button>
                     </div>

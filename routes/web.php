@@ -47,8 +47,10 @@ Route::delete('/Materi/delete/{id}', [MateriController::class, 'delete']);
 Route::get('/RencanaDiklat/RPT/PF', [pendidikanController::class, 'index'])->name('PF.index');
 Route::post('/RencanaDiklat/RPT/PF/store', [pendidikanController::class, 'store'])->name('PF.store');
 Route::delete('/RencanaDiklat/RPT/PF/delete/${id}', [pendidikanController::class, 'destroy'])->name('PF.destroy');
-//Pendidikan Non Formal
-Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index']);
+//Pendidikan Non Formal / Eksternal
+Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
+Route::post('/RencanaDiklat/RPT/PN/Program',[NonFormalController::class,'storeProgram'])->name('Diklat.eksternal-program');
+Route::post('/RencanaDiklat/RPT/PN/Detail',[NonFormalController::class,'storeDetail'])->name('Diklat.eksternal-program');
 //jadwal diklat
 Route::get('/RencanaDiklat/jadwal', [JadwalDiklatController::class, 'index']);
 //Silabus
