@@ -6,10 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class PendidikanFormalModels extends Model
 {
-    protected $table = 'pendidikan_formal';
+    protected $table = 'program_internal';
     protected $fillable = [
         'nama_program',
         'kategori',
         'tahun'
     ];
+
+    public function detail()
+    {
+        return $this->hasMany(DetailInternal::class, 'program_id');
+    }
 }

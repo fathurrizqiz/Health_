@@ -5,6 +5,7 @@ use App\Http\Controllers\KaryawanDiklat\DiklatController;
 use App\Http\Controllers\jadwalDiklat\JadwalDiklatController;
 use App\Http\Controllers\MasterData\MasterDataController;
 use App\Http\Controllers\Materi\MateriController;
+use App\Http\Controllers\RencanaDiklat\RPT\DiklatInternalController;
 use App\Http\Controllers\RencanaDiklat\RPT\NonFormalController;
 use App\Http\Controllers\RencanaDiklat\RPT\pendidikanController;
 use App\Http\Controllers\Silabus\SilabusController;
@@ -44,9 +45,10 @@ Route::put('/Materi/reject/{id}', [MateriController::class, 'reject']);
 Route::delete('/Materi/delete/{id}', [MateriController::class, 'delete']);
 
 //Pendidikan Formal
-Route::get('/RencanaDiklat/RPT/PF', [pendidikanController::class, 'index'])->name('PF.index');
-Route::post('/RencanaDiklat/RPT/PF/store', [pendidikanController::class, 'store'])->name('PF.store');
-Route::delete('/RencanaDiklat/RPT/PF/delete/${id}', [pendidikanController::class, 'destroy'])->name('PF.destroy');
+Route::get('/RencanaDiklat/RPT/PF', [DiklatInternalController::class, 'index'])->name('PF.index');
+Route::post('/RencanaDiklat/RPT/PF/store', [DiklatInternalController::class, 'storeProgram'])->name('PF.store');
+Route::delete('/RencanaDiklat/RPT/PF/delete/{id}', [DiklatInternalController::class, 'destroy'])->name('PF.destroy');
+Route::post('/RencanaDiklat/RPT/PF/DetailStore',[DiklatInternalController::class, 'storeDetail'])->name('diklat.detail-internal');
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
 Route::post('/RencanaDiklat/RPT/PN/Program',[NonFormalController::class,'storeProgram'])->name('Diklat.eksternal-program');

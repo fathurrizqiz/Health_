@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('program_internal', function (Blueprint $table) {
+        Schema::create('detail_internal', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_program')->nullable();
-            $table->string('kategori')->nullable();
-            $table->string('tahun')->nullable();
+            $table->foreignId('program_id')->constrained('program_internal')->cascadeOnDelete();
+            $table->string('nama_diklat')->nullable();
+            $table->string('keterangan')->nullable();
+            $table->string('pengajar')->nullable();
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pendidikan_formal');
+        Schema::dropIfExists('detail_internal');
     }
 };

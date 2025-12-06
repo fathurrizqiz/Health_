@@ -46,7 +46,8 @@ class DiklatController extends Controller
 
         // Total jam
         $totalJam = $diklat->where('status', 'approved')->sum('jam_diklat')
-            + $admin->where('status', 'approved')->sum('jam_diklat') + $eksternal->where('status', 'approved')->sum('jam_diklat');
+            + $admin->where('status', 'approved')->sum('jam_diklat') 
+            + $eksternal->where('status', 'approved')->sum('jam_diklat');
 
         // Persentase
         $percentage = $target > 0 ? min(100, ($totalJam / $target) * 100) : 0;
