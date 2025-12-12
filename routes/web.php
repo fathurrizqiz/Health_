@@ -8,6 +8,7 @@ use App\Http\Controllers\Materi\MateriController;
 use App\Http\Controllers\RencanaDiklat\RPT\DiklatInternalController;
 use App\Http\Controllers\RencanaDiklat\RPT\NonFormalController;
 use App\Http\Controllers\RencanaDiklat\RPT\pendidikanController;
+use App\Http\Controllers\RencanaDiklat\RPT\PostPreeController;
 use App\Http\Controllers\Silabus\SilabusController;
 use App\Http\Controllers\RencanaDiklat\HLC\HLCController;
 use Illuminate\Support\Facades\Route;
@@ -44,11 +45,34 @@ Route::put('/Materi/verify/{id}', [MateriController::class, 'verify']);
 Route::put('/Materi/reject/{id}', [MateriController::class, 'reject']);
 Route::delete('/Materi/delete/{id}', [MateriController::class, 'delete']);
 
-//Pendidikan Formal
+//Internal
 Route::get('/RencanaDiklat/RPT/PF', [DiklatInternalController::class, 'index'])->name('PF.index');
 Route::post('/RencanaDiklat/RPT/PF/store', [DiklatInternalController::class, 'storeProgram'])->name('PF.store');
-Route::delete('/RencanaDiklat/RPT/PF/delete/{id}', [DiklatInternalController::class, 'destroy'])->name('PF.destroy');
+Route::delete('/RencanaDiklat/RPT/PF/delete/{id}', [DiklatInternalController::class, 'destroyProgram'])->name('PF.destroy');
+Route::delete('/RencanaDiklat/RPT/PF/detail/delete/{id}', [DiklatInternalController::class, 'destroyDetail'])->name('PF.destroy-detail');
 Route::post('/RencanaDiklat/RPT/PF/DetailStore',[DiklatInternalController::class, 'storeDetail'])->name('diklat.detail-internal');
+// aksi detail internal
+Route::get('/RencanaDiklat/Internal/detail/aksi/{id}',[DiklatInternalController::class,'aksi'])->name('aksi-internal');
+// Program Detail Internal
+Route::get('/RencanaDiklat/Internal/detail/periode/{id}',[DiklatInternalController::class,'periode'])->name('periode-internal');
+Route::post('/RencanaDiklat/Internal/detail/periode/store',[DiklatInternalController::class,'storePeriode'])->name('periode-internal.store');
+Route::delete('/RencanaDiklat/Internal/detail/periode/delete/{id}',[DiklatInternalController::class,'destroyPeriod'])->name('periode-internal.delete');
+// PostTest
+Route::get('/DiklatInternal/pree/{detailId}', [PostPreeController::class, 'preTest']);
+Route::get('/DiklatInternal/post/{detailId}', [PostPreeController::class, 'postTest']);
+Route::post('/DiklatInternal/preetest', [PostPreeController::class, 'savePre']);
+Route::post('/DiklatInternal/posttest', [PostPreeController::class, 'savePost']);
+// user post and pree
+Route::get('/DiklatInternal/test/{type}/{detail_id}', [PostPreeController::class, 'showTest']);
+Route::post('/DiklatInternal/test/submit', [PostPreeController::class, 'submitTest']);
+// by token
+Route::post('/DiklatInternal/periode/start', [PostPreeController::class, 'startPeriode']);
+// Route::get('/test/token/{token}', [PostPreeController::class, 'openByToken']);
+Route::get('/test/token/{type}/{token}', [PostPreeController::class, 'openByToken']);
+
+
+
+
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
 Route::post('/RencanaDiklat/RPT/PN/Program',[NonFormalController::class,'storeProgram'])->name('Diklat.eksternal-program');

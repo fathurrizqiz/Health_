@@ -13,7 +13,7 @@ class PendidikanFormalModels extends Model
         'tahun'
     ];
 
-    public function detail()
+    public function details()
     {
         return $this->hasMany(DetailInternal::class, 'program_id');
     }

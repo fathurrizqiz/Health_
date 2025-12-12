@@ -1,0 +1,236 @@
+<script setup lang="ts">
+import Input from '@/components/ui/input/Input.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { toast } from 'vue3-toastify';
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Pendidikan Formal', href: '/pendidikan-formal' },
+    { title: 'Detail', href: '#' },
+];
+
+interface TokenFlash {
+    token_link?: {
+        pree?: string;
+        post?: string;
+    };
+    success?: string;
+    error?: string;
+}
+
+interface Periode {
+    id: number;
+    tanggal: Date;
+    nama_pengajar: string;
+    tempat: string;
+}
+
+const props = defineProps<{
+  detail_id: number;
+  periode: Periode[];
+  token_link?: {
+    pree?: string;
+    post?: string;
+  }
+}>();
+
+
+const selectedPeriode = ref('');
+const jam = ref('');
+
+function start() {
+    if (!selectedPeriode.value) {
+        alert('Pilih periode terlebih dahulu!');
+        return;
+    }
+
+    router.post(
+        '/DiklatInternal/periode/start',
+        {
+            periode_id: selectedPeriode.value,
+        },
+        {
+            preserveState: true,
+            onSuccess: () => {
+                toast.success('Token generated');
+            },
+        },
+    );
+}
+const page = usePage(); // ambil semua props dari Inertia
+
+const flash = page.props.flash as TokenFlash | undefined;
+</script>
+
+<template>
+    <Head title="Detail Diklat" />
+
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="p-6">
+            <h1 class="mb-6 text-2xl font-semibold text-gray-800">
+                Aksi Diklat
+            </h1>
+
+            <!-- Pilih Periode -->
+            <div
+                class="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+            >
+                <div class="m-2 flex justify-between">
+                    <h2 class="mb-3 text-lg font-medium text-gray-700">
+                        Pilih Periode
+                    </h2>
+                </div>
+                <select
+                    v-model="selectedPeriode"
+                    class="w-full rounded-md border border-gray-300 p-2.5 text-sm"
+                >
+                    <option value="">-- Pilih periode pelaksanaan --</option>
+
+                    <option
+                        v-for="p in props.periode"
+                        :key="p.id"
+                        :value="p.id"
+                    >
+                        {{ p.tanggal }} - {{ p.nama_pengajar }} ({{ p.tempat }})
+                    </option>
+                </select>
+
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-gray-600">Status Periode:</span>
+                    <span
+                        class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
+                        >Belum dimulai</span
+                    >
+                </div>
+            </div>
+
+            <!-- Jam Diklat -->
+            <div
+                class="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+            >
+                <h2 class="mb-3 text-lg font-medium text-gray-700">
+                    Durasi Diklat (Jam)
+                </h2>
+                <Input
+                    type="number"
+                    min="1"
+                    v-model="jam"
+                    class="w-32 rounded-md border border-gray-300 p-2.5 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    placeholder="0"
+                />
+            </div>
+
+            <div class="mb-8 text-right">
+                <button class="py-3 px-5 bg-blue-600 rounded text-white hover:bg-blue-800 cursor-pointer" @click="start">Mulai Periode</button>
+            </div>
+            <div
+                v-if="($page.props.flash as any)?.token_link_pree"
+                class="mt-4 bg-blue-100 p-3"
+            >
+                <strong>Link Pree-test:</strong>
+                <a
+                    :href="($page.props.flash as any).token_link_pree"
+                    class="text-blue-700 underline"
+                >
+                    {{ ($page.props.flash as any).token_link_pree }}
+                </a>
+            </div>
+
+            <div v-if="flash?.token_link?.pree" class="mt-4 bg-blue-100 p-3">
+                <strong>Link Pree-test:</strong>
+                <a
+                    :href="flash.token_link.pree"
+                    class="text-blue-700 underline"
+                >
+                    {{ flash.token_link.pree }}
+                </a>
+            </div>
+
+            <div v-if="token_link?.pree">
+                <a :href="token_link.pree">{{ token_link.pree }}</a>
+            </div>
+            <div v-if="token_link?.post">
+                <a :href="token_link.post">{{ token_link.post }}</a>
+            </div>
+
+            <!-- Manajemen Test -->
+            <div
+                class="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+            >
+                <h2 class="mb-4 text-lg font-medium text-gray-700">
+                    Manajemen Test
+                </h2>
+                <div class="flex flex-col gap-3 sm:flex-row">
+                    <button
+                        @click="
+                            router.get(
+                                `/DiklatInternal/post/${props.detail_id}`,
+                            )
+                        "
+                        class="flex-1 rounded-md bg-blue-600 px-4 py-2.5 text-white"
+                    >
+                        Post-test
+                    </button>
+
+                    <button
+                        @click="
+                            router.get(
+                                `/DiklatInternal/pree/${props.detail_id}`,
+                            )
+                        "
+                        class="flex-1 rounded-md bg-teal-600 px-4 py-2.5 text-white"
+                    >
+                        Pre-test
+                    </button>
+                </div>
+            </div>
+
+            <!-- Template Sertifikat -->
+            <div
+                class="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+            >
+                <h2 class="mb-3 text-lg font-medium text-gray-700">
+                    Template Sertifikat
+                </h2>
+                <button
+                    class="rounded-md bg-gray-800 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-900"
+                >
+                    Buat Template
+                </button>
+            </div>
+
+            <!-- Navigasi Cepat -->
+            <div
+                class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+            >
+                <h2 class="mb-4 text-lg font-medium text-gray-700">
+                    Navigasi Cepat
+                </h2>
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <button
+                        class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
+                    >
+                        Detail Periode
+                    </button>
+                    <button
+                        class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
+                    >
+                        Data Presensi
+                    </button>
+                    <button
+                        class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
+                    >
+                        Sertifikat
+                    </button>
+                    <button
+                        class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
+                    >
+                        Dokumentasi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </AppLayout>
+</template>

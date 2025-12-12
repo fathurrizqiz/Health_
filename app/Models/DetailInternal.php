@@ -18,4 +18,9 @@ class DetailInternal extends Model
     {
         return $this->belongsTo(PendidikanFormalModels::class, 'program_id');
     }
+    public function periodes()
+    {
+        return $this->hasMany(PeriodeUtama::class, 'detail_id');
+    }
+
 }
