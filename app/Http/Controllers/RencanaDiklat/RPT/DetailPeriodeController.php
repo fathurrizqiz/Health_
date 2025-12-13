@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Http\Controllers\RencanaDiklat\RPT;
+
+use App\Http\Controllers\Controller;
+use App\Models\DetailInternal;
+use App\Models\Karyawans;
+use App\Models\PeriodeDetailInternal;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Log;
+
+class DetailPeriodeController extends Controller
+{
+    public function index($id)
+    {
+        $detail = DetailInternal::findOrFail($id);
+        $karyawan = Karyawans::all();
+        $periode = PeriodeDetailInternal::all();
+        return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/DetailPeriode/index', [
+            'detail' => $detail,
+            'karyawan' => $karyawan,
+            'periode' => $periode
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        // Log::info('STORE PeriodeDetailInternal - Request masuk', $request->all());
+
+        $validated = $request->validate([
+            'bagian' => 'required|array',
+            'bagian.*' => 'string',
+            'detail_program_id' => 'required|integer'
+        ]);
+
+        // Log::info('Data tervalidasi', $validated);
+
+        $bagianDipilih = $validated['bagian'];
+
+        $karyawan = Karyawans::whereIn('bagian', $bagianDipilih)->get();
+
+        // Log::info('Query karyawan', [
+        //     'bagianDipilih' => $bagianDipilih,
+        //     'jumlah_karyawan' => $karyawan->count()
+        // ]);
+
+        foreach ($karyawan as $k) {
+            try {
+                $data = PeriodeDetailInternal::create([
+                    'detail_program_id' => $request->detail_program_id,
+                    'nama_karyawan' => $k->nama_karyawan,
+                    'tmt' => $k->tmt,
+                    'nrp' => $k->nrp,
+                    'bagian' => $k->bagian,
+                    'unit_kerja' => $k->unit_kerja,
+                    'posisi_jabatan' => $k->posisi_jabatan,
+                    'klinis_non_klinis' => $k->klinis_non_klinis,
+                    'jenis_kelamin' => $k->jenis_kelamin,
+                ]);
+
+                // Log::info('Insert berhasil', [
+                //     'nrp' => $k->nrp,
+                //     'id' => $data->id ?? null
+                // ]);
+
+            } catch (\Exception $e) {
+                Log::error('Insert gagal', [
+                    'nrp' => $k->nrp,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        // Log::info('STORE selesai');
+
+        return back()->with('success', 'Data berhasil disimpan');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+
+        if (!is_array($ids) || count($ids) === 0) {
+            return back()->withErrors('Tidak ada data yang dipilih');
+        }
+
+        Log::info('Bulk delete PeriodeDetailInternal', ['ids' => $ids]);
+
+        PeriodeDetailInternal::whereIn('id', $ids)->delete();
+
+        return back()->with('success', 'Data terpilih berhasil dihapus!');
+    }
+
+}

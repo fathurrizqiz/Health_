@@ -15,6 +15,7 @@ interface TokenFlash {
     token_link?: {
         pree?: string;
         post?: string;
+        evaluasi?:string;
     };
     success?: string;
     error?: string;
@@ -33,6 +34,7 @@ const props = defineProps<{
   token_link?: {
     pree?: string;
     post?: string;
+    evaluasi?:string;
   }
 }>();
 
@@ -62,6 +64,10 @@ function start() {
 const page = usePage(); // ambil semua props dari Inertia
 
 const flash = page.props.flash as TokenFlash | undefined;
+
+function detailPeriode(){
+    router.visit(`/DiklatInternal/detailperiod/list/${props.detail_id}`);
+}
 </script>
 
 <template>
@@ -148,11 +154,25 @@ const flash = page.props.flash as TokenFlash | undefined;
                 </a>
             </div>
 
-            <div v-if="token_link?.pree">
-                <a :href="token_link.pree">{{ token_link.pree }}</a>
-            </div>
-            <div v-if="token_link?.post">
-                <a :href="token_link.post">{{ token_link.post }}</a>
+            <div class="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                <div>
+                    <h3 class="font-semibold">Link Pree-Test :</h3>
+                    <div v-if="token_link?.pree">
+                        <a :href="token_link.pree">{{ token_link.pree }}</a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-semibold">Link Post-Test :</h3>
+                    <div v-if="token_link?.post">
+                        <a :href="token_link.post">{{ token_link.post }}</a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-semibold">Link Evaluasi :</h3>
+                    <div v-if="token_link?.evaluasi">
+                        <a :href="token_link.evaluasi">{{ token_link.evaluasi }}</a>
+                    </div>
+                </div>
             </div>
 
             <!-- Manajemen Test -->
@@ -209,7 +229,7 @@ const flash = page.props.flash as TokenFlash | undefined;
                     Navigasi Cepat
                 </h2>
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <button
+                    <button @click="detailPeriode"
                         class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                     >
                         Detail Periode

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\RencanaDiklat\RPT;
 
 use App\Http\Controllers\Controller;
+use App\Models\DetailInternal;
+use App\Models\EvaluasiDetailInternal;
 use App\Models\PeriodeUtama;
 use App\Models\PostPreeDetailInternal;
 use App\Models\QuestionChoices;
@@ -188,10 +190,21 @@ class PostPreeController extends Controller
             'is_used' => false,
         ]);
 
+        // token evaluasi
+        $tokenEvaluasi = TestToken::create([
+            'periode_id' => $periode->id,
+            'token' => Str::random(64),
+            'type' => 'evaluasi', // ⬅️ BARU
+            'expires_at' => now()->addHours(8),
+            'is_used' => false,
+        ]);
+
+
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/aksilanjut', [
             'token_link' => [
                 'pree' => url("/test/token/pree/{$tokenPree->token}"),
-                'post' => url("/test/token/post/{$tokenPost->token}")
+                'post' => url("/test/token/post/{$tokenPost->token}"),
+                'evaluasi' => url("/test/token/evaluasi/{$tokenEvaluasi->token}"),
             ]
         ]);
 
@@ -225,6 +238,59 @@ class PostPreeController extends Controller
             'token' => $tokenData->token
         ]);
     }
+
+    // function evaluasi
+    public function openEvaluasiByToken($token)
+    {
+        $tokenData = TestToken::where('token', $token)
+            ->where('type', 'evaluasi')
+            ->firstOrFail();
+
+        if (!$tokenData->isValid()) {
+            abort(403, 'Token tidak valid');
+        }
+
+        // asumsi relasi sudah ada
+        $periode = $tokenData->periode;
+
+        $data = DetailInternal::findOrFail($periode->detail_id);
+
+        return Inertia::render(
+            'RencanaDiklat/RPT/PendidikanFormal/PrePostTest/evaluasi',
+            [
+                'data' => $data,
+                'token' => $tokenData->token
+            ]
+        );
+    }
+
+    public function submitEvaluasi(Request $request)
+    {
+        $request->validate([
+            'detail_id' => 'required|exists:detail_internal,id',
+            'evaluasi' => 'required|string',
+            'token' => 'required'
+        ]);
+
+        $token = TestToken::where('token', $request->token)
+            ->where('type', 'evaluasi')
+            ->firstOrFail();
+
+        if (!$token->isValid()) {
+            abort(403, 'Token tidak valid');
+        }
+
+        EvaluasiDetailInternal::updateOrCreate(
+            ['detail_id' => $request->detail_id],
+            ['evaluasi' => $request->evaluasi]
+        );
+
+        $token->update(['is_used' => true]);
+
+        return back()->with('success', 'Evaluasi berhasil disimpan');
+    }
+
+
 
 
 

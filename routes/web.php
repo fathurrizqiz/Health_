@@ -5,6 +5,7 @@ use App\Http\Controllers\KaryawanDiklat\DiklatController;
 use App\Http\Controllers\jadwalDiklat\JadwalDiklatController;
 use App\Http\Controllers\MasterData\MasterDataController;
 use App\Http\Controllers\Materi\MateriController;
+use App\Http\Controllers\RencanaDiklat\RPT\DetailPeriodeController;
 use App\Http\Controllers\RencanaDiklat\RPT\DiklatInternalController;
 use App\Http\Controllers\RencanaDiklat\RPT\NonFormalController;
 use App\Http\Controllers\RencanaDiklat\RPT\pendidikanController;
@@ -62,14 +63,20 @@ Route::get('/DiklatInternal/pree/{detailId}', [PostPreeController::class, 'preTe
 Route::get('/DiklatInternal/post/{detailId}', [PostPreeController::class, 'postTest']);
 Route::post('/DiklatInternal/preetest', [PostPreeController::class, 'savePre']);
 Route::post('/DiklatInternal/posttest', [PostPreeController::class, 'savePost']);
+// Route::get('/DiklatInternal/evaluasi', [PostPreeController::class, 'openEvaluasiByToken']);
 // user post and pree
 Route::get('/DiklatInternal/test/{type}/{detail_id}', [PostPreeController::class, 'showTest']);
 Route::post('/DiklatInternal/test/submit', [PostPreeController::class, 'submitTest']);
 // by token
 Route::post('/DiklatInternal/periode/start', [PostPreeController::class, 'startPeriode']);
-// Route::get('/test/token/{token}', [PostPreeController::class, 'openByToken']);
+Route::get('/test/token/evaluasi/{token}', [PostPreeController::class, 'openEvaluasiByToken']);
 Route::get('/test/token/{type}/{token}', [PostPreeController::class, 'openByToken']);
-
+// post evaluasi
+Route::post('/test/evaluasi/post',[PostPreeController::class,'submitEvaluasi']);
+// Route Detail Periode
+Route::get('/DiklatInternal/detailperiod/list/{id}',[DetailPeriodeController::class,'index'])->name('Detail.periode');
+Route::post('/DiklatInternal/detailperiod/list/store',[DetailPeriodeController::class,'store'])->name('Detail.periode-store');
+Route::delete('/DiklatInternal/detailperiod/list/delete',[DetailPeriodeController::class,'bulkDelete'])->name('Detail.periode-store');
 
 
 

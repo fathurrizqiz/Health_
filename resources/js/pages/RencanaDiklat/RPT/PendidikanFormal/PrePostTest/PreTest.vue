@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import QuestionForm from '@/components/postpree/QuestionForm.vue';
 import { ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
+import { toast } from 'vue3-toastify';
 // import { ArrowLeftIcon, AcademicCapIcon } from '@heroicons/vue';
 
 const props = defineProps<{
@@ -17,6 +18,13 @@ function save() {
   router.post('/DiklatInternal/preetest', {
     detail_id: props.detail_id,
     questions: questions.value
+  },{
+    onSuccess:() => {
+      toast.success('Pree-Test Berhasil disimpan');
+    },
+    onError(errors){
+      toast.error('Error:', errors);
+    }
   });
 }
 

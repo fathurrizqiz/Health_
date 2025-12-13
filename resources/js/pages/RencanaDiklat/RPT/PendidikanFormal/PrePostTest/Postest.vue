@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import QuestionForm from '@/components/postpree/QuestionForm.vue';
 import { ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
+import { toast } from 'vue3-toastify';
 // import { ArrowLeftIcon, DocumentCheckIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps<{
@@ -24,11 +25,11 @@ function save() {
     detail_id: props.detail_id,
     questions: questions.value
   }, {
-    onSuccess: (page) => {
-      console.log('Request sukses, server response:', page.props);
+    onSuccess: () => {
+      toast.success('Post-Test Berhasil disimpan!')
     },
     onError: (errors) => {
-      console.error('Request gagal, errors:', errors);
+      toast.error('Request gagal, errors:', errors);
     },
     onFinish: () => {
       console.log('Request selesai');
