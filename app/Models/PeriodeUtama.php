@@ -23,4 +23,10 @@ class PeriodeUtama extends Model
     {
         return $this->hasMany(AksiDetailInternal::class, 'periode_id');
     }
+
+    public function pembahasan()
+    {
+        return $this->hasMany(TemplatePembahasanSertifikat::class, 'periode_id');
+    }
+
 }

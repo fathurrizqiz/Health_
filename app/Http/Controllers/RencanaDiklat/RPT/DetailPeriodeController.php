@@ -5,7 +5,7 @@ namespace App\Http\Controllers\RencanaDiklat\RPT;
 use App\Http\Controllers\Controller;
 use App\Models\DetailInternal;
 use App\Models\Karyawans;
-use App\Models\PeriodeDetailInternal;
+use App\Models\PeriodeBagianDetailInternal;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Log;
@@ -16,7 +16,7 @@ class DetailPeriodeController extends Controller
     {
         $detail = DetailInternal::findOrFail($id);
         $karyawan = Karyawans::all();
-        $periode = PeriodeDetailInternal::all();
+        $periode = PeriodeBagianDetailInternal::all();
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/DetailPeriode/index', [
             'detail' => $detail,
             'karyawan' => $karyawan,
@@ -26,7 +26,7 @@ class DetailPeriodeController extends Controller
 
     public function store(Request $request)
     {
-        // Log::info('STORE PeriodeDetailInternal - Request masuk', $request->all());
+        // Log::info('STORE PeriodeBagianDetailInternal - Request masuk', $request->all());
 
         $validated = $request->validate([
             'bagian' => 'required|array',
@@ -47,7 +47,7 @@ class DetailPeriodeController extends Controller
 
         foreach ($karyawan as $k) {
             try {
-                $data = PeriodeDetailInternal::create([
+                $data = PeriodeBagianDetailInternal::create([
                     'detail_program_id' => $request->detail_program_id,
                     'nama_karyawan' => $k->nama_karyawan,
                     'tmt' => $k->tmt,
@@ -85,9 +85,9 @@ class DetailPeriodeController extends Controller
             return back()->withErrors('Tidak ada data yang dipilih');
         }
 
-        Log::info('Bulk delete PeriodeDetailInternal', ['ids' => $ids]);
+        Log::info('Bulk delete PeriodeBagianDetailInternal', ['ids' => $ids]);
 
-        PeriodeDetailInternal::whereIn('id', $ids)->delete();
+        PeriodeBagianDetailInternal::whereIn('id', $ids)->delete();
 
         return back()->with('success', 'Data terpilih berhasil dihapus!');
     }

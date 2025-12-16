@@ -3,20 +3,59 @@
 namespace App\Http\Controllers\RencanaDiklat\RPT;
 
 use App\Http\Controllers\Controller;
+use App\Models\AksiDetailInternal;
 use App\Models\DetailInternal;
 use App\Models\EvaluasiDetailInternal;
+use App\Models\PeriodeBagianDetailInternal;
 use App\Models\PeriodeUtama;
 use App\Models\PostPreeDetailInternal;
 use App\Models\QuestionChoices;
 use App\Models\QuestionTestDetailInternal;
+use App\Models\TemplatePembahasanSertifikat;
 use App\Models\TestToken;
 use App\Models\UserAnswerPostPreeDetail;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Log;
 use Str;
 
 class PostPreeController extends Controller
 {
+    public function template($periodeId)
+    {
+        $materi = TemplatePembahasanSertifikat::where('periode_id', $periodeId)
+            ->pluck('materi');
+
+        return Inertia::render(
+            'RencanaDiklat/RPT/PendidikanFormal/Setifikat/templatepembahasan',
+            [
+                'periode_id' => $periodeId,
+                'existing' => $materi
+            ]
+        );
+    }
+
+
+    public function storeTemplate(Request $request)
+    {
+        $request->validate([
+            'periode_id' => 'required|exists:periode_detail_internal,id',
+            'materi' => 'required|array',
+            'materi.*' => 'required|string'
+        ]);
+
+        TemplatePembahasanSertifikat::where('periode_id', $request->periode_id)->delete();
+
+        foreach ($request->materi as $item) {
+            TemplatePembahasanSertifikat::create([
+                'periode_id' => $request->periode_id,
+                'materi' => $item
+            ]);
+        }
+
+        return back()->with('success', 'Pembahasan disimpan');
+    }
+
     public function preTest($detailId)
     {
         $tests = PostPreeDetailInternal::with('questions.choices')
@@ -78,6 +117,10 @@ class PostPreeController extends Controller
         $deleted = QuestionTestDetailInternal::where('test_id', $test->id)->delete();
         \Log::info("Deleted old questions", ['count' => $deleted]);
 
+        $questions = $request->questions;
+        $totalQuestions = count($questions);
+        $bobotPerSoal = $totalQuestions > 0 ? 100.0 / $totalQuestions : 0;
+
         foreach ($request->questions as $qIndex => $q) {
             \Log::info("Saving question", ['index' => $qIndex, 'question' => $q['text']]);
 
@@ -85,6 +128,7 @@ class PostPreeController extends Controller
                 'test_id' => $test->id,
                 'pertanyaan' => $q['text'],
                 'tipe' => 'multiple_choice',
+                'bobot' => round($bobotPerSoal, 2),
             ]);
 
             if (!$question) {
@@ -159,18 +203,69 @@ class PostPreeController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Jawaban berhasil disimpan!');
+        $totalScore = 0;
+        foreach ($request->answers as $questionId => $choiceId) {
+            // Ambil soal + pastikan milik test yang benar
+            $question = QuestionTestDetailInternal::with('test')
+                ->where('id', $questionId)
+                ->whereHas('test', function ($q) use ($request) {
+                    $q->where('type', $request->type)
+                        ->where('detail_program_id', $request->detail_id);
+                })->first();
+
+            if (!$question)
+                continue;
+
+            $choice = QuestionChoices::find($choiceId);
+            if ($choice && $choice->is_correct) {
+                $totalScore += $question->bobot;
+            }
+        }
+
+        $totalScore = round($totalScore, 2);
+
+        $peserta = PeriodeBagianDetailInternal::where('nrp', $request->nrp)
+            ->where('detail_program_id', $request->detail_id)
+            ->firstOrFail();
+
+        if ($request->type === 'post') {
+            $peserta->update(['post_done_at' => now()]);
+        }
+
+        if ($request->type === 'pree') {
+            $peserta->update(['pree_done_at' => now()]);
+        }
+
+        // ===============================
+// 🎯 CEK & GENERATE SERTIFIKAT
+// ===============================
+        $this->checkAndGenerateCertificate($peserta);
+
+        return back()
+            ->with('success', 'Jawaban berhasil disimpan!')
+            ->with('nilai_akhir', $totalScore); // ← kirim nilai ke frontend
     }
+
 
 
     // generate link and user input
     public function startPeriode(Request $request)
     {
         $request->validate([
-            'periode_id' => 'required|exists:periode_detail_internal,id'
+            'periode_id' => 'required|exists:periode_detail_internal,id',
+            'jam_diklat' => 'required|integer|min:1',
         ]);
 
         $periode = PeriodeUtama::findOrFail($request->periode_id);
+
+        if (AksiDetailInternal::where('periode_id', $periode->id)->exists()) {
+            return back()->withErrors(['periode_id' => 'Periode ini sudah dimulai.']);
+        }
+
+        AksiDetailInternal::create([
+            'periode_id' => $periode->id,
+            'jam_diklat' => $request->jam_diklat,
+        ]);
 
         // token pree
         $tokenPree = TestToken::create([
@@ -246,49 +341,79 @@ class PostPreeController extends Controller
             ->where('type', 'evaluasi')
             ->firstOrFail();
 
-        if (!$tokenData->isValid()) {
-            abort(403, 'Token tidak valid');
+
+        // token → periode → detail_internal
+        $periode = $tokenData->periode; // relasi
+        if (!$periode) {
+            abort(404, 'Periode tidak ditemukan');
         }
 
-        // asumsi relasi sudah ada
-        $periode = $tokenData->periode;
-
-        $data = DetailInternal::findOrFail($periode->detail_id);
+        $detail = DetailInternal::with('evaluasi')
+            ->findOrFail($periode->detail_id);
 
         return Inertia::render(
             'RencanaDiklat/RPT/PendidikanFormal/PrePostTest/evaluasi',
             [
-                'data' => $data,
+                'data' => $detail,
                 'token' => $tokenData->token
             ]
         );
     }
 
+
+
     public function submitEvaluasi(Request $request)
     {
+        Log::info('Submit evaluasi dipanggil', [
+            'detail_id' => $request->detail_id,
+            'token' => $request->token
+        ]);
+
         $request->validate([
             'detail_id' => 'required|exists:detail_internal,id',
             'evaluasi' => 'required|string',
             'token' => 'required'
         ]);
 
+        Log::debug('Validasi request evaluasi berhasil');
+
         $token = TestToken::where('token', $request->token)
             ->where('type', 'evaluasi')
             ->firstOrFail();
 
+        Log::info('Token evaluasi ditemukan', [
+            'token_id' => $token->id,
+            'is_used' => $token->is_used,
+            'expired_at' => $token->expired_at ?? null
+        ]);
+
         if (!$token->isValid()) {
+            Log::warning('Token evaluasi tidak valid', [
+                'token' => $request->token
+            ]);
+
             abort(403, 'Token tidak valid');
         }
 
-        EvaluasiDetailInternal::updateOrCreate(
+        $evaluasi = EvaluasiDetailInternal::updateOrCreate(
             ['detail_id' => $request->detail_id],
             ['evaluasi' => $request->evaluasi]
         );
 
+        Log::info('Evaluasi berhasil disimpan / diperbarui', [
+            'evaluasi_id' => $evaluasi->id,
+            'detail_id' => $evaluasi->detail_id
+        ]);
+
         $token->update(['is_used' => true]);
+
+        Log::info('Token evaluasi ditandai sebagai digunakan', [
+            'token_id' => $token->id
+        ]);
 
         return back()->with('success', 'Evaluasi berhasil disimpan');
     }
+
 
 
 

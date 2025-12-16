@@ -52,6 +52,7 @@ function start() {
         '/DiklatInternal/periode/start',
         {
             periode_id: selectedPeriode.value,
+            jam_diklat:jam.value
         },
         {
             preserveState: true,
@@ -68,6 +69,25 @@ const flash = page.props.flash as TokenFlash | undefined;
 function detailPeriode(){
     router.visit(`/DiklatInternal/detailperiod/list/${props.detail_id}`);
 }
+function presensi(){
+    if (!selectedPeriode.value) {
+        alert('Pilih periode terlebih dahulu!');
+        return;
+    }
+    router.visit(`/DiklatInternal/detail/presensi/${selectedPeriode.value}`);
+}
+
+function bukaTemplate() {
+    if (!selectedPeriode.value) {
+        alert('Pilih periode terlebih dahulu!')
+        return
+    }
+
+    router.visit(
+        `/DiklatInternal/detail/pembahasan/template/${selectedPeriode.value}`
+    )
+}
+
 </script>
 
 <template>
@@ -214,7 +234,7 @@ function detailPeriode(){
                 <h2 class="mb-3 text-lg font-medium text-gray-700">
                     Template Sertifikat
                 </h2>
-                <button
+                <button @click="bukaTemplate"
                     class="rounded-md bg-gray-800 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-900"
                 >
                     Buat Template
@@ -234,7 +254,7 @@ function detailPeriode(){
                     >
                         Detail Periode
                     </button>
-                    <button
+                    <button @click="presensi"
                         class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                     >
                         Data Presensi

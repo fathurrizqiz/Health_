@@ -16,12 +16,21 @@ return new class extends Migration
             $table->foreignId('detail_program_id')->constrained('detail_internal')->cascadeOnDelete();
             $table->string('nama_karyawan');
             $table->date('tmt')->nullable();
-            $table->string('nrp')->unique()->nullable();
+            $table->string('nrp')->nullable();
             $table->string('bagian')->nullable();
             $table->string('unit_kerja')->nullable();
             $table->string('posisi_jabatan')->nullable();
             $table->string('klinis_non_klinis')->nullable();
             $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
+
+             $table->timestamp('hadir_at')->nullable();
+            $table->timestamp('post_done_at')->nullable();
+            $table->timestamp('pree_done_at')->nullable();
+
+            // SERTIFIKAT
+            $table->string('sertifikat_path')->nullable();
+            $table->timestamp('sertifikat_generated_at')->nullable();
+            $table->unique(['detail_program_id', 'nrp']);
             $table->timestamps();
         });
     }

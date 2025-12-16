@@ -22,5 +22,10 @@ class DetailInternal extends Model
     {
         return $this->hasMany(PeriodeUtama::class, 'detail_id');
     }
+    public function evaluasi()
+    {
+        return $this->hasOne(EvaluasiDetailInternal::class, 'detail_id');
+    }
+
 
 }

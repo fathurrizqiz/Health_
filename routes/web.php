@@ -10,6 +10,7 @@ use App\Http\Controllers\RencanaDiklat\RPT\DiklatInternalController;
 use App\Http\Controllers\RencanaDiklat\RPT\NonFormalController;
 use App\Http\Controllers\RencanaDiklat\RPT\pendidikanController;
 use App\Http\Controllers\RencanaDiklat\RPT\PostPreeController;
+use App\Http\Controllers\RencanaDiklat\RPT\PresensiDetailController;
 use App\Http\Controllers\Silabus\SilabusController;
 use App\Http\Controllers\RencanaDiklat\HLC\HLCController;
 use Illuminate\Support\Facades\Route;
@@ -77,8 +78,11 @@ Route::post('/test/evaluasi/post',[PostPreeController::class,'submitEvaluasi']);
 Route::get('/DiklatInternal/detailperiod/list/{id}',[DetailPeriodeController::class,'index'])->name('Detail.periode');
 Route::post('/DiklatInternal/detailperiod/list/store',[DetailPeriodeController::class,'store'])->name('Detail.periode-store');
 Route::delete('/DiklatInternal/detailperiod/list/delete',[DetailPeriodeController::class,'bulkDelete'])->name('Detail.periode-store');
-
-
+// Presensi Detail
+Route::get('/DiklatInternal/detail/presensi/{periode_id}',[PresensiDetailController::class,'index']);
+// Template Pembahasan Sertifikat
+Route::get('/DiklatInternal/detail/pembahasan/template/{periode}',[PostPreeController::class,'template']);
+Route::post('/DiklatInternal/detail/pembahasan/template/store',[PostPreeController::class,'storeTemplate']);
 
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');

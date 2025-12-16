@@ -10,7 +10,8 @@ class QuestionTestDetailInternal extends Model
     protected $fillable = [
         'test_id',
         'pertanyaan',
-        'tipe'
+        'tipe',
+        'bobot'
     ];
 
     public function test()

@@ -1,10 +1,18 @@
 <script setup lang="ts">
+import HeaderMenu from '@/components/HeaderMenu.vue';
 import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { toast } from 'vue3-toastify';
+
+const menuItems = [
+    { title: 'Datar Bagian', href: '/MateriDiklat/approve' },
+    { title: 'Presensi', href: '/MateriDiklat/reject' },
+    { title: 'Sertifikat', href: '/MateriDiklat/reject' },
+    { title: 'Dokumentasi', href: '/MateriDiklat/reject' },
+];
 
 interface Karyawan {
     id: number;
@@ -116,6 +124,7 @@ function hapusTerpilih() {
     <Head title="Detail Diklat" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
+        <HeaderMenu :items="menuItems" />
         <div class="m-5">
             <h1 class="text-xl font-bold">Detail Periode</h1>
 

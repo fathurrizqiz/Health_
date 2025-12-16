@@ -9,7 +9,6 @@ class AksiDetailInternal extends Model
     protected $table = 'aksi_detail_internal';
     protected $fillable = [
         'periode_id',
-        'periode',
         'jam_diklat',
     ];
 
@@ -17,5 +16,8 @@ class AksiDetailInternal extends Model
     {
         return $this->belongsTo(PeriodeUtama::class, 'periode_id');
     }
-    
+    public function evaluasi()
+    {
+        return $this->hasOne(EvaluasiDetailInternal::class, 'detail_id');
+    }
 }

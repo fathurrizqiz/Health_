@@ -11,4 +11,8 @@ class EvaluasiDetailInternal extends Model
         'detail_id',
         'evaluasi'
     ];
+    public function aksi()
+    {
+        return $this->belongsTo(AksiDetailInternal::class, 'detail_id');
+    }
 }

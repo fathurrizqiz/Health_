@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { toast } from 'vue3-toastify';
 
 const props = defineProps<{
     data: {
@@ -18,7 +19,14 @@ function submitEvaluasi() {
     }
 
     router.post('/test/evaluasi/post', {
+        detail_id: props.data.id,
         evaluasi: evaluasi.value,
+        token:props.token, 
+
+    },{
+        onSuccess: () => {
+            toast.success('Evaluasi Berhasil Disimpan!, Terima kasih telah partisipasi!')
+        }
     });
 }
 </script>
