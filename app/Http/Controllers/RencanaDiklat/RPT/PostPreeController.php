@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\RencanaDiklat\RPT;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\GenerateCertificateJob;
 use App\Models\AksiDetailInternal;
 use App\Models\DetailInternal;
 use App\Models\EvaluasiDetailInternal;
@@ -21,40 +22,7 @@ use Str;
 
 class PostPreeController extends Controller
 {
-    public function template($periodeId)
-    {
-        $materi = TemplatePembahasanSertifikat::where('periode_id', $periodeId)
-            ->pluck('materi');
 
-        return Inertia::render(
-            'RencanaDiklat/RPT/PendidikanFormal/Setifikat/templatepembahasan',
-            [
-                'periode_id' => $periodeId,
-                'existing' => $materi
-            ]
-        );
-    }
-
-
-    public function storeTemplate(Request $request)
-    {
-        $request->validate([
-            'periode_id' => 'required|exists:periode_detail_internal,id',
-            'materi' => 'required|array',
-            'materi.*' => 'required|string'
-        ]);
-
-        TemplatePembahasanSertifikat::where('periode_id', $request->periode_id)->delete();
-
-        foreach ($request->materi as $item) {
-            TemplatePembahasanSertifikat::create([
-                'periode_id' => $request->periode_id,
-                'materi' => $item
-            ]);
-        }
-
-        return back()->with('success', 'Pembahasan disimpan');
-    }
 
     public function preTest($detailId)
     {
@@ -246,11 +214,39 @@ class PostPreeController extends Controller
             ->with('nilai_akhir', $totalScore); // ← kirim nilai ke frontend
     }
 
+    protected function checkAndGenerateCertificate($peserta)
+    {
+        // Sudah pernah dibuat → STOP
+        if ($peserta->sertifikat_generated_at) {
+            return;
+        }
+
+        /**
+         * Karena:
+         * post  = sebelum pelatihan
+         * pree  = setelah pelatihan (yang terakhir)
+         */
+        if (!$peserta->post_done_at) {
+            return;
+        }
+
+        if (!$peserta->pree_done_at) {
+            return;
+        }
+
+
+        // GenerateCertificateJob::dispatch($peserta->id);
+    }
 
 
     // generate link and user input
     public function startPeriode(Request $request)
     {
+        Log::info('Start periode diklat dimulai', [
+            'user_id' => auth()->id(),
+            'request' => $request->only(['periode_id', 'jam_diklat']),
+        ]);
+
         $request->validate([
             'periode_id' => 'required|exists:periode_detail_internal,id',
             'jam_diklat' => 'required|integer|min:1',
@@ -258,7 +254,17 @@ class PostPreeController extends Controller
 
         $periode = PeriodeUtama::findOrFail($request->periode_id);
 
+        Log::info('Periode ditemukan', [
+            'periode_id' => $periode->id,
+            'nama_periode' => $periode->nama ?? null,
+        ]);
+
         if (AksiDetailInternal::where('periode_id', $periode->id)->exists()) {
+            Log::warning('Gagal start periode: periode sudah dimulai', [
+                'periode_id' => $periode->id,
+                'user_id' => auth()->id(),
+            ]);
+
             return back()->withErrors(['periode_id' => 'Periode ini sudah dimulai.']);
         }
 
@@ -267,7 +273,13 @@ class PostPreeController extends Controller
             'jam_diklat' => $request->jam_diklat,
         ]);
 
-        // token pree
+        Log::info('AksiDetailInternal dibuat', [
+            'periode_id' => $periode->id,
+            'jam_diklat' => $request->jam_diklat,
+        ]);
+
+        // ================= TOKEN =================
+
         $tokenPree = TestToken::create([
             'periode_id' => $periode->id,
             'token' => Str::random(64),
@@ -276,7 +288,12 @@ class PostPreeController extends Controller
             'is_used' => false,
         ]);
 
-        // token post
+        Log::info('Token PRE TEST dibuat', [
+            'periode_id' => $periode->id,
+            'token_id' => $tokenPree->id,
+            'expired_at' => $tokenPree->expires_at,
+        ]);
+
         $tokenPost = TestToken::create([
             'periode_id' => $periode->id,
             'token' => Str::random(64),
@@ -285,15 +302,30 @@ class PostPreeController extends Controller
             'is_used' => false,
         ]);
 
-        // token evaluasi
+        Log::info('Token POST TEST dibuat', [
+            'periode_id' => $periode->id,
+            'token_id' => $tokenPost->id,
+            'expired_at' => $tokenPost->expires_at,
+        ]);
+
         $tokenEvaluasi = TestToken::create([
             'periode_id' => $periode->id,
             'token' => Str::random(64),
-            'type' => 'evaluasi', // ⬅️ BARU
+            'type' => 'evaluasi',
             'expires_at' => now()->addHours(8),
             'is_used' => false,
         ]);
 
+        Log::info('Token EVALUASI dibuat', [
+            'periode_id' => $periode->id,
+            'token_id' => $tokenEvaluasi->id,
+            'expired_at' => $tokenEvaluasi->expires_at,
+        ]);
+
+        Log::info('Start periode diklat SELESAI', [
+            'periode_id' => $periode->id,
+            'user_id' => auth()->id(),
+        ]);
 
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/aksilanjut', [
             'token_link' => [
@@ -302,8 +334,6 @@ class PostPreeController extends Controller
                 'evaluasi' => url("/test/token/evaluasi/{$tokenEvaluasi->token}"),
             ]
         ]);
-
-
     }
 
 

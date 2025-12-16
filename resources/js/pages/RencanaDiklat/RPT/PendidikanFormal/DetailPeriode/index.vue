@@ -46,10 +46,19 @@ interface Detail {
     pengajar: string;
 }
 
+interface PeriodeUtama {
+    id: number;
+    detail_program_id: number;
+    tanggal: string;
+    nama_pengajar: string;
+    tempat: string;
+}
+
 const props = defineProps<{
     karyawan: Karyawan[];
     detail: Detail;
     periode: Periode[];
+    utama:PeriodeUtama;
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -84,6 +93,7 @@ const karyawanFiltered = computed(() => {
 const form = ref({
     bagian: [] as string[],
     detail_program_id: props.detail.id,
+    periode_id: props.utama.id,
 });
 
 function store() {

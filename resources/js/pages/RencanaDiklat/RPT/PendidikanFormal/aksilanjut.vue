@@ -28,6 +28,9 @@ interface Periode {
     tempat: string;
 }
 
+
+
+
 const props = defineProps<{
   detail_id: number;
   periode: Periode[];
@@ -35,7 +38,8 @@ const props = defineProps<{
     pree?: string;
     post?: string;
     evaluasi?:string;
-  }
+  };
+
 }>();
 
 
@@ -87,6 +91,7 @@ function bukaTemplate() {
         `/DiklatInternal/detail/pembahasan/template/${selectedPeriode.value}`
     )
 }
+
 
 </script>
 

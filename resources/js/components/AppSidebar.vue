@@ -44,6 +44,11 @@ const mainNavItems:  (NavItem & { roles?: string[] })[] = [
         icon: BookMarked,
     },
     {
+        title: 'Diklat Internal',
+        href: '/DiklatInternal/user',
+        icon: BookMarked,
+    },
+    {
         title: 'Persetujuan',
         href: '/Approve/Diklat',
         icon: Signature,

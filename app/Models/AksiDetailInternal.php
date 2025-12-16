@@ -20,4 +20,8 @@ class AksiDetailInternal extends Model
     {
         return $this->hasOne(EvaluasiDetailInternal::class, 'detail_id');
     }
+
+    // pdf
+    // AksiDetailInternal.php
+   
 }

@@ -9,6 +9,7 @@ class PeriodeBagianDetailInternal extends Model
 
     protected $fillable = [
         'detail_program_id',
+        'periode_id',
         'nama_karyawan',
         'tmt',
         'nrp',
@@ -23,4 +24,17 @@ class PeriodeBagianDetailInternal extends Model
         'sertifikat_path',
         'sertifikat_generated_at',
     ];
+    public function periode()
+    {
+        return $this->belongsTo(PeriodeUtama::class, 'periode_id');
+    }
+
+    // pdf
+    // app/Models/PeriodeBagianDetailInternal.php
+
+    public function aksi()
+    {
+        return $this->belongsTo(AksiDetailInternal::class, 'detail_program_id');
+    }
+
 }

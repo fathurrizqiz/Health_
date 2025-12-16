@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DetailInternal;
 use App\Models\Karyawans;
 use App\Models\PeriodeBagianDetailInternal;
+use App\Models\PeriodeUtama;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Log;
@@ -17,10 +18,12 @@ class DetailPeriodeController extends Controller
         $detail = DetailInternal::findOrFail($id);
         $karyawan = Karyawans::all();
         $periode = PeriodeBagianDetailInternal::all();
+        $utama = PeriodeUtama::where('detail_id', $id)->first();
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/DetailPeriode/index', [
             'detail' => $detail,
             'karyawan' => $karyawan,
-            'periode' => $periode
+            'periode' => $periode,
+            'utama'=>$utama
         ]);
     }
 
@@ -31,7 +34,8 @@ class DetailPeriodeController extends Controller
         $validated = $request->validate([
             'bagian' => 'required|array',
             'bagian.*' => 'string',
-            'detail_program_id' => 'required|integer'
+            'detail_program_id' => 'required|integer',
+            'periode_id' => 'required|integer'
         ]);
 
         // Log::info('Data tervalidasi', $validated);
@@ -49,6 +53,7 @@ class DetailPeriodeController extends Controller
             try {
                 $data = PeriodeBagianDetailInternal::create([
                     'detail_program_id' => $request->detail_program_id,
+                    'periode_id' => $request->periode_id,
                     'nama_karyawan' => $k->nama_karyawan,
                     'tmt' => $k->tmt,
                     'nrp' => $k->nrp,

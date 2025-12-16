@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('periode_bagian_detail_internal', function (Blueprint $table) {
             $table->id();
             $table->foreignId('detail_program_id')->constrained('detail_internal')->cascadeOnDelete();
+            $table->foreignId('periode_id')->constrained('periode_detail_internal')->cascadeOnDelete();
             $table->string('nama_karyawan');
             $table->date('tmt')->nullable();
             $table->string('nrp')->nullable();

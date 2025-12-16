@@ -3,6 +3,7 @@
 use App\Http\Controllers\KaryawanDiklat\ApprovDiklateController;
 use App\Http\Controllers\KaryawanDiklat\DiklatController;
 use App\Http\Controllers\jadwalDiklat\JadwalDiklatController;
+use App\Http\Controllers\KaryawanDiklat\InternalController;
 use App\Http\Controllers\MasterData\MasterDataController;
 use App\Http\Controllers\Materi\MateriController;
 use App\Http\Controllers\RencanaDiklat\RPT\DetailPeriodeController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\RencanaDiklat\RPT\NonFormalController;
 use App\Http\Controllers\RencanaDiklat\RPT\pendidikanController;
 use App\Http\Controllers\RencanaDiklat\RPT\PostPreeController;
 use App\Http\Controllers\RencanaDiklat\RPT\PresensiDetailController;
+use App\Http\Controllers\RencanaDiklat\RPT\SertifikatController;
 use App\Http\Controllers\Silabus\SilabusController;
 use App\Http\Controllers\RencanaDiklat\HLC\HLCController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +33,9 @@ Route::get('/Diklat/pdf/preview/{id}', [DiklatController::class, 'preview'])->na
 Route::get('/Diklat/edit/{id}', [DiklatController::class, 'edit'])->name('diklat.edit');
 Route::put('/Diklat/update/{id}', [DiklatController::class, 'update'])->name('diklat.update');
 Route::delete('/Diklat/destroy/{id}', [DiklatController::class, 'destroy'])->name('diklat.destroy');
+
+// halaman lihat Internal
+Route::get('/DiklatInternal/user',[InternalController::class,'index']);
 
 // Appprove HLC dan Eksternal
 Route::get('/Approve/Diklat', [ApprovDiklateController::class,'index']);
@@ -81,8 +86,10 @@ Route::delete('/DiklatInternal/detailperiod/list/delete',[DetailPeriodeControlle
 // Presensi Detail
 Route::get('/DiklatInternal/detail/presensi/{periode_id}',[PresensiDetailController::class,'index']);
 // Template Pembahasan Sertifikat
-Route::get('/DiklatInternal/detail/pembahasan/template/{periode}',[PostPreeController::class,'template']);
-Route::post('/DiklatInternal/detail/pembahasan/template/store',[PostPreeController::class,'storeTemplate']);
+Route::get('/DiklatInternal/detail/pembahasan/template/{periode}',[SertifikatController::class,'template']);
+Route::post('/DiklatInternal/detail/pembahasan/template/store',[SertifikatController::class,'storeTemplate']);
+Route::post('/sertifikat/generate/{peserta}', [SertifikatController::class, 'generate']);
+Route::get('/sertifikat/download/{peserta}', [SertifikatController::class, 'download']);
 
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
