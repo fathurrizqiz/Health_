@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Response;
+use Log;
 
 class SertifikatController extends Controller
 {
@@ -69,57 +70,107 @@ class SertifikatController extends Controller
             ->map(fn($m, $i) => ['no' => $i + 1, 'materi' => $m->materi])
             ->toArray();
 
+        // === LOAD FONTS ===
         $fonts = [];
 
-        // Muat ScriptMTBold
         $scriptFont = storage_path('fonts/ScriptMTBold.ttf');
-        if (file_exists($scriptFont)) {
+        if (file_exists($scriptFont) && is_readable($scriptFont)) {
             $fonts['ScriptMTBold'] = [
                 'mime' => 'font/ttf',
                 'base64' => base64_encode(file_get_contents($scriptFont)),
             ];
+            Log::info("Font ScriptMTBold dimuat. Panjang base64: " . strlen($fonts['ScriptMTBold']['base64']));
         } else {
-            \Log::warning('ScriptMTBold.ttf tidak ditemukan di storage/fonts/');
+            Log::error("Font ScriptMTBold TIDAK DITEMUKAN atau tidak bisa dibaca: $scriptFont");
+            return back()->with('error', 'Font ScriptMTBold tidak tersedia.');
         }
 
         $Arial = storage_path('fonts/ARIALBOLDMT.otf');
-        if (file_exists($Arial)) {
+        if (file_exists($Arial) && is_readable($Arial)) {
             $fonts['ARIALBOLDMT'] = [
                 'mime' => 'font/otf',
                 'base64' => base64_encode(file_get_contents($Arial)),
             ];
+            Log::info("Font ARIALBOLDMT dimuat. Panjang base64: " . strlen($fonts['ARIALBOLDMT']['base64']));
+        } else {
+            Log::warning("Font ARIALBOLDMT tidak ditemukan: $Arial");
         }
 
-        // Optional: muat font lain
-        $roundedFont = storage_path('fonts/ARIALROUNDEDMT.TTF');
-        if (file_exists($roundedFont)) {
-            $fonts['ArialRounded'] = [
-                'mime' => 'font/ttf',
-                'base64' => base64_encode(file_get_contents($roundedFont)),
-            ];
+        // === LOAD ASSETS (GAMBAR) ===
+        $assetPaths = [
+            'bg1' => public_path('diklat_template/sertifikat/bg1.png'),
+            'bg2' => public_path('diklat_template/sertifikat/bg2.png'),
+            'logo' => public_path('diklat_template/sertifikat/logo1.png'),
+            'ttd' => public_path('diklat_template/sertifikat/ttd.png'),
+        ];
+
+        $assets = [];
+        foreach ($assetPaths as $key => $path) {
+            if (!file_exists($path)) {
+                Log::error("ASET TIDAK DITEMUKAN: $key → $path");
+                return back()->with('error', "Template sertifikat tidak lengkap: $key.png hilang.");
+            }
+
+            if (!is_readable($path)) {
+                Log::error("ASET TIDAK BISA DIBACA (permission?): $key → $path");
+                return back()->with('error', "File $key tidak bisa diakses.");
+            }
+
+            // Opsional: cek ukuran file
+            $size = filesize($path);
+            if ($size === 0) {
+                Log::error("ASET KOSONG: $key → $path");
+                return back()->with('error', "File $key rusak (ukuran 0 byte).");
+            }
+
+            // Baca file
+            $content = file_get_contents($path);
+            if ($content === false) {
+                Log::error("GAGAL MEMBACA FILE: $key → $path");
+                return back()->with('error', "Gagal membaca file $key.");
+            }
+
+            $assets[$key] = base64_encode($content);
+            Log::info("ASET $key dimuat. Ukuran file: $size byte, Panjang base64: " . strlen($assets[$key]));
         }
 
-        $pdf = Pdf::loadView('sertifikat.sertifikat', [
-            'nama' => $peserta->nama_karyawan,
-            'nama_diklat' => $peserta->periode->detail->nama_diklat,
-            'tanggal' => Carbon::parse($peserta->periode->tanggal)->format('d F Y'),
-            'direktur' => 'Nama Direktur',
-            'materi' => $materi,
-            'fonts' => $fonts,
-        ])->setPaper('A4', 'landscape');
+        // === GENERATE PDF ===
+        try {
+            $pdf = Pdf::loadView('sertifikat.sertifikat', [
+                'nama' => $peserta->nama_karyawan,
+                'nama_diklat' => $peserta->periode->detail->nama_diklat,
+                'tanggal' => Carbon::parse($peserta->periode->tanggal)->format('d F Y'),
+                'direktur' => 'Nama Direktur',
+                'materi' => $materi,
+                'fonts' => $fonts,
+                'assets' => $assets,
+            ])->setPaper('a4', 'landscape'); // lowercase 'a4'
 
-        $path = "sertifikat/{$peserta->nrp}_{$peserta->id}.pdf";
-        Storage::disk('public')->put($path, $pdf->output());
+            $path = "sertifikat/{$peserta->nrp}_{$peserta->id}.pdf";
+            $pdfContent = $pdf->output();
 
-        $peserta->update([
-            'sertifikat_path' => $path,
-            'sertifikat_generated_at' => now(),
-        ]);
+            if (empty($pdfContent)) {
+                Log::error("PDF output KOSONG untuk peserta ID: {$peserta->id}");
+                return back()->with('error', 'Gagal membuat PDF (output kosong).');
+            }
 
-        return back()->with('success', 'Sertifikat berhasil digenerate');
+            Storage::disk('public')->put($path, $pdfContent);
+
+            $peserta->update([
+                'sertifikat_path' => $path,
+                'sertifikat_generated_at' => now(),
+            ]);
+
+            Log::info("Sertifikat berhasil digenerate untuk: {$peserta->nama_karyawan} (ID: {$peserta->id})");
+
+            return back()->with('success', 'Sertifikat berhasil digenerate');
+
+        } catch (\Exception $e) {
+            Log::error("GAGAL GENERATE PDF: " . $e->getMessage() . " (File: {$e->getFile()}, Line: {$e->getLine()})");
+            return back()->with('error', 'Terjadi kesalahan saat membuat sertifikat: ' . $e->getMessage());
+        }
     }
 
-    // Tambahkan fungsi baru untuk download
     public function download(PeriodeBagianDetailInternal $peserta)
     {
         if (!$peserta->sertifikat_path || !Storage::disk('public')->exists($peserta->sertifikat_path)) {
@@ -132,4 +183,5 @@ class SertifikatController extends Controller
             'Content-Disposition' => 'inline; filename="' . basename($file) . '"'
         ]);
     }
+
 }
