@@ -20,7 +20,7 @@ class DiklatController extends Controller
     {
         $user = auth()->user();
 
-        // Ambil data karyawan berdasarkan login
+        // Ambil data karyawan berdasarkan NRP user
         $karyawan = \DB::table('karyawans')
             ->where('nrp', $user->nrp)
             ->first();
@@ -29,28 +29,31 @@ class DiklatController extends Controller
             return abort(403, 'Data karyawan tidak ditemukan untuk user ini.');
         }
 
-        // Ambil kategori klinis/non-klinis
+        // Ambil kategori dan target jam
         $kategori = $karyawan->klinis_non_klinis;
-
-        // Ambil target jam berdasarkan kategori
         $target = TargetJamModels::where('kategori', $kategori)
             ->value('target_jam') ?? 0;
 
-        // Ambil semua diklat user sesuai NRP
+        // === Ambil total jam dari RekapJamDiklat untuk BULAN & TAHUN INI ===
+        $bulanIni = now()->month;
+        $tahunIni = now()->year;
+
+        $rekap = RekapJamDiklat::where('nrp', $karyawan->nrp)
+            ->where('bulan', $bulanIni)
+            ->where('tahun', $tahunIni)
+            ->first();
+
+        $totalJam = $rekap ? $rekap->total_jam : 0;
+
+        // Hitung target BULANAN
+        $percentage = $target > 0 ? min(100, ($totalJam / $target) * 100) : 0;
+
+        // Tetap tampilkan daftar diklat (opsional, untuk tabel detail)
         $diklat = DiklatKaryawan::where('nrp', $karyawan->nrp)->get();
         $admin = HLCManajement::where('nrp', $karyawan->nrp)->get();
         $eksternal = DiklatEksternal::with('program')
             ->where('nrp', $karyawan->nrp)
             ->get();
-
-
-        // Total jam
-        $totalJam = $diklat->where('status', 'approved')->sum('jam_diklat')
-            + $admin->where('status', 'approved')->sum('jam_diklat') 
-            + $eksternal->where('status', 'approved')->sum('jam_diklat');
-
-        // Persentase
-        $percentage = $target > 0 ? min(100, ($totalJam / $target) * 100) : 0;
 
         return Inertia::render('Diklat/Diklat', [
             'diklat' => $diklat,

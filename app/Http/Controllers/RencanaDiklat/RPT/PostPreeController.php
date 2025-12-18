@@ -6,15 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Jobs\GenerateCertificateJob;
 use App\Models\AksiDetailInternal;
 use App\Models\DetailInternal;
+use App\Models\DiklatKaryawan;
 use App\Models\EvaluasiDetailInternal;
+use App\Models\HLCManajement;
 use App\Models\PeriodeBagianDetailInternal;
 use App\Models\PeriodeUtama;
 use App\Models\PostPreeDetailInternal;
 use App\Models\QuestionChoices;
 use App\Models\QuestionTestDetailInternal;
+use App\Models\RekapJamDiklat;
 use App\Models\TemplatePembahasanSertifikat;
 use App\Models\TestToken;
 use App\Models\UserAnswerPostPreeDetail;
+use Carbon\Carbon;
+use DB;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Log;
@@ -273,6 +278,21 @@ class PostPreeController extends Controller
             'jam_diklat' => $request->jam_diklat,
         ]);
 
+        $periode = PeriodeUtama::findOrFail($request->periode_id);
+
+        // Ambil semua peserta (nrp) di periode ini
+        $pesertas = PeriodeBagianDetailInternal::where('periode_id', $periode->id)->get();
+
+        $tahun = Carbon::parse($periode->tanggal)->year;
+        $bulan = Carbon::parse($periode->tanggal)->month;
+
+        foreach ($pesertas as $peserta) {
+            if ($peserta->nrp) {
+                $this->updateRekapBulanan($peserta->nrp, $tahun, $bulan);
+                // Lebih baik: panggil via service, bukan $this jika di controller berbeda
+            }
+        }
+
         Log::info('AksiDetailInternal dibuat', [
             'periode_id' => $periode->id,
             'jam_diklat' => $request->jam_diklat,
@@ -334,6 +354,47 @@ class PostPreeController extends Controller
                 'evaluasi' => url("/test/token/evaluasi/{$tokenEvaluasi->token}"),
             ]
         ]);
+    }
+
+    // rekap jam
+    public function updateRekapBulanan($nrp, $tahun, $bulan)
+    {
+        Log::info('Memanggil updateRekapBulanan well', compact('nrp', 'tahun', 'bulan'));
+        // 1. Diklat Karyawan (eksternal lama)
+        $jamDiklatKaryawan = DiklatKaryawan::where('nrp', $nrp)
+            ->where('status', 'approved')
+            ->whereYear('tanggal_mulai', $tahun)
+            ->whereMonth('tanggal_mulai', $bulan)
+            ->sum('jam_diklat');
+
+        // 2. HLC
+        $jamHLC = HLCManajement::where('nrp', $nrp)
+            ->where('status', 'approved')
+            ->whereYear('tanggal_mulai', $tahun)
+            ->whereMonth('tanggal_mulai', $bulan)
+            ->sum('jam_diklat');
+
+        // 3. Diklat Internal: JOIN ketiga tabel
+        $jamInternal = DB::table('periode_bagian_detail_internal as p')
+            ->join('periode_detail_internal as periode', 'p.periode_id', '=', 'periode.id')
+            ->join('aksi_detail_internal as aksi', 'aksi.periode_id', '=', 'periode.id')
+            ->where('p.nrp', $nrp)
+            ->whereYear('periode.tanggal', $tahun)
+            ->whereMonth('periode.tanggal', $bulan)
+            ->sum('aksi.jam_diklat');
+
+        $totalJam = $jamDiklatKaryawan + $jamHLC + $jamInternal;
+
+        RekapJamDiklat::updateOrCreate(
+            [
+                'nrp' => $nrp,
+                'tahun' => $tahun,
+                'bulan' => $bulan
+            ],
+            [
+                'total_jam' => $totalJam
+            ]
+        );
     }
 
 

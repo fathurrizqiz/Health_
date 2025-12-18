@@ -13,17 +13,21 @@ use Log;
 
 class DetailPeriodeController extends Controller
 {
-    public function index($id)
+    public function index($detail_id)
     {
-        $detail = DetailInternal::findOrFail($id);
+        $detail = DetailInternal::findOrFail($detail_id);
+
+        // ✅ Ambil SEMUA periode untuk detail ini (bukan hanya first!)
+        $daftarPeriode = PeriodeUtama::where('detail_id', $detail_id)->get();
+
+        // Karyawan tetap dikirim (untuk form tambah peserta, jika ada)
         $karyawan = Karyawans::all();
-        $periode = PeriodeBagianDetailInternal::all();
-        $utama = PeriodeUtama::where('detail_id', $id)->first();
+
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/DetailPeriode/index', [
-            'detail' => $detail,
+            'detail' => $detail,        // ← kirim sebagai props terpisah
+            'periode' => $daftarPeriode,      // ← ini yang frontend butuhkan: array PeriodeUtama
             'karyawan' => $karyawan,
-            'periode' => $periode,
-            'utama'=>$utama
+            // 'utama' tidak perlu, karena semua periode sudah di 'periode'
         ]);
     }
 

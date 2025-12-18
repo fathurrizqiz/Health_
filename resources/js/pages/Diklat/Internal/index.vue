@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -56,57 +58,71 @@ function formatDate(date: string | null) {
         year: 'numeric',
     });
 }
+
+const search = ref();
+watch(search, (newVal)=>{
+    router.get(route('diklat.internal.index'), { search: newVal }, {
+    preserveState: true,
+    replace: true,
+  })
+})
 </script>
 
 <template>
     <Head title="Detail Diklat" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <h1 class="mb-4 text-xl font-bold">Diklat Internal</h1>
-
-        <table class="min-w-full border">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="px-4 py-2">No</th>
-                    <th class="px-4 py-2">Nama Diklat</th>
-                    <th class="px-4 py-2">Pengajar</th>
-                    <th class="px-4 py-2">Jam Diklat</th>
-
-                    <th class="px-4 py-2">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(item, index) in props.internal" :key="item.id">
-                    <td class="border px-4 py-2">{{ index + 1 }}</td>
-                    <td class="border px-4 py-2">{{ item.nama_diklat }}</td>
-                    <td class="border px-4 py-2">{{ item.nama_pengajar }}</td>
-                    <td class="border px-4 py-2">{{ item.jam_diklat }}</td>
-
-                    <td class="border px-4 py-2 text-center">
-                        <template v-if="item.id">
-                            <a
-                                v-if="item.sertifikat_path"
-                                :href="`/sertifikat/download/${item.id}`"
-                                class="inline-block rounded bg-blue-500 px-2 py-1 text-white"
-                                target="_blank"
-                                rel="noopener noreferrer"
+        <div class="m-10">
+            <h1 class="mb-4 text-xl font-bold">Diklat Internal</h1>
+            <div class="m-5">
+               
+                <Input  v-model="search" class="w-56" placeholder="Cari Diklat dan pengajar..."/>
+            </div>
+    
+            <table class="min-w-full border">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="px-4 py-2">No</th>
+                        <th class="px-4 py-2">Nama Diklat</th>
+                        <th class="px-4 py-2">Pengajar</th>
+                        <!-- <th class="px-4 py-2">Jam Diklat</th> -->
+    
+                        <th class="px-4 py-2">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(item, index) in props.internal" :key="item.id">
+                        <td class="border px-4 py-2">{{ index + 1 }}</td>
+                        <td class="border px-4 py-2">{{ item.nama_diklat }}</td>
+                        <td class="border px-4 py-2">{{ item.nama_pengajar }}</td>
+                        <!-- <td class="border px-4 py-2">{{ item.jam_diklat }}</td> -->
+    
+                        <td class="border px-4 py-2 text-center">
+                            <template v-if="item.id">
+                                <a
+                                    v-if="item.sertifikat_path"
+                                    :href="`/sertifikat/download/${item.id}`"
+                                    class="inline-block rounded bg-blue-500 px-2 py-1 text-white"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Download
+                                </a>
+                                <button
+                                    v-else
+                                    class="rounded bg-green-500 px-2 py-1 text-white"
+                                    @click="generateSertifikat(item.id)"
+                                >
+                                    Generate Sertifikat
+                                </button>
+                            </template>
+                            <span v-else class="text-gray-500"
+                                >Data tidak lengkap</span
                             >
-                                Download
-                            </a>
-                            <button
-                                v-else
-                                class="rounded bg-green-500 px-2 py-1 text-white"
-                                @click="generateSertifikat(item.id)"
-                            >
-                                Generate Sertifikat
-                            </button>
-                        </template>
-                        <span v-else class="text-gray-500"
-                            >Data tidak lengkap</span
-                        >
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </AppLayout>
 </template>

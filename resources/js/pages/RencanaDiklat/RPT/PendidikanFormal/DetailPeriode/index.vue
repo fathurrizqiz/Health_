@@ -93,7 +93,7 @@ const karyawanFiltered = computed(() => {
 const form = ref({
     bagian: [] as string[],
     detail_program_id: props.detail.id,
-    periode_id: props.utama.id,
+    // periode_id: props.utama.id,
 });
 
 function store() {

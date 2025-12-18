@@ -35,7 +35,7 @@ Route::put('/Diklat/update/{id}', [DiklatController::class, 'update'])->name('di
 Route::delete('/Diklat/destroy/{id}', [DiklatController::class, 'destroy'])->name('diklat.destroy');
 
 // halaman lihat Internal
-Route::get('/DiklatInternal/user',[InternalController::class,'index']);
+Route::get('/DiklatInternal/user',[InternalController::class,'index'])->name('diklat.internal.index');
 
 // Appprove HLC dan Eksternal
 Route::get('/Approve/Diklat', [ApprovDiklateController::class,'index']);
@@ -80,7 +80,7 @@ Route::get('/test/token/{type}/{token}', [PostPreeController::class, 'openByToke
 // post evaluasi
 Route::post('/test/evaluasi/post',[PostPreeController::class,'submitEvaluasi']);
 // Route Detail Periode
-Route::get('/DiklatInternal/detailperiod/list/{id}',[DetailPeriodeController::class,'index'])->name('Detail.periode');
+Route::get('/DiklatInternal/detailperiod/list/{detail_id}',[DetailPeriodeController::class,'index'])->name('Detail.periode');
 Route::post('/DiklatInternal/detailperiod/list/store',[DetailPeriodeController::class,'store'])->name('Detail.periode-store');
 Route::delete('/DiklatInternal/detailperiod/list/delete',[DetailPeriodeController::class,'bulkDelete'])->name('Detail.periode-store');
 // Presensi Detail
