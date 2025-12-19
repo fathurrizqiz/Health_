@@ -14,14 +14,22 @@ class PeriodeUtama extends Model
         'tempat'
     ];
 
+    public function periode()
+    {
+        return $this->belongsTo(PeriodeUtama::class, 'periode_id');
+    }
+
+    public function detailProgram()
+    {
+        return $this->belongsTo(
+            DetailInternal::class,
+            'detail_program_id'
+        );
+    }
+
     public function detail()
     {
         return $this->belongsTo(DetailInternal::class, 'detail_id');
-    }
-
-    public function aksi()
-    {
-        return $this->hasMany(AksiDetailInternal::class, 'periode_id');
     }
 
     public function pembahasan()

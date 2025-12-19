@@ -75,6 +75,7 @@ Route::get('/DiklatInternal/test/{type}/{detail_id}', [PostPreeController::class
 Route::post('/DiklatInternal/test/submit', [PostPreeController::class, 'submitTest']);
 // by token
 Route::post('/DiklatInternal/periode/start', [PostPreeController::class, 'startPeriode']);
+Route::post('/DiklatInternal/periode/end', [PostPreeController::class, 'endPeriode']);
 Route::get('/test/token/evaluasi/{token}', [PostPreeController::class, 'openEvaluasiByToken']);
 Route::get('/test/token/{type}/{token}', [PostPreeController::class, 'openByToken']);
 // post evaluasi

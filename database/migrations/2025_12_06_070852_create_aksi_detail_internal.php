@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('periode_id')->constrained('periode_detail_internal')->cascadeOnDelete();
             $table->date('periode')->nullable();
             $table->integer('jam_diklat')->nullable();
+            $table->timestamp('ended_at')->nullable();
             $table->timestamps();
         });
     }

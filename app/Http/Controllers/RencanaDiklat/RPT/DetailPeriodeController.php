@@ -13,23 +13,58 @@ use Log;
 
 class DetailPeriodeController extends Controller
 {
-    public function index($detail_id)
+    public function index(Request $request, $detail_id)
     {
         $detail = DetailInternal::findOrFail($detail_id);
 
-        // ✅ Ambil SEMUA periode untuk detail ini (bukan hanya first!)
-        $daftarPeriode = PeriodeUtama::where('detail_id', $detail_id)->get();
+        $periodes = PeriodeUtama::where('detail_id', $detail_id)
+            ->orderBy('tanggal')
+            ->get();
 
-        // Karyawan tetap dikirim (untuk form tambah peserta, jika ada)
-        $karyawan = Karyawans::all();
+        // Ambil semua bagian unik
+        $bagians = Karyawans::whereNotNull('bagian')
+            ->distinct()
+            ->orderBy('bagian')
+            ->pluck('bagian');
+
+
+
+        // Siapkan variabel untuk karyawan yang akan ditampilkan
+        $rows = PeriodeBagianDetailInternal::with('karyawan')
+            ->when($request->periode_id, function ($query, $periodeId) {
+                return $query->where('periode_id', $periodeId);
+            })
+            ->get()
+            ->filter(function ($item) {
+                return $item->karyawan !== null;
+            })
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_karyawan' => $item->karyawan->nama_karyawan,
+                    'tmt' => $item->karyawan->tmt,
+                    'nrp' => $item->karyawan->nrp,
+                    'bagian' => $item->karyawan->bagian,
+                    'unit_kerja' => $item->karyawan->unit_kerja,
+                    'posisi_jabatan' => $item->karyawan->posisi_jabatan,
+                    'klinis_non_klinis' => $item->karyawan->klinis_non_klinis,
+                    'jenis_kelamin' => $item->karyawan->jenis_kelamin,
+                ];
+            });
+
 
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/DetailPeriode/index', [
-            'detail' => $detail,        // ← kirim sebagai props terpisah
-            'periode' => $daftarPeriode,      // ← ini yang frontend butuhkan: array PeriodeUtama
-            'karyawan' => $karyawan,
-            // 'utama' tidak perlu, karena semua periode sudah di 'periode'
+            'detail' => $detail,
+            'periodes' => $periodes,
+            'rows' => $rows,
+            'bagians' => $bagians,
+            'selectedPeriodeId' => $request->periode_id,
+            'selectedBagian' => $request->bagian ?? [],
         ]);
     }
+
+
+
 
     public function store(Request $request)
     {
@@ -42,16 +77,16 @@ class DetailPeriodeController extends Controller
             'periode_id' => 'required|integer'
         ]);
 
-        // Log::info('Data tervalidasi', $validated);
+        Log::info('Data tervalidasi', $validated);
 
         $bagianDipilih = $validated['bagian'];
 
         $karyawan = Karyawans::whereIn('bagian', $bagianDipilih)->get();
 
-        // Log::info('Query karyawan', [
-        //     'bagianDipilih' => $bagianDipilih,
-        //     'jumlah_karyawan' => $karyawan->count()
-        // ]);
+        Log::info('Query karyawan', [
+            'bagianDipilih' => $bagianDipilih,
+            'jumlah_karyawan' => $karyawan->count()
+        ]);
 
         foreach ($karyawan as $k) {
             try {
@@ -68,10 +103,10 @@ class DetailPeriodeController extends Controller
                     'jenis_kelamin' => $k->jenis_kelamin,
                 ]);
 
-                // Log::info('Insert berhasil', [
-                //     'nrp' => $k->nrp,
-                //     'id' => $data->id ?? null
-                // ]);
+                Log::info('Insert berhasil', [
+                    'nrp' => $k->nrp,
+                    'id' => $data->id ?? null
+                ]);
 
             } catch (\Exception $e) {
                 Log::error('Insert gagal', [

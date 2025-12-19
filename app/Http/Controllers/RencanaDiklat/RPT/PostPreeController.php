@@ -259,10 +259,29 @@ class PostPreeController extends Controller
 
         $periode = PeriodeUtama::findOrFail($request->periode_id);
 
-        Log::info('Periode ditemukan', [
-            'periode_id' => $periode->id,
-            'nama_periode' => $periode->nama ?? null,
-        ]);
+        // Log::info('Periode ditemukan', [
+        //     'periode_id' => $periode->id,
+        //     'nama_periode' => $periode->nama ?? null,
+        // ]);
+
+        $existingStartedPeriode = AksiDetailInternal::whereHas('periodeUtama', function ($query) use ($periode) {
+            $query->where('detail_id', $periode->detail_id);
+        }) ->whereNull('ended_at') // tidak dapat start periode lain selama ada pelatihan yang sedang berlangsung
+        ->exists();
+
+        $validasiStart = AksiDetailInternal::pluck('periode_id')->toArray();
+
+        if ($existingStartedPeriode) {
+            Log::warning('Gagal start periode: sudah ada periode lain untuk program yang sama yang sudah dijalankan', [
+                'detail_id' => $periode->detail_id,
+                'periode_id' => $periode->id,
+                'user_id' => auth()->id(),
+            ]);
+
+            return back()->withErrors([
+                'periode_id' => 'Tidak dapat memulai periode ini karena sudah ada periode lain untuk program diklat yang sama yang sedang berjalan atau telah selesai.'
+            ]);
+        }
 
         if (AksiDetailInternal::where('periode_id', $periode->id)->exists()) {
             Log::warning('Gagal start periode: periode sudah dimulai', [
@@ -352,8 +371,44 @@ class PostPreeController extends Controller
                 'pree' => url("/test/token/pree/{$tokenPree->token}"),
                 'post' => url("/test/token/post/{$tokenPost->token}"),
                 'evaluasi' => url("/test/token/evaluasi/{$tokenEvaluasi->token}"),
-            ]
+            ],
+            'isPeriodeStarted'=> true,
+            'ValidasiStart' => $validasiStart
         ]);
+    }
+
+    // end diklatnya
+    public function endPeriode(Request $request)
+    {
+        $request->validate([
+            'periode_id' => 'required|exists:periode_detail_internal,id',
+        ]);
+
+        $aksi = AksiDetailInternal::where('periode_id', $request->periode_id)->firstOrFail();
+
+        if ($aksi->ended_at) {
+            return back()->with('warning', 'Periode ini sudah diakhiri sebelumnya.');
+        }
+
+        // Nonaktifkan semua token terkait
+        TestToken::where('periode_id', $request->periode_id)
+            ->update(['expires_at' => now()->subMinute()]); // expired sekarang
+
+        // Tandai sebagai selesai
+        $aksi->update(['ended_at' => now()]);
+
+        // Optional: generate sertifikat untuk semua peserta yang memenuhi syarat
+        $pesertas = PeriodeBagianDetailInternal::where('periode_id', $request->periode_id)->get();
+        foreach ($pesertas as $peserta) {
+            $this->checkAndGenerateCertificate($peserta);
+        }
+
+        Log::info('Periode diklat diakhiri', [
+            'periode_id' => $request->periode_id,
+            'user_id' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Pelatihan berhasil diakhiri. Token telah dinonaktifkan.');
     }
 
     // rekap jam

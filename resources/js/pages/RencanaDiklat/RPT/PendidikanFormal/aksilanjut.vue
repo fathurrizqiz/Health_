@@ -3,7 +3,7 @@ import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, PropType, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -39,16 +39,24 @@ const props = defineProps<{
     post?: string;
     evaluasi?:string;
   };
-
+  isPeriodeStarted: boolean;
+  ValidasiStart: string[];
 }>();
 
 
 const selectedPeriode = ref('');
 const jam = ref('');
+const isPeriodeActive = ref(false);
+const validasiStarted = computed (() => new Set(props.ValidasiStart));
 
 function start() {
     if (!selectedPeriode.value) {
         alert('Pilih periode terlebih dahulu!');
+        return;
+    }
+
+    if(validasiStarted.value.has(selectedPeriode.value)){
+        toast.error('Periode sudah pernah dimulai');
         return;
     }
 
@@ -62,15 +70,45 @@ function start() {
             preserveState: true,
             onSuccess: () => {
                 toast.success('Token generated');
+                isPeriodeActive.value = true;
             },
         },
     );
+}
+
+function endPeriode() {
+    if (!selectedPeriode.value) {
+        toast.error('Pilih periode terlebih dahulu!');
+        return;
+    }
+
+    if (!confirm('Yakin ingin mengakhiri pelatihan ini? Token akan dinonaktifkan.')) {
+        return;
+    }
+
+    router.post('/DiklatInternal/periode/end', {
+        periode_id: selectedPeriode.value
+    }, {
+        preserveState: true,
+        onSuccess: () => {
+            toast.success('Pelatihan berhasil diakhiri.');
+            isPeriodeActive.value = false;
+        },
+        onError: (errors) => {
+            toast.error(errors.periode_id?.[0] || 'Gagal mengakhiri pelatihan.');
+        }
+    });
 }
 const page = usePage(); // ambil semua props dari Inertia
 
 const flash = page.props.flash as TokenFlash | undefined;
 
 function detailPeriode(){
+    if (!selectedPeriode.value) {
+    alert('Pilih periode terlebih dahulu!')
+    return
+}
+
     router.visit(`/DiklatInternal/detailperiod/list/${props.detail_id}`);
 }
 function presensi(){
@@ -130,9 +168,13 @@ function bukaTemplate() {
 
                 <div class="mt-4 flex items-center justify-between">
                     <span class="text-gray-600">Status Periode:</span>
-                    <span
+                    <span v-if="!isPeriodeActive"
                         class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
                         >Belum dimulai</span
+                    >
+                    <span v-else
+                        class="rounded-full bg-green-100 px-3 py-1 text-sm text-green-700"
+                        >Sedang Berlangsung</span
                     >
                 </div>
             </div>
@@ -153,8 +195,9 @@ function bukaTemplate() {
                 />
             </div>
 
-            <div class="mb-8 text-right">
-                <button class="py-3 px-5 bg-blue-600 rounded text-white hover:bg-blue-800 cursor-pointer" @click="start">Mulai Periode</button>
+            <div class="mb-8 text-right flex">
+                <button v-if="!isPeriodeActive" class="py-3 px-5 bg-blue-600 rounded text-white hover:bg-blue-800 cursor-pointer" @click="start">Mulai Periode</button>
+                <button v-else class="py-3 px-5 bg-red-600 rounded text-white hover:bg-red-800 cursor-pointer" @click="endPeriode">Akhiri Periode</button>
             </div>
             <div
                 v-if="($page.props.flash as any)?.token_link_pree"

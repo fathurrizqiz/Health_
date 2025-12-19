@@ -29,12 +29,23 @@ class PeriodeBagianDetailInternal extends Model
         return $this->belongsTo(PeriodeUtama::class, 'periode_id');
     }
 
-    // pdf
-    // app/Models/PeriodeBagianDetailInternal.php
+    public function karyawan()
+    {
+        return $this->belongsTo(Karyawans::class, 'nrp', 'nrp');
+    }
 
+
+    public function detailProgram()
+    {
+        return $this->belongsTo(
+            DetailInternal::class,
+            'detail_program_id'
+        );
+    }
     public function aksi()
     {
         return $this->belongsTo(AksiDetailInternal::class, 'detail_program_id');
     }
+
 
 }

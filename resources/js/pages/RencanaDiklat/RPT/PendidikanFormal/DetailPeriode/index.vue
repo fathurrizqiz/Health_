@@ -4,30 +4,24 @@ import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
+/* =====================
+   MENU
+===================== */
 const menuItems = [
-    { title: 'Datar Bagian', href: '/MateriDiklat/approve' },
+    { title: 'Daftar Bagian', href: '/MateriDiklat/approve' },
     { title: 'Presensi', href: '/MateriDiklat/reject' },
     { title: 'Sertifikat', href: '/MateriDiklat/reject' },
     { title: 'Dokumentasi', href: '/MateriDiklat/reject' },
 ];
 
-interface Karyawan {
+/* =====================
+   INTERFACES
+===================== */
+interface PeriodePeserta {
     id: number;
-    nama_karyawan: string;
-    tmt: string;
-    nrp: string;
-    bagian: string;
-    unit_kerja: string;
-    posisi_jabatan: string;
-    klinis_non_klinis: string;
-    jenis_kelamin: string;
-}
-interface Periode {
-    id: number;
-    detail_program_id: number;
     nama_karyawan: string;
     tmt: string;
     nrp: string;
@@ -40,7 +34,6 @@ interface Periode {
 
 interface Detail {
     id: number;
-    program_id: number;
     nama_diklat: string;
     keterangan: string;
     pengajar: string;
@@ -48,86 +41,144 @@ interface Detail {
 
 interface PeriodeUtama {
     id: number;
-    detail_program_id: number;
     tanggal: string;
     nama_pengajar: string;
     tempat: string;
 }
 
+/* =====================
+   PROPS
+===================== */
 const props = defineProps<{
-    karyawan: Karyawan[];
     detail: Detail;
-    periode: Periode[];
-    utama:PeriodeUtama;
+    periodes: PeriodeUtama[];
+    rows: PeriodePeserta[];
+    bagians: string[]; 
+    selectedPeriodeId?: number | null;
+    selectedBagian?: string[]; 
 }>();
 
+/* =====================
+   BREADCRUMB
+===================== */
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Pendidikan Formal', href: '/pendidikan-formal' },
     { title: 'Detail', href: '#' },
     { title: 'Detail Periode', href: '#' },
 ];
 
-// Unique list bagian
-const allBagian = [...new Set(props.karyawan.map((k) => k.bagian))];
-
+/* =====================
+   STATE
+===================== */
+const selectedPeriodeId = ref<number | null>(props.selectedPeriodeId ?? null);
+const rows = ref<PeriodePeserta[]>([...props.rows]);
 const search = ref('');
-const selected = ref<string[]>([]);
+const selectedBagian = ref<string[]>(props.selectedBagian ?? []);
+const selectDelete = ref<number[]>([]);
 
-const filtered = computed(() =>
-    allBagian.filter((b) =>
-        b.toLowerCase().includes(search.value.toLowerCase()),
-    ),
-);
+/* =====================
+   WATCH PERIODE
+===================== */
+watch(selectedPeriodeId, (id) => {
+    if (!id) return;
 
-function toggleBagian(bagian: string) {
-    selected.value = selected.value.includes(bagian)
-        ? selected.value.filter((x) => x !== bagian)
-        : [...selected.value, bagian];
-}
-
-const karyawanFiltered = computed(() => {
-    if (selected.value.length === 0) return rows.value;
-    return rows.value.filter((k) => selected.value.includes(k.bagian));
+    router.get(
+        route('Detail.periode', props.detail.id),
+        {
+            periode_id: id,
+            bagian: selectedBagian.value.length > 0 ? selectedBagian.value : undefined
+        },
+        { preserveState: true, replace: true }
+    );
 });
 
+watch(() => props.rows, (newRows) => {
+    rows.value = [...newRows];
+}, { deep: true });
+
+/* =====================
+   COMPUTED
+===================== */
+// Gunakan props.bagians sebagai sumber kebenaran
+const allBagian = computed(() => props.bagians);
+
+const filteredBagian = computed(() =>
+    allBagian.value.filter((b) =>
+        b.toLowerCase().includes(search.value.toLowerCase())
+    )
+);
+
+const karyawanFiltered = computed(() => {
+    if (selectedBagian.value.length === 0) return rows.value;
+    return rows.value.filter((r) => selectedBagian.value.includes(r.bagian));
+});
+
+/* =====================
+   METHODS
+===================== */
+function toggleBagian(bagian: string) {
+    if (selectedBagian.value.includes(bagian)) {
+        selectedBagian.value = selectedBagian.value.filter(b => b !== bagian);
+    } else {
+        selectedBagian.value.push(bagian);
+    }
+}
+
 const form = ref({
-    bagian: [] as string[],
+    periode_id: null as number | null,
     detail_program_id: props.detail.id,
-    // periode_id: props.utama.id,
+    bagian: [] as string[],
 });
 
 function store() {
-    form.value.bagian = selected.value;
+    if (!selectedPeriodeId.value) {
+        toast.error('Silakan pilih periode terlebih dahulu');
+        return;
+    }
+    if (selectedBagian.value.length === 0) {
+        toast.error('Pilih minimal satu bagian');
+        return;
+    }
+
+    form.value.periode_id = selectedPeriodeId.value;
+    form.value.bagian = selectedBagian.value;
 
     router.post('/DiklatInternal/detailperiod/list/store', form.value);
 }
 
-const rows = ref<Periode[]>([...props.periode]);
-const selectDelete = ref<number[]>([]);
 function hapusTerpilih() {
     if (selectDelete.value.length === 0) return;
-
     if (!confirm('Yakin hapus data terpilih?')) return;
 
-    router.delete(
-        '/DiklatInternal/detailperiod/list/delete',
-        {
-            data: {
-                ids: selectDelete.value
-            },
+    router.delete('/DiklatInternal/detailperiod/list/delete', {
+        data: {
+            ids: selectDelete.value,
+            periode_id: selectedPeriodeId.value,
+        },
+        onSuccess: () => {
+            rows.value = rows.value.filter(
+                (r) => !selectDelete.value.includes(r.id)
+            );
+            selectDelete.value = [];
+            toast.success('Data berhasil dihapus');
+        },
+    });
+}
+
+// refresh manual hehe
+function manualRefresh() {
+    router.get(
+        route('Detail.periode', props.detail.id),
+        { periode_id: selectedPeriodeId.value },
+        { 
+            preserveState: true, 
+            replace: true,
             onSuccess: () => {
-                rows.value = rows.value.filter(
-                    k => !selectDelete.value.includes(k.id)
-                );
-
-                selectDelete.value = [];
-
-                toast.success('Periode terpilih berhasil dihapus!');
+                console.log('Data berhasil diupdate:', props.rows);
             }
         }
     );
 }
-
 </script>
 
 <template>
@@ -135,46 +186,77 @@ function hapusTerpilih() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <HeaderMenu :items="menuItems" />
+
         <div class="m-5">
             <h1 class="text-xl font-bold">Detail Periode</h1>
 
-            <!-- Filter Bagian -->
+            <!-- PILIH PERIODE -->
             <div class="m-10">
-                <h3 class="mb-2">Bagian</h3>
+                <h3 class="mb-2 font-semibold">Periode</h3>
+                <select
+                    v-model="selectedPeriodeId"
+                    class="w-80 rounded border px-3 py-2"
+                >
+                    <option :value="null" disabled>-- Pilih Periode --</option>
+                    <option
+                        v-for="p in props.periodes"
+                        :key="p.id"
+                        :value="p.id"
+                    >
+                        {{ p.tanggal }} - {{ p.nama_pengajar }} ({{ p.tempat }})
+                    </option>
+                </select>
+            </div>
 
-                <div class="m-2 flex gap-5">
+            <!-- FILTER BAGIAN -->
+            <div class="m-10">
+                <h3 class="mb-2 font-semibold">Bagian</h3>
+
+                <div class="m-2 flex flex-wrap gap-3">
                     <Input
                         v-model="search"
                         type="text"
                         placeholder="Cari bagian"
-                        class="w-80"
+                        :disabled="!selectedPeriodeId"
                     />
 
                     <button
-                        class="rounded bg-green-500 px-2 py-2 text-white"
+                        class="rounded bg-green-600 px-3 py-2 text-white disabled:opacity-50"
+                        :disabled="!selectedPeriodeId"
                         @click="store"
                     >
                         Simpan
                     </button>
+
                     <button
-                        class="rounded bg-blue-500 px-2 py-2 text-white"
-                        @click="selected = [...allBagian]"
+                        class="rounded bg-blue-600 px-3 py-2 text-white disabled:opacity-50"
+                        :disabled="!selectedPeriodeId"
+                        @click="selectedBagian = [...allBagian]"
                     >
                         Semua Bagian
                     </button>
 
                     <button
-                        class="rounded bg-red-500 px-2 py-2 text-white"
-                        @click="selected = []"
+                        class="rounded bg-red-600 px-3 py-2 text-white disabled:opacity-50"
+                        :disabled="!selectedPeriodeId"
+                        @click="selectedBagian = []"
                     >
-                        Hapus Semua Bagian
+                        Hapus Semua
+                    </button>
+                    <button
+                        class="flex gap-3 rounded bg-green-600 px-3 py-2 text-white disabled:opacity-50"
+                        :disabled="!selectedPeriodeId"
+                        @click="manualRefresh"
+                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-icon lucide-repeat"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+                        Refresh
                     </button>
                 </div>
 
-                <!-- Tag Selected -->
-                <div class="mt-2 flex flex-wrap gap-2">
+                <!-- TAG BAGIAN TERPILIH -->
+                <div class="mt-3 flex flex-wrap gap-2">
                     <span
-                        v-for="tag in selected"
+                        v-for="tag in selectedBagian"
                         :key="tag"
                         class="cursor-pointer rounded bg-blue-200 px-2 py-1 text-sm"
                         @click="toggleBagian(tag)"
@@ -183,25 +265,28 @@ function hapusTerpilih() {
                     </span>
                 </div>
 
-                <!-- Dropdown Result -->
+                <!-- DROPDOWN HASIL PENCARIAN -->
                 <div
-                    v-if="search.length > 0"
+                    v-if="search.length > 0 && selectedPeriodeId"
                     class="mt-2 max-h-48 overflow-auto rounded border bg-white shadow"
                 >
                     <div
-                        v-for="b in filtered"
+                        v-for="b in filteredBagian"
                         :key="b"
                         class="flex cursor-pointer items-center gap-2 p-2 hover:bg-gray-100"
                         @click="toggleBagian(b)"
                     >
                         <input
                             type="checkbox"
-                            :checked="selected.includes(b)"
+                            :checked="selectedBagian.includes(b)"
+                            @click.stop
                         />
                         {{ b }}
                     </div>
-
-                    <div v-if="filtered.length === 0" class="p-2 text-gray-500">
+                    <div
+                        v-if="filteredBagian.length === 0"
+                        class="p-2 text-gray-500"
+                    >
                         Tidak ditemukan
                     </div>
                 </div>
@@ -210,8 +295,9 @@ function hapusTerpilih() {
             <!-- TABLE KARYAWAN -->
             <div class="mt-10">
                 <h2 class="mb-3 text-lg font-semibold">Daftar Karyawan</h2>
+
                 <button
-                    class="m-2 rounded bg-red-600 px-2 py-2 text-white hover:bg-red-800"
+                    class="m-2 rounded bg-red-600 px-3 py-2 text-white hover:bg-red-800 disabled:opacity-50"
                     :disabled="selectDelete.length === 0"
                     @click="hapusTerpilih"
                 >
@@ -229,17 +315,14 @@ function hapusTerpilih() {
                             <th class="border px-3 py-2">Bagian</th>
                             <th class="border px-3 py-2">Unit Kerja</th>
                             <th class="border px-3 py-2">Posisi Jabatan</th>
-                            <th class="border px-3 py-2">
-                                Klinis / Non-Klinis
-                            </th>
+                            <th class="border px-3 py-2">Klinis / Non-Klinis</th>
                             <th class="border px-3 py-2">Jenis Kelamin</th>
                         </tr>
                     </thead>
-
                     <tbody>
                         <tr
                             v-for="(k, i) in karyawanFiltered"
-                            :key="k.id"
+                            :key="k.nrp"
                             class="hover:bg-gray-50"
                         >
                             <td class="border px-3 py-2">
@@ -250,30 +333,18 @@ function hapusTerpilih() {
                                 />
                             </td>
                             <td class="border px-3 py-2">{{ i + 1 }}</td>
-                            <td class="border px-3 py-2">
-                                {{ k.nama_karyawan }}
-                            </td>
+                            <td class="border px-3 py-2">{{ k.nama_karyawan }}</td>
                             <td class="border px-3 py-2">{{ k.tmt }}</td>
                             <td class="border px-3 py-2">{{ k.nrp }}</td>
                             <td class="border px-3 py-2">{{ k.bagian }}</td>
                             <td class="border px-3 py-2">{{ k.unit_kerja }}</td>
-                            <td class="border px-3 py-2">
-                                {{ k.posisi_jabatan }}
-                            </td>
-                            <td class="border px-3 py-2">
-                                {{ k.klinis_non_klinis }}
-                            </td>
-                            <td class="border px-3 py-2">
-                                {{ k.jenis_kelamin }}
-                            </td>
+                            <td class="border px-3 py-2">{{ k.posisi_jabatan }}</td>
+                            <td class="border px-3 py-2">{{ k.klinis_non_klinis }}</td>
+                            <td class="border px-3 py-2">{{ k.jenis_kelamin }}</td>
                         </tr>
-
                         <tr v-if="karyawanFiltered.length === 0">
-                            <td
-                                colspan="9"
-                                class="py-3 text-center text-gray-500"
-                            >
-                                Tidak ada data sesuai filter
+                            <td colspan="10" class="py-4 text-center text-gray-500">
+                                Tidak ada data
                             </td>
                         </tr>
                     </tbody>
