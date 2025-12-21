@@ -3,7 +3,7 @@ import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, PropType, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -15,7 +15,7 @@ interface TokenFlash {
     token_link?: {
         pree?: string;
         post?: string;
-        evaluasi?:string;
+        evaluasi?: string;
     };
     success?: string;
     error?: string;
@@ -28,26 +28,27 @@ interface Periode {
     tempat: string;
 }
 
-
-
-
 const props = defineProps<{
-  detail_id: number;
-  periode: Periode[];
-  token_link?: {
-    pree?: string;
-    post?: string;
-    evaluasi?:string;
-  };
-  isPeriodeStarted: boolean;
-  ValidasiStart: string[];
+    detail_id: number;
+    periode: Periode[];
+    token_link?: {
+        pree?: string;
+        post?: string;
+        evaluasi?: string;
+    };
+    isPeriodeStarted: boolean;
+    ValidasiStart?: (string | number)[];
 }>();
-
 
 const selectedPeriode = ref('');
 const jam = ref('');
 const isPeriodeActive = ref(false);
-const validasiStarted = computed (() => new Set(props.ValidasiStart));
+
+const validasiStarted = computed(() => {
+    const data = props.ValidasiStart || [];
+    return new Set(data.map(id => String(id)));
+});
+
 
 function start() {
     if (!selectedPeriode.value) {
@@ -55,7 +56,9 @@ function start() {
         return;
     }
 
-    if(validasiStarted.value.has(selectedPeriode.value)){
+   
+
+    if (validasiStarted.value.has(String(selectedPeriode.value))){
         toast.error('Periode sudah pernah dimulai');
         return;
     }
@@ -64,7 +67,7 @@ function start() {
         '/DiklatInternal/periode/start',
         {
             periode_id: selectedPeriode.value,
-            jam_diklat:jam.value
+            jam_diklat: jam.value,
         },
         {
             preserveState: true,
@@ -82,36 +85,46 @@ function endPeriode() {
         return;
     }
 
-    if (!confirm('Yakin ingin mengakhiri pelatihan ini? Token akan dinonaktifkan.')) {
+    if (
+        !confirm(
+            'Yakin ingin mengakhiri pelatihan ini? Token akan dinonaktifkan.',
+        )
+    ) {
         return;
     }
 
-    router.post('/DiklatInternal/periode/end', {
-        periode_id: selectedPeriode.value
-    }, {
-        preserveState: true,
-        onSuccess: () => {
-            toast.success('Pelatihan berhasil diakhiri.');
-            isPeriodeActive.value = false;
+    router.post(
+        '/DiklatInternal/periode/end',
+        {
+            periode_id: selectedPeriode.value,
         },
-        onError: (errors) => {
-            toast.error(errors.periode_id?.[0] || 'Gagal mengakhiri pelatihan.');
-        }
-    });
+        {
+            preserveState: true,
+            onSuccess: () => {
+                toast.success('Pelatihan berhasil diakhiri.');
+                isPeriodeActive.value = false;
+            },
+            onError: (errors) => {
+                toast.error(
+                    errors.periode_id?.[0] || 'Gagal mengakhiri pelatihan.',
+                );
+            },
+        },
+    );
 }
 const page = usePage(); // ambil semua props dari Inertia
 
 const flash = page.props.flash as TokenFlash | undefined;
 
-function detailPeriode(){
+function detailPeriode() {
     if (!selectedPeriode.value) {
-    alert('Pilih periode terlebih dahulu!')
-    return
-}
+        alert('Pilih periode terlebih dahulu!');
+        return;
+    }
 
     router.visit(`/DiklatInternal/detailperiod/list/${props.detail_id}`);
 }
-function presensi(){
+function presensi() {
     if (!selectedPeriode.value) {
         alert('Pilih periode terlebih dahulu!');
         return;
@@ -121,16 +134,24 @@ function presensi(){
 
 function bukaTemplate() {
     if (!selectedPeriode.value) {
-        alert('Pilih periode terlebih dahulu!')
-        return
+        alert('Pilih periode terlebih dahulu!');
+        return;
     }
 
     router.visit(
-        `/DiklatInternal/detail/pembahasan/template/${selectedPeriode.value}`
-    )
+        `/DiklatInternal/detail/pembahasan/template/${selectedPeriode.value}`,
+    );
 }
+function bukaDokumentasi() {
+    if (!selectedPeriode.value) {
+        alert('Pilih periode terlebih dahulu!');
+        return;
+    }
 
-
+    router.visit(
+        `/DetailInternal/Dokumentasi/view/${selectedPeriode.value}`,
+    );
+}
 </script>
 
 <template>
@@ -168,11 +189,13 @@ function bukaTemplate() {
 
                 <div class="mt-4 flex items-center justify-between">
                     <span class="text-gray-600">Status Periode:</span>
-                    <span v-if="!isPeriodeActive"
+                    <span
+                        v-if="!isPeriodeActive"
                         class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
                         >Belum dimulai</span
                     >
-                    <span v-else
+                    <span
+                        v-else
                         class="rounded-full bg-green-100 px-3 py-1 text-sm text-green-700"
                         >Sedang Berlangsung</span
                     >
@@ -195,9 +218,21 @@ function bukaTemplate() {
                 />
             </div>
 
-            <div class="mb-8 text-right flex">
-                <button v-if="!isPeriodeActive" class="py-3 px-5 bg-blue-600 rounded text-white hover:bg-blue-800 cursor-pointer" @click="start">Mulai Periode</button>
-                <button v-else class="py-3 px-5 bg-red-600 rounded text-white hover:bg-red-800 cursor-pointer" @click="endPeriode">Akhiri Periode</button>
+            <div class="mb-8 flex text-right">
+                <button
+                    v-if="!isPeriodeActive"
+                    class="cursor-pointer rounded bg-blue-600 px-5 py-3 text-white hover:bg-blue-800"
+                    @click="start"
+                >
+                    Mulai Periode
+                </button>
+                <button
+                    v-else
+                    class="cursor-pointer rounded bg-red-600 px-5 py-3 text-white hover:bg-red-800"
+                    @click="endPeriode"
+                >
+                    Akhiri Periode
+                </button>
             </div>
             <div
                 v-if="($page.props.flash as any)?.token_link_pree"
@@ -222,7 +257,9 @@ function bukaTemplate() {
                 </a>
             </div>
 
-            <div class="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+            <div
+                class="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+            >
                 <div>
                     <h3 class="font-semibold">Link Pree-Test :</h3>
                     <div v-if="token_link?.pree">
@@ -238,7 +275,9 @@ function bukaTemplate() {
                 <div>
                     <h3 class="font-semibold">Link Evaluasi :</h3>
                     <div v-if="token_link?.evaluasi">
-                        <a :href="token_link.evaluasi">{{ token_link.evaluasi }}</a>
+                        <a :href="token_link.evaluasi">{{
+                            token_link.evaluasi
+                        }}</a>
                     </div>
                 </div>
             </div>
@@ -282,7 +321,8 @@ function bukaTemplate() {
                 <h2 class="mb-3 text-lg font-medium text-gray-700">
                     Template Sertifikat
                 </h2>
-                <button @click="bukaTemplate"
+                <button
+                    @click="bukaTemplate"
                     class="rounded-md bg-gray-800 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-900"
                 >
                     Buat Template
@@ -297,22 +337,24 @@ function bukaTemplate() {
                     Navigasi Cepat
                 </h2>
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <button @click="detailPeriode"
+                    <button
+                        @click="detailPeriode"
                         class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                     >
                         Detail Periode
                     </button>
-                    <button @click="presensi"
+                    <button
+                        @click="presensi"
                         class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                     >
                         Data Presensi
                     </button>
-                    <button
+                    <button @click="bukaTemplate"
                         class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                     >
                         Sertifikat
                     </button>
-                    <button
+                    <button @click="bukaDokumentasi"
                         class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                     >
                         Dokumentasi

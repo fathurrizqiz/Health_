@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import HeaderMenu from '@/components/HeaderMenu.vue';
+import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
@@ -130,7 +131,7 @@ const submitDetail = () => {
         onSuccess: () => {
             toast.success('Detail Diklat berhasil ditambahkan!');
             closeDetailModal();
-            window.location.reload();
+            router.reload();
         },
         onError: (errors) => {
             // Display validation errors from the backend
@@ -497,7 +498,7 @@ function periode(id:number) {
                                         class="block text-sm font-medium text-gray-700"
                                         >Nama Diklat</label
                                     >
-                                    <input
+                                    <Input
                                         v-model="detailForm.nama_diklat"
                                         id="nama_diklat"
                                         type="text"
@@ -517,7 +518,7 @@ function periode(id:number) {
                                         class="block text-sm font-medium text-gray-700"
                                         >Keterangan</label
                                     >
-                                    <input
+                                    <Input
                                         v-model="detailForm.keterangan"
                                         id="keterangan"
                                         type="text"
@@ -537,7 +538,7 @@ function periode(id:number) {
                                         class="block text-sm font-medium text-gray-700"
                                         >Pengajar</label
                                     >
-                                    <input
+                                    <Input
                                         v-model="detailForm.pengajar"
                                         id="pengajar"
                                         type="text"

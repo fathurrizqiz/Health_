@@ -269,7 +269,7 @@ class PostPreeController extends Controller
         }) ->whereNull('ended_at') // tidak dapat start periode lain selama ada pelatihan yang sedang berlangsung
         ->exists();
 
-        $validasiStart = AksiDetailInternal::pluck('periode_id')->toArray();
+        
 
         if ($existingStartedPeriode) {
             Log::warning('Gagal start periode: sudah ada periode lain untuk program yang sama yang sudah dijalankan', [
@@ -366,14 +366,16 @@ class PostPreeController extends Controller
             'user_id' => auth()->id(),
         ]);
 
+    //    $validasiStart = AksiDetailInternal::pluck('periode_id')->toArray();
+
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/aksilanjut', [
             'token_link' => [
                 'pree' => url("/test/token/pree/{$tokenPree->token}"),
                 'post' => url("/test/token/post/{$tokenPost->token}"),
                 'evaluasi' => url("/test/token/evaluasi/{$tokenEvaluasi->token}"),
             ],
-            'isPeriodeStarted'=> true,
-            'ValidasiStart' => $validasiStart
+           'ValidasiStart' => AksiDetailInternal::pluck('periode_id')->map(fn($id) => (string)$id)->toArray(),
+           
         ]);
     }
 

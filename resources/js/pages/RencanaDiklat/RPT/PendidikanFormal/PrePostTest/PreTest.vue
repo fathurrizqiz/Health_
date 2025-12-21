@@ -14,7 +14,7 @@ const props = defineProps<{
 const questions = ref(props.test?.questions || []);
 
 function save() {
-  console.log('Saving questions:', questions.value, 'detail_id:', props.detail_id);
+  // console.log('Saving questions:', questions.value, 'detail_id:', props.detail_id);
   router.post('/DiklatInternal/preetest', {
     detail_id: props.detail_id,
     questions: questions.value

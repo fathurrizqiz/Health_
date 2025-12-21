@@ -2,6 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
+import { toast } from 'vue3-toastify';
 
 const props = defineProps<{
     periode_id: number
@@ -26,6 +27,10 @@ function simpan() {
     router.post('/DiklatInternal/detail/pembahasan/template/store', {
         periode_id: props.periode_id,
         materi: materi.value
+    },{
+        onSuccess: ()=> {
+            toast.success('Materi Berhasil Disimpan')
+        }
     })
 }
 </script>

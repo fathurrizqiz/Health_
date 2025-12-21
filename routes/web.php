@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\KaryawanDiklat\ApprovDiklateController;
 use App\Http\Controllers\KaryawanDiklat\DiklatController;
 use App\Http\Controllers\jadwalDiklat\JadwalDiklatController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\MasterData\MasterDataController;
 use App\Http\Controllers\Materi\MateriController;
 use App\Http\Controllers\RencanaDiklat\RPT\DetailPeriodeController;
 use App\Http\Controllers\RencanaDiklat\RPT\DiklatInternalController;
+use App\Http\Controllers\RencanaDiklat\RPT\DokumentasiController;
 use App\Http\Controllers\RencanaDiklat\RPT\NonFormalController;
 use App\Http\Controllers\RencanaDiklat\RPT\pendidikanController;
 use App\Http\Controllers\RencanaDiklat\RPT\PostPreeController;
@@ -22,9 +24,10 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('dashboard', function () {
+//     return Inertia::render('Dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard',[DashboardController::class,'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/Diklat', [DiklatController::class, 'index'])->name('diklat.home');
 Route::get('/Diklat/create', [DiklatController::class, 'create'])->name('diklat.create');
@@ -91,6 +94,10 @@ Route::get('/DiklatInternal/detail/pembahasan/template/{periode}',[SertifikatCon
 Route::post('/DiklatInternal/detail/pembahasan/template/store',[SertifikatController::class,'storeTemplate']);
 Route::post('/sertifikat/generate/{peserta}', [SertifikatController::class, 'generate']);
 Route::get('/sertifikat/download/{peserta}', [SertifikatController::class, 'download']);
+
+// Dokumentasi
+Route::get('/DetailInternal/Dokumentasi/view/{periode_id}', [DokumentasiController::class,'index']);
+Route::post('/DetailInternal/Dokumentasi/store', [DokumentasiController::class,'storeDokumentasi']);
 
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');

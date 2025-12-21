@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\RencanaDiklat\RPT;
 
 use App\Http\Controllers\Controller;
+use App\Models\AksiDetailInternal;
 use App\Models\DetailInternal;
 use App\Models\Karyawans;
 use App\Models\PendidikanFormalModels;
@@ -67,7 +68,9 @@ class DiklatInternalController extends Controller
             'data' => $detail,
             'bagian' => $bagian,
             'detail_id' => $detail->id,
-            'periode'=> $periode
+            'ValidasiStart' => AksiDetailInternal::pluck('periode_id')->map(fn($id) => (string) $id)->toArray(),
+            'periode' => $periode,
+            'isPeriodeStarted' => true,
         ]);
     }
 
@@ -81,7 +84,7 @@ class DiklatInternalController extends Controller
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/Periode/index', [
             'periode' => $detail->periodes,
             'karyawan' => $karyawan,
-            'detail_id' => $detail->id,     
+            'detail_id' => $detail->id,
         ]);
     }
 

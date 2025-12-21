@@ -10,10 +10,13 @@ interface Choice {
 interface Question {
   id?: number;
   text: string;
+  pertanyaan: string;
   choices: Choice[];
 }
 
-const props = defineProps<{ modelValue: Question[] }>();
+const props = defineProps<{ 
+  modelValue: Question[];
+ }>();
 const emit = defineEmits(["update:modelValue"]);
 
 const questions = ref<Question[]>(props.modelValue || []);
@@ -28,6 +31,7 @@ function addQuestion() {
   questions.value.push({
     text: "",
     choices: [{ text: "", is_correct: false }],
+    pertanyaan:""
   });
   emit("update:modelValue", questions.value);
 }
@@ -89,7 +93,7 @@ function markAsCorrect(qIndex: number, cIndex: number) {
 
       <!-- Input soal -->
       <textarea
-        v-model="q.text"
+        v-model="q.pertanyaan"
         class="w-full border p-2 rounded"
         placeholder="Tulis soal..."
       ></textarea>
