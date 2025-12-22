@@ -8,6 +8,7 @@ use App\Models\DetailInternal;
 use App\Models\Karyawans;
 use App\Models\PendidikanFormalModels;
 use App\Models\PeriodeUtama;
+use App\Models\TestToken;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -63,14 +64,48 @@ class DiklatInternalController extends Controller
     {
         $detail = DetailInternal::findOrFail($id);
         $periode = PeriodeUtama::where('detail_id', $id)->get();
-        $bagian = Karyawans::select('bagian');
+
+        $periodeIds = $periode->pluck('id');
+
+        // Cek apakah ADA periode yang sedang berjalan
+        $aksi = AksiDetailInternal::whereIn('periode_id', $periodeIds)
+            ->whereNull('ended_at')
+            ->first();
+
+        $runningPeriodeId = $aksi ? $aksi->periode_id : null;
+
+        // \Log::info('DEBUG aksi', [
+        //     'detail_id' => $id,
+        //     'periode_count' => $periode->count(),
+        //     'periodeIds' => $periodeIds->toArray(),
+        //     'aksi_exists' => AksiDetailInternal::whereIn('periode_id', $periodeIds)->whereNull('ended_at')->exists(),
+        // ]);
+
+        $tokenLink = null;
+        if ($runningPeriodeId) { // ✅ Gunakan runningPeriodeId, bukan $aksi saja
+            $tokens = TestToken::where('periode_id', $runningPeriodeId) // ✅ PERBAIKAN UTAMA
+                ->whereIn('type', ['pree', 'post', 'evaluasi'])
+                ->get()
+                ->keyBy('type');
+
+            $tokenLink = [
+                'pree' => isset($tokens['pree']) ? url("/test/token/pree/{$tokens['pree']->token}") : null,
+                'post' => isset($tokens['post']) ? url("/test/token/post/{$tokens['post']->token}") : null,
+                'evaluasi' => isset($tokens['evaluasi']) ? url("/test/token/evaluasi/{$tokens['evaluasi']->token}") : null,
+            ];
+        }
+
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/aksilanjut', [
             'data' => $detail,
-            'bagian' => $bagian,
             'detail_id' => $detail->id,
-            'ValidasiStart' => AksiDetailInternal::pluck('periode_id')->map(fn($id) => (string) $id)->toArray(),
             'periode' => $periode,
-            'isPeriodeStarted' => true,
+            'ValidasiStart' => AksiDetailInternal::whereIn('periode_id', $periodeIds)
+                ->pluck('periode_id')
+                ->map(fn($id) => (string) $id)
+                ->toArray(),
+            'isRunning' => $aksi !== null,
+            'runningPeriodeId' => $runningPeriodeId,
+            'token_link' => $tokenLink,
         ]);
     }
 

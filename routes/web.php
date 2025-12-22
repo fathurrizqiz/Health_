@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Evaluasi\EvaluasiController;
+use App\Http\Controllers\JadwalDiklat\JadwalEksternalController;
+use App\Http\Controllers\JadwalDiklat\JadwalHLCController;
+use App\Http\Controllers\JadwalDiklat\JadwalInternalController;
 use App\Http\Controllers\KaryawanDiklat\ApprovDiklateController;
 use App\Http\Controllers\KaryawanDiklat\DiklatController;
 use App\Http\Controllers\jadwalDiklat\JadwalDiklatController;
@@ -77,7 +81,7 @@ Route::post('/DiklatInternal/posttest', [PostPreeController::class, 'savePost'])
 Route::get('/DiklatInternal/test/{type}/{detail_id}', [PostPreeController::class, 'showTest']);
 Route::post('/DiklatInternal/test/submit', [PostPreeController::class, 'submitTest']);
 // by token
-Route::post('/DiklatInternal/periode/start', [PostPreeController::class, 'startPeriode']);
+    Route::post('/DiklatInternal/periode/start', [PostPreeController::class, 'startPeriode']);
 Route::post('/DiklatInternal/periode/end', [PostPreeController::class, 'endPeriode']);
 Route::get('/test/token/evaluasi/{token}', [PostPreeController::class, 'openEvaluasiByToken']);
 Route::get('/test/token/{type}/{token}', [PostPreeController::class, 'openByToken']);
@@ -99,12 +103,17 @@ Route::get('/sertifikat/download/{peserta}', [SertifikatController::class, 'down
 Route::get('/DetailInternal/Dokumentasi/view/{periode_id}', [DokumentasiController::class,'index']);
 Route::post('/DetailInternal/Dokumentasi/store', [DokumentasiController::class,'storeDokumentasi']);
 
+// Evaluasi
+Route::get('/Diklat/Evaluasi',[EvaluasiController::class,'index']);
+
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
 Route::post('/RencanaDiklat/RPT/PN/Program',[NonFormalController::class,'storeProgram'])->name('Diklat.eksternal-program');
 Route::post('/RencanaDiklat/RPT/PN/Detail',[NonFormalController::class,'storeDetail'])->name('Diklat.eksternal-program');
 //jadwal diklat
-Route::get('/RencanaDiklat/jadwal', [JadwalDiklatController::class, 'index']);
+Route::get('/JadwalDiklat/HLC', [JadwalHLCController::class, 'index']);
+Route::get('/JadwalDiklat/Eksternal', [JadwalEksternalController::class, 'index']);
+Route::get('/JadwalDiklat/Internal', [JadwalInternalController::class, 'index']);
 //Silabus
 Route::get('/silabus/diklat', [SilabusController::class, 'index']);
 

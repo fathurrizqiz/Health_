@@ -295,6 +295,7 @@ class PostPreeController extends Controller
         AksiDetailInternal::create([
             'periode_id' => $periode->id,
             'jam_diklat' => $request->jam_diklat,
+            'ended_at' => null,
         ]);
 
         $periode = PeriodeUtama::findOrFail($request->periode_id);

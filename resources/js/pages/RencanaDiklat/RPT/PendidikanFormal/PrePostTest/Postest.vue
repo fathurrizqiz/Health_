@@ -11,7 +11,18 @@ const props = defineProps<{
   test: any;
 }>();
 
-const questions = ref(props.test?.questions || []);
+const questions = ref(
+  (props.test?.questions || []).map((q: any) => ({
+    id: q.id,
+    text: q.text ?? q.pertanyaan ?? "",
+    choices: (q.choices || []).map((c: any) => ({
+      id: c.id,
+      text: c.text,
+      is_correct: Boolean(c.is_correct),
+    })),
+  }))
+);
+
 
 function save() {
   // Debug 1: tampilkan props.detail_id

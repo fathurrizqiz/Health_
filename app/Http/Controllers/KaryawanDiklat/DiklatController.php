@@ -85,6 +85,7 @@ class DiklatController extends Controller
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'nama_diklat' => 'nullable|string|max:255',
+            'evaluasi' => 'nullable|string|max:255',
             'pengajar' => 'required|string|max:255',
             'diklat' => 'required|string|max:255',
             'penyelenggara' => 'required|string|max:255',

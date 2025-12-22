@@ -36,19 +36,25 @@ const props = defineProps<{
         post?: string;
         evaluasi?: string;
     };
-    isPeriodeStarted: boolean;
+    isPeriodeRunning: boolean;
     ValidasiStart?: (string | number)[];
+    runningPeriodeId?: number;
+    isRunning?: boolean;
 }>();
 
-const selectedPeriode = ref('');
+const selectedPeriode = ref(props.runningPeriodeId?.toString() || '');
 const jam = ref('');
-const isPeriodeActive = ref(false);
+// const isPeriodeActive = computed(() => {
+//     if (!props.isPeriodeRunning || !props.runningPeriodeId) {
+//         return false;
+//     }
+//     return selectedPeriode.value === String(props.runningPeriodeId);
+// });
 
 const validasiStarted = computed(() => {
     const data = props.ValidasiStart || [];
-    return new Set(data.map(id => String(id)));
+    return new Set(data.map((id) => String(id)));
 });
-
 
 function start() {
     if (!selectedPeriode.value) {
@@ -56,9 +62,7 @@ function start() {
         return;
     }
 
-   
-
-    if (validasiStarted.value.has(String(selectedPeriode.value))){
+    if (validasiStarted.value.has(String(selectedPeriode.value))) {
         toast.error('Periode sudah pernah dimulai');
         return;
     }
@@ -73,7 +77,10 @@ function start() {
             preserveState: true,
             onSuccess: () => {
                 toast.success('Token generated');
-                isPeriodeActive.value = true;
+                // refresh halaman
+                router.visit(route('aksi-internal', { id: props.detail_id }), {
+                    preserveScroll: true,
+                });
             },
         },
     );
@@ -102,7 +109,9 @@ function endPeriode() {
             preserveState: true,
             onSuccess: () => {
                 toast.success('Pelatihan berhasil diakhiri.');
-                isPeriodeActive.value = false;
+                router.visit(route('aksi-internal', { id: props.detail_id }), {
+                    preserveScroll: true,
+                });
             },
             onError: (errors) => {
                 toast.error(
@@ -148,9 +157,7 @@ function bukaDokumentasi() {
         return;
     }
 
-    router.visit(
-        `/DetailInternal/Dokumentasi/view/${selectedPeriode.value}`,
-    );
+    router.visit(`/DetailInternal/Dokumentasi/view/${selectedPeriode.value}`);
 }
 </script>
 
@@ -162,6 +169,7 @@ function bukaDokumentasi() {
             <h1 class="mb-6 text-2xl font-semibold text-gray-800">
                 Aksi Diklat
             </h1>
+            
 
             <!-- Pilih Periode -->
             <div
@@ -190,7 +198,7 @@ function bukaDokumentasi() {
                 <div class="mt-4 flex items-center justify-between">
                     <span class="text-gray-600">Status Periode:</span>
                     <span
-                        v-if="!isPeriodeActive"
+                        v-if="!isRunning"
                         class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
                         >Belum dimulai</span
                     >
@@ -218,21 +226,33 @@ function bukaDokumentasi() {
                 />
             </div>
 
-            <div class="mb-8 flex text-right">
+            <div class="mb-8 flex justify-end">
+                
                 <button
-                    v-if="!isPeriodeActive"
+                    v-if="!props.isRunning "
+                    type="button"
                     class="cursor-pointer rounded bg-blue-600 px-5 py-3 text-white hover:bg-blue-800"
+                    :disabled="!selectedPeriode"
                     @click="start"
                 >
-                    Mulai Periode
+                    {{
+                        selectedPeriode ? 'Mulai Periode' : 'Pilih periode dulu'
+                    }}
                 </button>
+
                 <button
-                    v-else
+                   v-else
+                    type="button"
                     class="cursor-pointer rounded bg-red-600 px-5 py-3 text-white hover:bg-red-800"
                     @click="endPeriode"
                 >
                     Akhiri Periode
                 </button>
+
+                <div>
+
+                </div>
+                
             </div>
             <div
                 v-if="($page.props.flash as any)?.token_link_pree"
@@ -281,6 +301,13 @@ function bukaDokumentasi() {
                     </div>
                 </div>
             </div>
+            <!-- <div
+                v-else-if="isPeriodeActive && !token_link"
+                class="mb-6 rounded bg-yellow-50 p-4 text-sm text-yellow-600"
+            >
+                Periode sedang berjalan, tetapi token belum tersedia. Harap
+                hubungi admin.
+            </div> -->
 
             <!-- Manajemen Test -->
             <div
@@ -349,12 +376,14 @@ function bukaDokumentasi() {
                     >
                         Data Presensi
                     </button>
-                    <button @click="bukaTemplate"
+                    <button
+                        @click="bukaTemplate"
                         class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                     >
                         Sertifikat
                     </button>
-                    <button @click="bukaDokumentasi"
+                    <button
+                        @click="bukaDokumentasi"
                         class="rounded-md bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                     >
                         Dokumentasi

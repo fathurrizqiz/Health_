@@ -67,7 +67,7 @@ const mainNavItems:  (NavItem & { roles?: string[] })[] = [
     },
     {
         title: 'Evaluasi',
-        href: '',
+        href: '/Diklat/Evaluasi',
         icon: ChartLine,
         roles: ['admin_diklat'],
     },

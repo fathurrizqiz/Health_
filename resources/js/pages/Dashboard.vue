@@ -112,7 +112,7 @@ const props = defineProps<{
                             >
                                 <td class="py-4">{{ item.kategori }}</td>
                                 <td class="py-4">{{ item.totalKaryawan }}</td>
-                                <td class="py-4">{{ item.totalTargetJam }}</td>
+                                <td class="py-4">{{ Number(item.totalTargetJam).toFixed(1) }}</td>
                                 <td class="py-4">{{ item.aktualJam }}</td>
                                 <td class="py-4">
                                     <div class="flex items-center gap-2">

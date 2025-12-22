@@ -11,56 +11,89 @@ use Inertia\Inertia;
 class DashboardController extends Controller
 {
     public function index()
-{
-    $karyawan = Karyawans::count();
-    $year = now()->year;
+    {
+        $karyawan = Karyawans::count();
+        $year = now()->year;
 
-    // 1. Hitung Target per Bagian
-    $totalPerKategori = Karyawans::join(
-        'target_jam_datamaster',
-        'karyawans.klinis_non_klinis',
-        '=',
-        'target_jam_datamaster.kategori'
-    )
-        ->select('karyawans.bagian', 'target_jam_datamaster.target_jam')
-        ->selectRaw('COUNT(karyawans.id) as total_karyawan')
-        ->groupBy('karyawans.bagian', 'target_jam_datamaster.target_jam')
-        ->get();
+        // 1. Hitung Target per Bagian dan pisah klinis non klinis juga
+        // $totalPerKategori = Karyawans::join(
+        //     'target_jam_datamaster',
+        //     'karyawans.klinis_non_klinis',
+        //     '=',
+        //     'target_jam_datamaster.kategori'
+        // )
+        //     ->select('karyawans.bagian', 'target_jam_datamaster.target_jam')
+        //     ->selectRaw('COUNT(karyawans.id) as total_karyawan')
+        //     ->groupBy('karyawans.bagian', 'target_jam_datamaster.target_jam')
+        //     ->get();
 
-    // 2. Ambil Aktual dari RekapJamDiklat
-    $aktualPerBagian = Karyawans::join('rekap_jam_diklat', 'karyawans.nrp', '=', 'rekap_jam_diklat.nrp')
-        ->where('rekap_jam_diklat.tahun', $year)
-        ->select('karyawans.bagian')
-        ->selectRaw('SUM(rekap_jam_diklat.total_jam) as total_aktual')
-        ->groupBy('karyawans.bagian')
-        ->get()
-        ->pluck('total_aktual', 'bagian');
+        // 2. Ambil Aktual dari RekapJamDiklat
+        $aktualPerBagian = Karyawans::join('rekap_jam_diklat', 'karyawans.nrp', '=', 'rekap_jam_diklat.nrp')
+            ->where('rekap_jam_diklat.tahun', $year)
+            ->select('karyawans.bagian')
+            ->selectRaw('SUM(rekap_jam_diklat.total_jam) as total_aktual')
+            ->groupBy('karyawans.bagian')
+            ->get()
+            ->pluck('total_aktual', 'bagian');
 
-    // 3. Gabungkan Data (Mapping)
-    $dataFinal = $totalPerKategori->map(function ($row) use ($aktualPerBagian) {
-        $aktual = $aktualPerBagian[$row->bagian] ?? 0;
-        $target = $row->total_karyawan * $row->target_jam;
-        return [
-            'kategori' => $row->bagian,
-            'totalKaryawan' => $row->total_karyawan,
-            'targetPerOrang' => $row->target_jam,
-            'totalTargetJam' => $target,
-            'aktualJam' => (float)$aktual, // pastikan angka
-            'persentase' => $target > 0 ? round(($aktual / $target) * 100, 2) : 0
-        ];
-    });
+        // // 3. Gabungkan Data (Mapping)
+        // $dataFinal = $totalPerKategori->map(function ($row) use ($aktualPerBagian) {
+        //     $aktual = $aktualPerBagian[$row->bagian] ?? 0;
+        //     $target = $row->total_karyawan * $row->target_jam;
+        //     return [
+        //         'kategori' => $row->bagian,
+        //         'totalKaryawan' => $row->total_karyawan,
+        //         'targetPerOrang' => $row->target_jam,
+        //         'totalTargetJam' => $target,
+        //         'aktualJam' => (float)$aktual, // pastikan angka
+        //         'persentase' => $target > 0 ? round(($aktual / $target) * 100, 2) : 0
+        //     ];
+        // });
 
-    $targetAll = $dataFinal->sum('totalTargetJam');
-    $rekapJam = RekapJamDiklat::where('tahun', $year)->sum('total_jam');
+        $totalPerBagian = Karyawans::select('bagian')
+            ->selectRaw('COUNT(*) as total_karyawan')
+            ->groupBy('bagian')
+            ->get();
 
-    return Inertia::render('Dashboard', [
-        'totalKaryawans' => $karyawan,
-        'totalPerKategori' => $dataFinal, // Kirim data yang sudah di-map
-        'totalJamDiklat' => [
-            'tahun' => $year,
-            'totalJamDiklat' => $rekapJam // Pastikan key sesuai dengan interface frontend
-        ],
-        'targetAll' => $targetAll,
-    ]);
-}
+        $dataFinal = $totalPerBagian->map(function ($row) use ($aktualPerBagian) {
+
+            // Ambil target rata-rata / aturan bisnis
+            $targetPerOrang = Karyawans::where('bagian', $row->bagian)
+                ->join(
+                    'target_jam_datamaster',
+                    'karyawans.klinis_non_klinis',
+                    '=',
+                    'target_jam_datamaster.kategori'
+                )
+                ->avg('target_jam_datamaster.target_jam');
+
+            $targetTotal = $row->total_karyawan * $targetPerOrang;
+            $aktual = $aktualPerBagian[$row->bagian] ?? 0;
+
+            return [
+                'kategori' => $row->bagian,
+                'totalKaryawan' => $row->total_karyawan,
+                'targetPerOrang' => round($targetPerOrang, 2),
+                'totalTargetJam' => $targetTotal,
+                'aktualJam' => (float) $aktual,
+                'persentase' => $targetTotal > 0
+                    ? round(($aktual / $targetTotal) * 100, 2)
+                    : 0,
+            ];
+        });
+
+
+        $targetAll = $dataFinal->sum('totalTargetJam');
+        $rekapJam = RekapJamDiklat::where('tahun', $year)->sum('total_jam');
+
+        return Inertia::render('Dashboard', [
+            'totalKaryawans' => $karyawan,
+            'totalPerKategori' => $dataFinal, // Kirim data yang sudah di-map
+            'totalJamDiklat' => [
+                'tahun' => $year,
+                'totalJamDiklat' => $rekapJam // Pastikan key sesuai dengan interface frontend
+            ],
+            'targetAll' => $targetAll,
+        ]);
+    }
 }

@@ -10,7 +10,10 @@ class AksiDetailInternal extends Model
     protected $fillable = [
         'periode_id',
         'jam_diklat',
+        'ended_at'
     ];
+
+    protected $dates = ['ended_at'];
 
     public function periodeUtama()
     {

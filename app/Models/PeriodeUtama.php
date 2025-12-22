@@ -37,4 +37,9 @@ class PeriodeUtama extends Model
         return $this->hasMany(TemplatePembahasanSertifikat::class, 'periode_id');
     }
 
+    public function detailBagian()
+    {
+        return $this->hasMany(PeriodeBagianDetailInternal::class, 'periode_id');
+    }
+
 }

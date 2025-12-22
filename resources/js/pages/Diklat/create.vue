@@ -2,7 +2,8 @@
 import { reactive } from 'vue';
 import { router, Head } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
-import diklat from '@/routes/diklat';
+// import diklat from '@/routes/diklat';
+import Input from '@/components/ui/input/Input.vue';
 
 interface Karyawan {
     id: number;
@@ -23,6 +24,7 @@ const form = reactive({
     pengajar: '',
     jam_diklat: '',
     diklat:'',
+    evaluasi: '',
     penyelenggara: '',
     file: null as File | null, // Tambahkan properti untuk menampung objek file
 });
@@ -47,7 +49,7 @@ function submit() {
             <!-- Field Tanggal -->
             <div>
                 <label for="tanggal" class="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
-                <input
+                <Input
                     id="tanggal"
                     type="date"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -57,7 +59,7 @@ function submit() {
             </div>
             <div>
                 <label for="tanggal" class="block text-sm font-medium text-gray-700">Tanggal Selesai</label>
-                <input
+                <Input
                     id="tanggal"
                     type="date"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -69,7 +71,7 @@ function submit() {
             <!-- Field Nama Diklat -->
             <div>
                 <label for="nama_diklat" class="block text-sm font-medium text-gray-700">Nama Diklat</label>
-                <input
+                <Input
                     id="nama_diklat"
                     type="text"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -88,7 +90,7 @@ function submit() {
             <!-- Field Pengajar (Autocomplete Sederhana) -->
             <div>
                 <label for="pengajar" class="block text-sm font-medium text-gray-700">Pengajar</label>
-                <input
+                <Input
                     id="pengajar"
                     type="text"
                     list="karyawan-list"
@@ -105,7 +107,7 @@ function submit() {
             <!-- Field Penyelenggara -->
             <div>
                 <label for="penyelenggara" class="block text-sm font-medium text-gray-700">Penyelenggara</label>
-                <input
+                <Input
                     id="penyelenggara"
                     type="text"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -118,14 +120,26 @@ function submit() {
             <!-- Field Keterangan -->
             <div>
                 <label for="keterangan" class="block text-sm font-medium text-gray-700">Jam Diklat</label>
-                <input
+                <Input
                     id="keterangan"
                     rows="3"
                     type="number"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     v-model="form.jam_diklat"
                     
-                >
+                />
+            </div>
+
+            <div>
+                <label  class="block text-sm font-medium text-gray-700">Evaluasi</label>
+                <Input
+                    id="keterangan"
+                    rows="3"
+                    type="text"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    v-model="form.evaluasi"
+                    
+                />
             </div>
 
             <!-- Field Upload File PDF -->

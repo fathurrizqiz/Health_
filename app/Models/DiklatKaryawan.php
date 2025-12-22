@@ -18,7 +18,8 @@ class DiklatKaryawan extends Model
         'file_path',
         'penyelenggara',
         'status',
-        'alasan_penolakan'
+        'alasan_penolakan',
+        'evaluasi'
     ];
 
     protected $casts = [

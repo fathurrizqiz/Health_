@@ -10,7 +10,7 @@ interface Choice {
 interface Question {
   id?: number;
   text: string;
-  pertanyaan: string;
+  // pertanyaan: string;
   choices: Choice[];
 }
 
@@ -31,7 +31,7 @@ function addQuestion() {
   questions.value.push({
     text: "",
     choices: [{ text: "", is_correct: false }],
-    pertanyaan:""
+    // pertanyaan:""
   });
   emit("update:modelValue", questions.value);
 }
@@ -93,7 +93,7 @@ function markAsCorrect(qIndex: number, cIndex: number) {
 
       <!-- Input soal -->
       <textarea
-        v-model="q.pertanyaan"
+        v-model="q.text"
         class="w-full border p-2 rounded"
         placeholder="Tulis soal..."
       ></textarea>
