@@ -12,12 +12,15 @@ class JadwalEksternalController extends Controller
 {
     public function index()
     {
-        $Eksternal = DiklatEksternal::with([
-            'eksternal:id, nama_diklat, tahun, program_id, tanggal_mulai',
-            
-        ])->select('id', 'program_id')->get();
-        return Inertia::render('Jadwal/AdminEksternalJadwal',[
-            'DiklatEksternal'=>$Eksternal
+        $Eksternal = ProgramEksternal::with([
+            'eksternal:id,program_id,tanggal_mulai'
+        ])
+            ->select('id', 'nama_diklat', 'tahun')->orderBy('tahun','desc')
+            ->get();
+
+        return Inertia::render('Jadwal/AdminEksternalJadwal', [
+            'DiklatEksternal' => $Eksternal
         ]);
     }
+
 }

@@ -12,14 +12,15 @@ class JadwalHLCController extends Controller
 {
     public function index()
     {
-        $HLC = HLCManajement::with([
-            'hlc:id,program_id,nama_program,nama_diklat,tanggal_mulai,tahun'
-        ])
-            ->select('id', 'program_id')
+        $HLC = ProgramHlc::with([
+            'hlc:id,program_id,nama_diklat,tanggal_mulai'
+        ])->orderBy('tahun','desc')
+            ->select('id', 'nama_program', 'tahun')
             ->get();
 
         return Inertia::render('Jadwal/AdminHLCJadwal', [
             'HLCJadwal' => $HLC
         ]);
     }
+
 }

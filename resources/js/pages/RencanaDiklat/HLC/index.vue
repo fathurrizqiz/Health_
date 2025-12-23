@@ -214,8 +214,8 @@ const tambahProgram = () => {
     isLoading.value = true;
     router.post('/HLC/Home/storeProgram', newProgram.value, {
         onSuccess: () => {
-            closeModal();
             router.reload({ only: ['program'] });
+            closeModal();
         },
         onFinish: () => {
             isLoading.value = false;
@@ -453,7 +453,7 @@ const tambahDetail = () => {
             <!-- Modal Tambah Program (unchanged) -->
             <div v-if="isModalOpen" class="fixed inset-0 z-50 overflow-y-auto">
                 <div
-                    class="bg-opacity-50 fixed inset-0 bg-black"
+                    class="bg-opacity-50 fixed inset-0 backdrop-blur-md"
                     @click="closeModal"
                 ></div>
                 <div class="flex min-h-full items-center justify-center p-4">

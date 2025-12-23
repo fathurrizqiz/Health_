@@ -3,67 +3,74 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 
-
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Evaluasi', href: '/Diklat/Evaluasi' },
+  { title: 'Evaluasi', href: '/Diklat/Evaluasi' },
 ];
-interface Eksternal {
-    id: number
-    program_id: number
-    nama_diklat: string
-    tahun: string
-    tanggal_mulai: string
+
+interface DiklatEksternall {
+  id: number;
+  program_id: number;
+  tanggal_mulai: string;
+  nama_diklat: string;
 }
 
-interface ProgramHlc {
-    id: number
-    program_id: number
-    hlc: Eksternal[]
+interface ProgramEksternal {
+  id: number;
+  nama_diklat: string;
+  tahun: string;
+  eksternal: DiklatEksternall[];
 }
-
 
 const props = defineProps<{
-    HLCJadwal:ProgramHlc[];
+  DiklatEksternal: ProgramEksternal[];
 }>();
+
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+}
 </script>
+
 <template>
-    <Head title="Jadwal Eksternal" />
+  <Head title="Jadwal Eksternal" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="p-6 m-5">
-        <h1 class="text-2xl font-bold mb-4">Jadwal Diklat Eksternal</h1>
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="p-6 sm:p-8">
+      <h1 class="text-3xl font-semibold text-gray-800 mb-6">Jadwal Diklat Eksternal</h1>
 
-        <table class="w-full border border-gray-300">
-            <thead class="bg-gray-100">
-                <tr>
-                    
-                    <th class="border px-3 py-2">Diklat</th>
-                    <th class="border px-3 py-2">Tanggal Mulai</th>
-                    <th class="border px-3 py-2">Tahun</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <template v-for="program in props.HLCJadwal" :key="program.id">
-                    <tr
-                        v-for="eksternal in program.hlc"
-                        :key="eksternal.id"
-                        class="hover:bg-gray-50"
-                    >
-                        
-                        <td class="border px-3 py-2">
-                            {{ eksternal.nama_diklat }}
-                        </td>
-                        <td class="border px-3 py-2">
-                            {{ formatDate(eksternal.tanggal_mulai) }}
-                        </td>
-                        <td class="border px-3 py-2">
-                            {{ eksternal.tahun }}
-                        </td>
-                    </tr>
-                </template>
-            </tbody>
+      <div class="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Diklat</th>
+              <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Tanggal Mulai</th>
+              <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Tahun</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <template v-for="program in props.DiklatEksternal" :key="program.id">
+              <tr
+                v-for="eksternal in program.eksternal"
+                :key="eksternal.id"
+                class="transition-colors duration-150 hover:bg-gray-50"
+              >
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {{ program.nama_diklat }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-700">
+                  {{ formatDate(eksternal.tanggal_mulai) }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-700">
+                  {{ program.tahun }}
+                </td>
+              </tr>
+            </template>
+          </tbody>
         </table>
+      </div>
     </div>
-    </AppLayout>
+  </AppLayout>
 </template>

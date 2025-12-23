@@ -20,7 +20,7 @@ class HLCManajement extends Model
         'status'
     ];
 
-    public function program()
+    public function hlc()
     {
         return $this->belongsTo(ProgramHlc::class, 'program_id');
     }

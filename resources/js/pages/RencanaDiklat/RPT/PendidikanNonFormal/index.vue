@@ -482,7 +482,7 @@ onUnmounted(() => {
 
         <!-- Modal Tambah Program -->
         <div v-if="isProgramModalOpen" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeProgramModal"></div>
+            <div class="fixed inset-0 backdrop-blur-md bg-opacity-50" @click="closeProgramModal"></div>
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="relative w-full max-w-md rounded-lg bg-white shadow-xl" @click.stop>
                     <div class="px-6 py-4">

@@ -12,20 +12,10 @@ class JadwalInternalController extends Controller
 {
     public function index()
     {
-        $internal = PeriodeBagianDetailInternal::with([
-            'periode:id,tanggal,nama_pengajar',
-        ])
-            ->select(
-                'id',
-                'periode_id',
-                'nrp',
-                'nama_karyawan'
-            )
-            ->get();
+        $internal = PeriodeUtama::with('peserta')->orderBy('tanggal','desc')->get();
 
         return Inertia::render('Jadwal/AdminInternalJadwal', [
             'JadwalInternal' => $internal
         ]);
     }
-
 }

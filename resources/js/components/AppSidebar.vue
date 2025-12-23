@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookCopy, BookMarked, BookOpen, ChartLine, Folder, GraduationCap, LayoutGrid, Library, Signature } from 'lucide-vue-next';
+import { BookCopy, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, LayoutGrid, Library, Signature } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 
@@ -64,6 +64,24 @@ const mainNavItems:  (NavItem & { roles?: string[] })[] = [
         href: '/RencanaDiklat/RPT/PF',
         icon: GraduationCap,
         roles: ['admin_diklat'],
+    },
+    {
+        title: 'Jadwal Diklat Internal',
+        href: '/JadwalDiklat/Internal',
+        icon: CalendarCheck,
+        // roles: ['admin_diklat'],
+    },
+    {
+        title: 'Jadwal Diklat HLC',
+        href: '/JadwalDiklat/HLC',
+        icon: CalendarCheck2,
+        // roles: ['admin_diklat'],
+    },
+    {
+        title: 'Jadwal Diklat Eksternal',
+        href: '/JadwalDiklat/Eksternal',
+        icon: CalendarCheck2,
+        // roles: ['admin_diklat'],
     },
     {
         title: 'Evaluasi',
