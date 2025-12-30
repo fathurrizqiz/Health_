@@ -66,6 +66,7 @@ class PostPreeController extends Controller
     }
 
 
+
     public function saveQuestions(Request $request, $type)
     {
         \Log::info("saveQuestions called", ['type' => $type, 'payload' => $request->all()]);
@@ -203,7 +204,17 @@ class PostPreeController extends Controller
 
         if ($request->type === 'post') {
             $peserta->update(['post_done_at' => now()]);
+
+            $periode = PeriodeUtama::where('detail_id', $request->detail_id)->first();
+            if ($periode) {
+                $this->updateRekapBulanan(
+                    $peserta->nrp,
+                    Carbon::parse($periode->tanggal)->year,
+                    Carbon::parse($periode->tanggal)->month
+                );
+            }
         }
+
 
         if ($request->type === 'pree') {
             $peserta->update(['pree_done_at' => now()]);
@@ -266,10 +277,10 @@ class PostPreeController extends Controller
 
         $existingStartedPeriode = AksiDetailInternal::whereHas('periodeUtama', function ($query) use ($periode) {
             $query->where('detail_id', $periode->detail_id);
-        }) ->whereNull('ended_at') // tidak dapat start periode lain selama ada pelatihan yang sedang berlangsung
-        ->exists();
+        })->whereNull('ended_at') // tidak dapat start periode lain selama ada pelatihan yang sedang berlangsung
+            ->exists();
 
-        
+
 
         if ($existingStartedPeriode) {
             Log::warning('Gagal start periode: sudah ada periode lain untuk program yang sama yang sudah dijalankan', [
@@ -301,17 +312,17 @@ class PostPreeController extends Controller
         $periode = PeriodeUtama::findOrFail($request->periode_id);
 
         // Ambil semua peserta (nrp) di periode ini
-        $pesertas = PeriodeBagianDetailInternal::where('periode_id', $periode->id)->get();
+        // $pesertas = PeriodeBagianDetailInternal::where('periode_id', $periode->id)->get();
 
-        $tahun = Carbon::parse($periode->tanggal)->year;
-        $bulan = Carbon::parse($periode->tanggal)->month;
+        // $tahun = Carbon::parse($periode->tanggal)->year;
+        // $bulan = Carbon::parse($periode->tanggal)->month;
 
-        foreach ($pesertas as $peserta) {
-            if ($peserta->nrp) {
-                $this->updateRekapBulanan($peserta->nrp, $tahun, $bulan);
-                // Lebih baik: panggil via service, bukan $this jika di controller berbeda
-            }
-        }
+        // foreach ($pesertas as $peserta) {
+        //     if ($peserta->nrp) {
+        //         $this->updateRekapBulanan($peserta->nrp, $tahun, $bulan);
+        //         // Lebih baik: panggil via service, bukan $this jika di controller berbeda
+        //     }
+        // }
 
         Log::info('AksiDetailInternal dibuat', [
             'periode_id' => $periode->id,
@@ -367,7 +378,7 @@ class PostPreeController extends Controller
             'user_id' => auth()->id(),
         ]);
 
-    //    $validasiStart = AksiDetailInternal::pluck('periode_id')->toArray();
+        //    $validasiStart = AksiDetailInternal::pluck('periode_id')->toArray();
 
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/aksilanjut', [
             'token_link' => [
@@ -375,8 +386,8 @@ class PostPreeController extends Controller
                 'post' => url("/test/token/post/{$tokenPost->token}"),
                 'evaluasi' => url("/test/token/evaluasi/{$tokenEvaluasi->token}"),
             ],
-           'ValidasiStart' => AksiDetailInternal::pluck('periode_id')->map(fn($id) => (string)$id)->toArray(),
-           
+            'ValidasiStart' => AksiDetailInternal::pluck('periode_id')->map(fn($id) => (string) $id)->toArray(),
+
         ]);
     }
 
@@ -437,6 +448,7 @@ class PostPreeController extends Controller
             ->join('periode_detail_internal as periode', 'p.periode_id', '=', 'periode.id')
             ->join('aksi_detail_internal as aksi', 'aksi.periode_id', '=', 'periode.id')
             ->where('p.nrp', $nrp)
+            ->whereNotNull('p.post_done_at')
             ->whereYear('periode.tanggal', $tahun)
             ->whereMonth('periode.tanggal', $bulan)
             ->sum('aksi.jam_diklat');

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import HeaderMenu from '@/components/HeaderMenu.vue';
 import Input from '@/components/ui/input/Input.vue';
+// import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
@@ -42,7 +43,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const isProgramModalOpen = ref(false);
 const newProgram = ref({
     name: '',
-    category: 'Formal',
+    category: 'Internal',
     customCategory: '',
     year: new Date().getFullYear().toString(),
 });
@@ -74,7 +75,7 @@ const openAddProgramModal = () => {
     isProgramModalOpen.value = true;
     newProgram.value = {
         name: '',
-        category: 'Formal',
+        category: 'Internal',
         customCategory: '',
         year: new Date().getFullYear().toString(),
     };
@@ -403,7 +404,7 @@ function periode(id:number) {
             class="fixed inset-0 z-50 overflow-y-auto"
         >
             <div
-                class="bg-opacity-75 fixed inset-0 bg-gray-500 transition-opacity"
+                class="bg-opacity-75 fixed inset-0 backdrop-blur-md transition-opacity"
                 @click="closeAddProgramModal"
             ></div>
             <div class="flex min-h-full items-center justify-center p-4">
@@ -420,7 +421,7 @@ function periode(id:number) {
                                     class="block text-sm font-medium text-gray-700"
                                     >Nama Program</label
                                 >
-                                <input
+                                <Input
                                     v-model="newProgram.name"
                                     type="text"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
@@ -479,7 +480,7 @@ function periode(id:number) {
             class="fixed inset-0 z-50 overflow-y-auto"
         >
             <div
-                class="bg-opacity-75 fixed inset-0 bg-gray-500 transition-opacity"
+                class="bg-opacity-75 fixed inset-0 backdrop-blur-md transition-opacity"
                 @click="closeDetailModal"
             ></div>
             <div class="flex min-h-full items-center justify-center p-4">
