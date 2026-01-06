@@ -16,7 +16,15 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { BookCopy, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, LayoutGrid, Library, Signature } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import { computed } from 'vue';
 
+
+const filteredNavItems = computed(() => {
+    return mainNavItems.filter(item => {
+        if (!item.roles) return true; // menu umum
+        return item.roles.some(role => roles.includes(role));
+    });
+});
 
 interface MyPageProps {
     auth: {
@@ -115,7 +123,7 @@ const mainNavItems:  (NavItem & { roles?: string[] })[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="filteredNavItems" />
         </SidebarContent>
 
         <SidebarFooter>
