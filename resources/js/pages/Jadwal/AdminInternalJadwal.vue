@@ -4,7 +4,7 @@ import { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Evaluasi', href: '/Diklat/Evaluasi' },
+  { title: 'Jadwal Internal', href: '/Diklat/Evaluasi' },
 ];
 
 interface Peserta {

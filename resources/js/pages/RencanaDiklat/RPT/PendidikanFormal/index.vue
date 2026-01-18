@@ -34,7 +34,6 @@ const props = defineProps<{
 
 // --- State ---
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
     { title: 'Rencana Program Tahunan', href: '/rencana-diklat' },
     { title: 'Pendidikan Formal', href: '/pendidikan-formal' },
 ];

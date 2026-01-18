@@ -7,9 +7,7 @@ import { toast } from 'vue3-toastify';
 
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Rencana Program Tahunan', href: '/rencana-diklat' },
-    { title: 'Pendidikan Formal', href: '/pendidikan-formal' },
+    { title: 'Datamaster', href: '#' },
 ];
 
 // 🧩 Props dari Inertia

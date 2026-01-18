@@ -7,7 +7,7 @@ import { computed, ref } from 'vue';
 
 // --- Breadcrumbs & Menu ---
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
+    
     { title: 'Rencana Program Tahunan', href: '/rencana-diklat' },
     { title: 'HLC', href: '/HLC/Home/manajemen' },
 ];
@@ -519,7 +519,7 @@ const tambahDetail = () => {
                 class="fixed inset-0 z-50 overflow-y-auto"
             >
                 <div
-                    class="bg-opacity-50 fixed inset-0 bg-black"
+                    class="bg-opacity-50 fixed inset-0 backdrop-blur-md"
                     @click="closeDetailModal"
                 ></div>
                 <div class="flex min-h-full items-center justify-center p-4">

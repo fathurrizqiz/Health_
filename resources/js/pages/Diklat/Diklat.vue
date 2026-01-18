@@ -9,12 +9,8 @@ import { toast } from 'vue3-toastify';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-    {
-        title: 'Detail Diklat',
-        href: '/admins',
+        title: 'Diklat Karyawan',
+        href: '#',
     },
 ];
 

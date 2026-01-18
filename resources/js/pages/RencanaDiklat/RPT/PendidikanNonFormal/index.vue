@@ -8,9 +8,8 @@ import { toast } from 'vue3-toastify';
 
 // --- Breadcrumbs & Menu ---
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
     { title: 'Rencana Program Tahunan', href: '/rencana-diklat' },
-    { title: 'Pendidikan Non Formal', href: '/pendidikan-non-formal' },
+    { title: 'Diklat Eksternal', href: '#' },
 ];
 
 const page = usePage();
@@ -521,7 +520,7 @@ onUnmounted(() => {
 
         <!-- Modal Tambah Detail -->
         <div v-if="isDetailModalOpen" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeDetailModal"></div>
+            <div class="fixed inset-0 backdrop-blur-md bg-opacity-50" @click="closeDetailModal"></div>
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="relative w-full max-w-md rounded-lg bg-white shadow-xl" @click.stop>
                     <div class="px-6 py-4">
