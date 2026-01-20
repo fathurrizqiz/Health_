@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { toast } from 'vue3-toastify';
 
 // --- Breadcrumbs & Menu ---
 const breadcrumbs: BreadcrumbItem[] = [
@@ -14,10 +15,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const page = usePage();
 const menuItems = [
-    { title: 'Pendidikan Formal', href: '/RencanaDiklat/RPT/PF' },
-    { title: 'Pendidikan Non Formal', href: '/RencanaDiklat/RPT/PN' },
+    { title: 'Internal', href: '/RencanaDiklat/RPT/PF' },
+    { title: 'Eksternal', href: '/RencanaDiklat/RPT/PN' },
     { title: 'HLC', href: '/HLC/Home/manajemen' },
-    { title: 'Jadwal Non Formal', href: '/RencanaDiklat/jadwal' },
+    
 ];
 
 // --- Data Interfaces ---
@@ -61,7 +62,8 @@ const props = defineProps<{
 
 
 // --- State ---
-const programs = ref(props.program);
+// const programs = ref(props.program);
+const programs = computed(() => page.props.program as Program[]);
 const isLoading = ref(false);
 const flashMessage = computed(
     () => page.props.flash?.success || page.props.flash?.error,
@@ -206,47 +208,56 @@ const clearKaryawan = () => {
     karyawanSearchQuery.value = '';
 };
 
+
 const tambahProgram = () => {
-    if (!newProgram.value.nama_program.trim()) {
-        alert('Nama program tidak boleh kosong!');
+    if (!newProgram.value.nama_program?.trim()) {
+        toast.error('Nama program tidak boleh kosong!');
         return;
     }
+
     isLoading.value = true;
     router.post('/HLC/Home/storeProgram', newProgram.value, {
         onSuccess: () => {
-            router.reload({ only: ['program'] });
+            toast.success('Program berhasil dibuat!');
+            resetToPage1();
             closeModal();
+            // Auto-refresh the 'program' prop/data
+            router.reload({ only: ['program'] });
+        },
+        onError: (errors) => {
+            toast.error('Gagal membuat program: ' + Object.values(errors).flat().join(', '));
         },
         onFinish: () => {
             isLoading.value = false;
-        },
+        }
     });
 };
 
 const tambahDetail = () => {
-    if (!newDetail.value.nama_diklat.trim()) {
-        alert('Nama diklat tidak boleh kosong!');
+    if (!newDetail.value.nama_diklat?.trim()) {
+        toast.error('Nama diklat tidak boleh kosong!');
         return;
     }
 
     isLoading.value = true;
-
-    // Use the updated route
     router.post('/HLC/Home/storeDetail', newDetail.value, {
         onSuccess: () => {
+            toast.success('Detail Diklat berhasil ditambahkan!');
             closeDetailModal();
-            // router.reload will automatically show the flash message
-            router.reload({ only: ['program'] });
+            resetToPage1();
+            // 👇 Auto-refresh relevant data (e.g., 'details' or 'program')
+            // Adjust the key(s) based on your Inertia page props
+            router.reload({ only: ['program'] }); // or ['details'], or both
         },
         onError: (errors) => {
-            console.error(errors);
-            alert('Gagal menambahkan detail. Cek console untuk detail.');
+            toast.error('Gagal menambahkan detail: ' + Object.values(errors).flat().join(', '));
         },
         onFinish: () => {
             isLoading.value = false;
-        },
+        }
     });
 };
+
 </script>
 
 <template>
@@ -256,18 +267,7 @@ const tambahDetail = () => {
         <HeaderMenu :items="menuItems" />
 
         <div class="p-6">
-            <!-- Flash Message Notification -->
-            <div
-                v-if="flashMessage"
-                :class="[
-                    'mb-4 rounded p-4',
-                    page.props.flash.success
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700',
-                ]"
-            >
-                {{ flashMessage }}
-            </div>
+           
 
             <!-- Header, Filters, Program List (mostly unchanged) -->
             <div

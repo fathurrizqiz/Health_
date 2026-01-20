@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\RencanaDiklat\HLC;
 
 use App\Http\Controllers\Controller;
+use App\Models\DiklatEksternal;
 use App\Models\DiklatKaryawan;
 use App\Models\HLCManajement;
 use App\Models\Karyawans;
 use App\Models\ProgramHlc;
 use App\Models\RekapJamDiklat;
 use Carbon\Carbon;
+use DB;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -29,18 +31,39 @@ class HLCController extends Controller
 
     public function updateRekapBulanan($nrp, $tahun, $bulan)
     {
-        $totalJam = (
-            DiklatKaryawan::where('nrp', $nrp)->where('status', 'approved')
-                ->whereYear('tanggal_mulai', $tahun)
-                ->whereMonth('tanggal_mulai', $bulan)
-                ->sum('jam_diklat')
-        ) +
-            (
-                HLCManajement::where('nrp', $nrp)->where('status', 'approved')
-                    ->whereYear('tanggal_mulai', $tahun)
-                    ->whereMonth('tanggal_mulai', $bulan)
-                    ->sum('jam_diklat')
-            );
+        // Log::info('Memanggil updateRekapBulanan well', compact('nrp', 'tahun', 'bulan'));
+        // 1. Diklat Karyawan (eksternal lama)
+        $jamDiklatKaryawan = DiklatKaryawan::where('nrp', $nrp)
+            ->where('status', 'approved')
+            ->whereYear('tanggal_mulai', $tahun)
+            ->whereMonth('tanggal_mulai', $bulan)
+            ->sum('jam_diklat');
+
+        // 2. HLC
+        $jamHLC = HLCManajement::where('nrp', $nrp)
+            ->where('status', 'approved')
+            ->whereYear('tanggal_mulai', $tahun)
+            ->whereMonth('tanggal_mulai', $bulan)
+            ->sum('jam_diklat');
+
+        // 3. Diklat Internal: JOIN ketiga tabel
+        $jamInternal = DB::table('periode_bagian_detail_internal as p')
+            ->join('periode_detail_internal as periode', 'p.periode_id', '=', 'periode.id')
+            ->join('aksi_detail_internal as aksi', 'aksi.periode_id', '=', 'periode.id')
+            ->where('p.nrp', $nrp)
+            ->whereNotNull('p.post_done_at')
+            ->whereYear('periode.tanggal', $tahun)
+            ->whereMonth('periode.tanggal', $bulan)
+            ->sum('aksi.jam_diklat');
+
+        $jamDiklatEksternal = DiklatEksternal::where('nrp', $nrp)
+            ->where('status', 'approved')
+            ->whereYear('tanggal_mulai', $tahun)
+            ->whereMonth('tanggal_mulai', $bulan)
+            ->sum('jam_diklat');
+
+
+        $totalJam = $jamDiklatKaryawan + $jamHLC + $jamInternal + $jamDiklatEksternal;
 
         RekapJamDiklat::updateOrCreate(
             [

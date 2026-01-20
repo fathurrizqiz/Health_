@@ -189,10 +189,9 @@ const menuItems = [
     ...(roles.includes('admin_kesra')
         ? [{ title: 'Gaji Karyawan', href: '/gaji' }]
         : []),
-    { title: 'Pendidikan Formal', href: '/RencanaDiklat/RPT/PF' },
-    { title: 'Pendidikan Non Formal', href: '/RencanaDiklat/RPT/PN' },
+    { title: 'Internal', href: '/RencanaDiklat/RPT/PF' },
+    { title: 'Eksternal', href: '/RencanaDiklat/RPT/PN' },
     { title: 'HLC', href: '/HLC/Home/manajemen' },
-    { title: 'Jadwal Non Formal', href: '/RencanaDiklat/jadwal' },
 ];
 
 function detail(id: number) {

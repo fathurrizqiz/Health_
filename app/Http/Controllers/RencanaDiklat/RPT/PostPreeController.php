@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\GenerateCertificateJob;
 use App\Models\AksiDetailInternal;
 use App\Models\DetailInternal;
+use App\Models\DiklatEksternal;
 use App\Models\DiklatKaryawan;
 use App\Models\EvaluasiDetailInternal;
 use App\Models\HLCManajement;
@@ -453,7 +454,14 @@ class PostPreeController extends Controller
             ->whereMonth('periode.tanggal', $bulan)
             ->sum('aksi.jam_diklat');
 
-        $totalJam = $jamDiklatKaryawan + $jamHLC + $jamInternal;
+        $jamDiklatEksternal = DiklatEksternal::where('nrp', $nrp)
+            ->where('status', 'approved')
+            ->whereYear('tanggal_mulai', $tahun)
+            ->whereMonth('tanggal_mulai', $bulan)
+            ->sum('jam_diklat');
+
+
+        $totalJam = $jamDiklatKaryawan + $jamHLC + $jamInternal + $jamDiklatEksternal;
 
         RekapJamDiklat::updateOrCreate(
             [

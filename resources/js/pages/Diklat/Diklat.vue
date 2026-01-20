@@ -55,7 +55,7 @@ interface Admin {
 
 interface DiklatEksternal {
     id: number;
-    nama_diklat?:string;
+    nama_diklat?: string;
     program_id: number;
     nama_karyawan: string;
     tanggal_mulai: string;
@@ -230,32 +230,22 @@ function destroy(id: number | null) {
                                     ></path>
                                 </svg>
                             </div>
-                            <!-- Status Filter -->
-
-                            <!-- Add Button -->
-                            <button
-                                @click="jadwal"
-                                class="flex items-center justify-center rounded-lg bg-green-600 px-2 py-2 text-white transition-colors hover:bg-green-700"
+                            
+                            <select class="w-36 rounded text-center h-10 bg-green-400 text-white hover:bg-green-500"
+                                onchange="if(this.value) window.location.href=this.value;"
                             >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="24"
-                                    height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="lucide lucide-eye-icon lucide-eye"
-                                >
-                                    <path
-                                        d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                                    />
-                                    <circle cx="12" cy="12" r="3" />
-                                </svg>
-                                Lihat Jadwal
-                            </button>
+                                <option value="" disabled selected>
+                                    Lihat Jadwal...
+                                </option>
+                                <option value="/JadwalDiklat/Internal">
+                                    Internal
+                                </option>
+                                <option value="/JadwalDiklat/Eksternal">
+                                    Eksternal
+                                </option>
+                                <option value="/JadwalDiklat/HLC">HLC</option>
+                            </select>
+
                             <button
                                 @click="tambah"
                                 class="flex items-center justify-center rounded-lg bg-blue-600 px-2 py-2 text-white transition-colors hover:bg-blue-700"
