@@ -10,6 +10,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Peserta {
   id: number;
   bagian: string;
+  nrp: string;
 }
 
 interface Internal {
@@ -44,6 +45,7 @@ function formatDate(date: string) {
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Nama Pengajar</th>
+              <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">NRP</th>
               <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Bagian</th>
               <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Tanggal Mulai</th>
             </tr>
@@ -57,6 +59,9 @@ function formatDate(date: string) {
               >
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {{ item.nama_pengajar }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-700">
+                  {{ peserta.nrp }}
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-700">
                   {{ peserta.bagian }}
