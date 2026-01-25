@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
+import Input from '@/components/ui/input/Input.vue';
 import { formatDate } from '@/helpers/date';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -75,6 +76,7 @@ const props = defineProps<{
     karyawan: Karyawan;
     admin: Admin[];
     eksternal: DiklatEksternal[];
+    search: string;
 }>();
 
 const genderLabel = computed(() => {
@@ -104,14 +106,38 @@ const daftarDiklat = computed(() => {
 });
 
 // State management
-const searchQuery = ref('');
+const searchQuery = ref(props.search || '');
 
 // Lifecycle
 onMounted(() => {});
 
-function jadwal() {
-    router.visit(`/RencanaDiklat/jadwal`);
+
+// Debounce helper
+function debounce(func: (...args: any[]) => void, wait: number) {
+    let timeout: NodeJS.Timeout;
+    return function executedFunction(...args: any[]) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
+
+watch(
+    searchQuery,
+    debounce((newSearch: string) => {
+        router.get(
+            route('diklat.home'), // Make sure this route name matches your web.php
+            { search: newSearch || undefined }, // Remove param if empty
+            {
+                preserveState: true,
+                replace: true,
+            }
+        );
+    }, 300)
+);
 
 function tambah() {
     router.visit(`/Diklat/create`);
@@ -210,7 +236,7 @@ function destroy(id: number | null) {
                         <div class="flex flex-col gap-3 sm:flex-row">
                             <!-- Search -->
                             <div class="relative">
-                                <input
+                                <Input
                                     v-model="searchQuery"
                                     type="text"
                                     placeholder="Search..."

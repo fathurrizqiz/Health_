@@ -16,11 +16,10 @@ use Inertia\Inertia;
 
 class DiklatController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
-        // Ambil data karyawan berdasarkan NRP user
         $karyawan = \DB::table('karyawans')
             ->where('nrp', $user->nrp)
             ->first();
@@ -29,12 +28,10 @@ class DiklatController extends Controller
             return abort(403, 'Data karyawan tidak ditemukan untuk user ini.');
         }
 
-        // Ambil kategori dan target jam
         $kategori = $karyawan->klinis_non_klinis;
         $target = TargetJamModels::where('kategori', $kategori)
             ->value('target_jam') ?? 0;
 
-        // === Ambil total jam dari RekapJamDiklat untuk BULAN & TAHUN INI ===
         $bulanIni = now()->month;
         $tahunIni = now()->year;
 
@@ -44,16 +41,40 @@ class DiklatController extends Controller
             ->first();
 
         $totalJam = $rekap ? $rekap->total_jam : 0;
-
-        // Hitung target BULANAN
         $percentage = $target > 0 ? min(100, ($totalJam / $target) * 100) : 0;
 
-        // Tetap tampilkan daftar diklat (opsional, untuk tabel detail)
-        $diklat = DiklatKaryawan::where('nrp', $karyawan->nrp)->get();
-        $admin = HLCManajement::where('nrp', $karyawan->nrp)->get();
-        $eksternal = DiklatEksternal::with('program')
-            ->where('nrp', $karyawan->nrp)
-            ->get();
+        $search = $request->input('search');
+
+        // === Diklat Karyawan (User Input) ===
+        $diklatQuery = DiklatKaryawan::where('nrp', $karyawan->nrp);
+        if ($search) {
+            $diklatQuery->where(function ($q) use ($search) {
+                $q->where('nama_diklat', 'ILIKE', "%{$search}%")
+                    ->orWhere('penyelenggara', 'ILIKE', "%{$search}%");
+            });
+        }
+        $diklat = $diklatQuery->get();
+
+        // === HLC Management (Admin Input) ===
+        $adminQuery = HLCManajement::where('nrp', $karyawan->nrp);
+        if ($search) {
+            $adminQuery->where(function ($q) use ($search) {
+                $q->where('nama_diklat', 'ILIKE', "%{$search}%")
+                    ->orWhere('penyelenggara', 'ILIKE', "%{$search}%");
+            });
+        }
+        $admin = $adminQuery->get();
+
+        // === Diklat Eksternal ===
+        $eksternalQuery = DiklatEksternal::with('program')->where('nrp', $karyawan->nrp);
+        if ($search) {
+            $eksternalQuery->whereHas('program', function ($q) use ($search) {
+                $q->where('nama_diklat', 'ILIKE', "%{$search}%");
+            })->orWhere('penyelenggara', 'ILIKE', "%{$search}%");
+        }
+        $eksternal = $eksternalQuery->get();
+
+        // ✅ DO NOT re-fetch here! Keep the filtered results above.
 
         return Inertia::render('Diklat/Diklat', [
             'diklat' => $diklat,
@@ -63,7 +84,8 @@ class DiklatController extends Controller
             'percentage' => round($percentage),
             'karyawan' => $karyawan,
             'admin' => $admin,
-            'eksternal' => $eksternal
+            'eksternal' => $eksternal,
+            'search' => $search,
         ]);
     }
 

@@ -13,7 +13,7 @@ class JadwalEksternalController extends Controller
     public function index()
     {
         $Eksternal = ProgramEksternal::with([
-            'eksternal:id,program_id,tanggal_mulai'
+            'eksternal:id,program_id,tanggal_mulai,nama_karyawan'
         ])
             ->select('id', 'nama_diklat', 'tahun')->orderBy('tahun','desc')
             ->get();

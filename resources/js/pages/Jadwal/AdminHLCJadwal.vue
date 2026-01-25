@@ -12,6 +12,7 @@ interface HlcDetail {
   program_id: number;
   nama_diklat: string;
   tanggal_mulai: string;
+  nrp: string;
   tahun: number;
 }
 
@@ -46,6 +47,7 @@ function formatDate(date: string) {
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
+              <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">NRP</th>
               <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Program</th>
               <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Diklat</th>
               <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Tanggal Mulai</th>
@@ -58,6 +60,9 @@ function formatDate(date: string) {
                 :key="hlc.id"
                 class="transition-colors duration-150 hover:bg-gray-50"
               >
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {{ hlc.nrp }}
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {{ program.nama_program }}
                 </td>

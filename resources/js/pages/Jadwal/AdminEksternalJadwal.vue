@@ -12,6 +12,7 @@ interface DiklatEksternall {
   program_id: number;
   tanggal_mulai: string;
   nama_diklat: string;
+  nama_karyawan: string;
 }
 
 interface ProgramEksternal {
@@ -45,6 +46,7 @@ function formatDate(date: string) {
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
+              <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Nama</th>
               <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Diklat</th>
               <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Tanggal Mulai</th>
               <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Tahun</th>
@@ -57,6 +59,9 @@ function formatDate(date: string) {
                 :key="eksternal.id"
                 class="transition-colors duration-150 hover:bg-gray-50"
               >
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {{ eksternal.nama_karyawan }}
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {{ program.nama_diklat }}
                 </td>

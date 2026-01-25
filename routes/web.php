@@ -113,7 +113,7 @@ Route::post('/RencanaDiklat/RPT/PN/Detail',[NonFormalController::class,'storeDet
 //jadwal diklat
 Route::get('/JadwalDiklat/HLC', [JadwalHLCController::class, 'index']);
 Route::get('/JadwalDiklat/Eksternal', [JadwalEksternalController::class, 'index']);
-Route::get('/JadwalDiklat/Internal', [JadwalInternalController::class, 'index']);
+Route::get('/JadwalDiklat/Internal', [JadwalInternalController::class, 'index'])->name('jadwal.internal');
 //Silabus
 Route::get('/silabus/diklat', [SilabusController::class, 'index']);
 
