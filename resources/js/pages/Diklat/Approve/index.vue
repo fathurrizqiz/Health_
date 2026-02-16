@@ -6,12 +6,8 @@ import { ref } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-    {
-        title: 'Detail Diklat',
-        href: '/admins',
+        title: 'Persetujuan',
+        href: '#',
     },
 ];
 
@@ -156,6 +152,12 @@ const submitReject = () => {
                                     class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                                 >
                                     Alasan
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                                >
+                                    Aksi
                                 </th>
                                 <th
                                     scope="col"

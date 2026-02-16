@@ -31,12 +31,20 @@ class InternalController extends Controller
         ])->where('nrp', $user->nrp);
 
         if ($search) {
-            $query->whereHas('periode.detail', function ($q) use ($search) {
-                $q->where('nama_diklat', 'ILIKE', "%{$search}%");
-            })
-                ->orWhereHas('periode', function ($q) use ($search) {
-                    $q->where('nama_pengajar', 'ILIKE', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('periode.detail', function ($q2) use ($search) {
+                    $q2->where('nama_diklat', 'ILIKE', "%{$search}%");
+                })
+                ->orWhereHas('periode', function ($q2) use ($search) {
+                    $q2->where('nama_pengajar', 'ILIKE', "%{$search}%");
                 });
+            });
+            // $q->whereHas('periode.detail', function ($q2) use ($search) {
+            //     $q->where('nama_diklat', 'ILIKE', "%{$search}%");
+            // })
+            //     ->orWhereHas('periode', function ($q) use ($search) {
+            //         $q->where('nama_pengajar', 'ILIKE', "%{$search}%");
+            //     });
         }
 
         $pesertaList = $query->get()->map(function ($peserta) {

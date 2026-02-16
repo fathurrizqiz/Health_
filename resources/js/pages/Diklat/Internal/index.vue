@@ -7,13 +7,10 @@ import { ref, watch } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
+        title: 'Sertifikat',
+        href: '#',
     },
-    {
-        title: 'Detail Diklat',
-        href: '/admins',
-    },
+    
 ];
 
 interface InternalDiklat {
@@ -32,13 +29,13 @@ const props = defineProps<{
     internal: InternalDiklat[];
 }>();
 
-function downloadSertifikat(pesertaId: number | undefined) {
-    if (pesertaId == null || isNaN(pesertaId)) {
-        alert('ID peserta tidak valid');
-        return;
-    }
-    window.location.href = `/sertifikat/download/${pesertaId}`;
-}
+// function downloadSertifikat(pesertaId: number | undefined) {
+//     if (pesertaId == null || isNaN(pesertaId)) {
+//         alert('ID peserta tidak valid');
+//         return;
+//     }
+//     window.location.href = `/sertifikat/download/${pesertaId}`;
+// }
 
 function generateSertifikat(pesertaId: number | undefined) {
     if (pesertaId == null || isNaN(pesertaId)) {
@@ -49,15 +46,6 @@ function generateSertifikat(pesertaId: number | undefined) {
     router.post(`/sertifikat/generate/${pesertaId}`);
 }
 
-function formatDate(date: string | null) {
-    if (!date) return '-';
-    const d = new Date(date);
-    return d.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-    });
-}
 
 const search = ref();
 watch(search, (newVal)=>{

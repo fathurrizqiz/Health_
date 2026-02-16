@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import HeaderMenu from '@/components/HeaderMenu.vue';
+// import HeaderMenu from '@/components/HeaderMenu.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -34,10 +34,10 @@ const page = usePage();
 const auth = page.props.auth;
 const rawRole = auth.user?.role || [];
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
-const menuItems = [
-    { title: 'Perpustakaan Diklat', href: '/MateriDiklat/approve' },
-    { title: 'Materi Ditolak', href: '/MateriDiklat/reject' },
-];
+// const menuItems = [
+//     { title: 'Perpustakaan Diklat', href: '/MateriDiklat/approve' },
+//     { title: 'Materi Ditolak', href: '/MateriDiklat/reject' },
+// ];
 
 // ✅ State
 const materiList = ref(props.materi || []);
@@ -186,7 +186,7 @@ const deleteMateri = (id: number) => {
     <Head title="Perpustakaan Diklat" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <HeaderMenu :items="menuItems" />
+        <!-- <HeaderMenu :items="menuItems" /> -->
 
         <div class="px-6 py-8">
             <div class="mx-auto max-w-7xl">
