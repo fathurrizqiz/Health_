@@ -9,7 +9,8 @@ class EvaluasiDetailInternal extends Model
     protected $table = 'evaluasi_detail_internal';
     protected $fillable = [
         'detail_id',
-        'evaluasi'
+        'evaluasimateri',
+        'evaluasipengajar',
     ];
     public function detail()
     {

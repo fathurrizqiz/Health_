@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('diklat_karyawan', function (Blueprint $table) {
-            $table->string('evaluasi')->nullable();
+            $table->text('evaluasimateri')->nullable();
+            $table->text('evaluasipengajar')->nullable();
         });
     }
 

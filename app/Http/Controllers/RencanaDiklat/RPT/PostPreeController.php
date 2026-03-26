@@ -540,7 +540,8 @@ class PostPreeController extends Controller
 
         $request->validate([
             'detail_id' => 'required|exists:detail_internal,id',
-            'evaluasi' => 'required|string',
+            'evaluasimateri' => 'required|string',
+            'evaluasipengajar' => 'required|string',
             'token' => 'required'
         ]);
 
@@ -566,7 +567,7 @@ class PostPreeController extends Controller
 
         $evaluasi = EvaluasiDetailInternal::updateOrCreate(
             ['detail_id' => $request->detail_id],
-            ['evaluasi' => $request->evaluasi]
+            ['evaluasimateri' => $request->evaluasimateri, 'evaluasipengajar' => $request->evaluasipengajar]
         );
 
         Log::info('Evaluasi berhasil disimpan / diperbarui', [

@@ -10,17 +10,23 @@ const props = defineProps<{
     token:string
 }>();
 
-const evaluasi = ref('');
+const evaluasimateri = ref('');
+const evaluasipengajar = ref('');
 
 function submitEvaluasi() {
-    if (!evaluasi.value.trim()) {
+    if (!evaluasimateri.value.trim()) {
+        alert('Evaluasi tidak boleh kosong');
+        return;
+    }
+    if (!evaluasipengajar.value.trim()) {
         alert('Evaluasi tidak boleh kosong');
         return;
     }
 
     router.post('/test/evaluasi/post', {
         detail_id: props.data.id,
-        evaluasi: evaluasi.value,
+        evaluasimateri: evaluasimateri.value,
+        evaluasipengajar: evaluasipengajar.value,
         token:props.token, 
 
     },{
@@ -45,11 +51,23 @@ function submitEvaluasi() {
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Evaluasi Anda
+                        Evaluasi Materi
                     </label>
 
                     <textarea
-                        v-model="evaluasi"
+                        v-model="evaluasimateri"
+                        rows="5"
+                        placeholder="Tulis evaluasi Anda di sini..."
+                        class="w-full rounded-md border border-gray-300 p-3 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Evaluasi Pemateri
+                    </label>
+
+                    <textarea
+                        v-model="evaluasipengajar"
                         rows="5"
                         placeholder="Tulis evaluasi Anda di sini..."
                         class="w-full rounded-md border border-gray-300 p-3 focus:border-blue-500 focus:ring-blue-500"

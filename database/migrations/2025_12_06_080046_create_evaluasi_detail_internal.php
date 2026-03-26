@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('evaluasi_detail_internal', function (Blueprint $table) {
             $table->id();
             $table->foreignId('detail_id')->constrained('detail_internal')->cascadeOnDelete();
-            $table->text('evaluasi')->nullable();
+            $table->text('evaluasimateri')->nullable();
+            $table->text('evaluasipengajar')->nullable();
             $table->timestamps();
         });
     }

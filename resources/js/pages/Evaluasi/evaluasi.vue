@@ -10,7 +10,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Evaluasi {
     id: number;
     nama_diklat: string;
-    evaluasi: string;
+    evaluasimateri: string;
+    evaluasipengajar: string;
+
 }
 
 interface Detail {
@@ -99,9 +101,13 @@ const props = defineProps<{
                                     v-if="detail.evaluasi"
                                     class="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-700"
                                 >
-                                    <strong>Evaluasi:</strong>
+                                    <strong>Evaluasi Materi:</strong>
                                     <p class="mt-1">
-                                        {{ detail.evaluasi.evaluasi }}
+                                        {{ detail.evaluasi.evaluasimateri }}
+                                    </p>
+                                    <strong>Evaluasi Pemateri:</strong>
+                                    <p class="mt-1">
+                                        {{ detail.evaluasi.evaluasipengajar }}
                                     </p>
                                 </div>
                             </div>
@@ -128,7 +134,7 @@ const props = defineProps<{
                                     </div>
     
                                     <span
-                                        v-if="item.evaluasi"
+                                        v-if="item.evaluasimateri"
                                         class="rounded bg-green-100 px-3 py-1 text-sm text-green-700"
                                     >
                                         Sudah Dievaluasi
@@ -143,12 +149,21 @@ const props = defineProps<{
                                 </div>
     
                                 <div
-                                    v-if="item.evaluasi"
+                                    v-if="item.evaluasimateri"
                                     class="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-700"
                                 >
-                                    <strong>Evaluasi:</strong>
+                                    <strong>Evaluasi Materi:</strong>
                                     <p class="mt-1">
-                                        {{ item.evaluasi }}
+                                        {{ item.evaluasimateri }}
+                                    </p>
+                                </div>
+                                <div
+                                    v-if="item.evaluasipengajar"
+                                    class="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-700"
+                                >
+                                    <strong>Evaluasi Pengajar:</strong>
+                                    <p class="mt-1">
+                                        {{ item.evaluasipengajar }}
                                     </p>
                                 </div>
                             </div>

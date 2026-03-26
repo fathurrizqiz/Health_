@@ -15,7 +15,7 @@ class EvaluasiController extends Controller
         $evaluasi1 = DiklatKaryawan::all();
         $evaluasi2 = PendidikanFormalModels::with([
             'details:id,program_id,nama_diklat',
-            'details.evaluasi:id,detail_id,evaluasi'
+            'details.evaluasi:id,detail_id,evaluasipengajar,evaluasimateri'
         ])
             ->select('id', 'nama_program')
             ->get();

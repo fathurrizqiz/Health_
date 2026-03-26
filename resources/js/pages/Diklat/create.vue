@@ -24,7 +24,8 @@ const form = reactive({
     pengajar: '',
     jam_diklat: '',
     diklat:'',
-    evaluasi: '',
+    evaluasimateri: '',
+    evaluasipengajar: '',
     penyelenggara: '',
     file: null as File | null, // Tambahkan properti untuk menampung objek file
 });
@@ -131,18 +132,30 @@ function submit() {
             </div>
 
             <div>
-                <label  class="block text-sm font-medium text-gray-700">Evaluasi</label>
+                <label  class="block text-sm font-medium text-gray-700">Evaluasi Materi</label>
                 <Input
                     id="keterangan"
                     rows="3"
                     type="text"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    v-model="form.evaluasi"
+                    v-model="form.evaluasimateri"
                     
                 />
             </div>
 
-            <!-- Field Upload File PDF -->
+            <div>
+                <label  class="block text-sm font-medium text-gray-700">Evaluasi Pengajar</label>
+                <Input
+                    id="keterangan"
+                    rows="3"
+                    type="text"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    v-model="form.evaluasipengajar"
+                    
+                />
+            </div>
+
+           
             <div>
                 <label for="file" class="block text-sm font-medium text-gray-700">Upload Sertifikat</label>
                 <input

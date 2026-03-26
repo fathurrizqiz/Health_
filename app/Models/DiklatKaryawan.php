@@ -19,7 +19,8 @@ class DiklatKaryawan extends Model
         'penyelenggara',
         'status',
         'alasan_penolakan',
-        'evaluasi'
+        'evaluasimateri',
+        'evaluasipengajar'
     ];
 
     protected $casts = [
