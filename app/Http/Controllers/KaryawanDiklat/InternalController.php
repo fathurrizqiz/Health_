@@ -25,9 +25,13 @@ class InternalController extends Controller
 
         $search = $request->input('search');
 
+        // Tambahkan 'presensi' ke dalam with() dan filter berdasarkan nrp user
         $query = PeriodeBagianDetailInternal::with([
             'periode.detail',
-            'aksi'
+            'aksi',
+            'presensi' => function ($q) use ($user) {
+                $q->where('nrp', $user->nrp);
+            }
         ])->where('nrp', $user->nrp);
 
         if ($search) {
@@ -39,12 +43,6 @@ class InternalController extends Controller
                     $q2->where('nama_pengajar', 'ILIKE', "%{$search}%");
                 });
             });
-            // $q->whereHas('periode.detail', function ($q2) use ($search) {
-            //     $q->where('nama_diklat', 'ILIKE', "%{$search}%");
-            // })
-            //     ->orWhereHas('periode', function ($q) use ($search) {
-            //         $q->where('nama_pengajar', 'ILIKE', "%{$search}%");
-            //     });
         }
 
         $pesertaList = $query->get()->map(function ($peserta) {
@@ -56,6 +54,8 @@ class InternalController extends Controller
                 'pree_done_at' => $peserta->pree_done_at,
                 'post_done_at' => $peserta->post_done_at,
                 'sertifikat_path' => $peserta->sertifikat_path,
+                // TAMBAHAN BARU: Cek jika data presensi ada, berarti Hadir (true/false)
+                'is_hadir' => $peserta->presensi ? true : false, 
             ];
         });
 
@@ -63,7 +63,6 @@ class InternalController extends Controller
             'internal' => $pesertaList,
         ]);
     }
-
     
 
 }

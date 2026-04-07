@@ -29,6 +29,12 @@ class PeriodeBagianDetailInternal extends Model
         return $this->belongsTo(PeriodeUtama::class, 'periode_id');
     }
 
+    public function presensi()
+    {
+        // Hubungkan berdasarkan detail_program_id
+        return $this->hasOne(PresensiDetailDiklat::class, 'detail_program_id', 'detail_program_id');
+    }
+
     public function karyawan()
     {
         return $this->belongsTo(Karyawans::class, 'nrp', 'nrp');

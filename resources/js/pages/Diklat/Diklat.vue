@@ -173,341 +173,213 @@ function destroy(id: number | null) {
     <Head title="Detail Diklat" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div
-            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-        >
-            <!-- Statistics Cards -->
-            <div class="m-5">
-                <p class="py-5 text-xl font-bold text-gray-500">
-                    {{ props.karyawan.nama_karyawan }}
-                </p>
-                <div class="h-56 w-full rounded bg-white shadow">
-                    <div class="flex justify-between p-3 py-3">
-                        <div>
-                            <div class="py-2">
-                                NRP : {{ props.karyawan.nrp }}
-                            </div>
-                            <div class="py-2">
-                                Unit Kerja : {{ props.karyawan.unit_kerja }}
-                            </div>
-                            <div class="py-2">
-                                KLINIS / NON KLINIS :
-                                {{ props.karyawan.klinis_non_klinis }}
-                            </div>
-                        </div>
-                        <div>
-                            <div class="py-2">
-                                BAGIAN : {{ props.karyawan.bagian }}
-                            </div>
-                            <div class="py-2">
-                                POSISI JABATAN :
-                                {{ props.karyawan.posisi_jabatan }}
-                            </div>
-                            <div class="py-2">
-                                JENIS KELAMIN : {{ genderLabel }}
-                            </div>
-                        </div>
+        <div class="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6 md:pt-4">
+            
+            <!-- Employee Profile Card -->
+            <div class="relative flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div class="mb-4 flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
+                    <div>
+                        <h2 class="text-2xl font-bold tracking-tight text-slate-800 dark:text-white">
+                            {{ props.karyawan.nama_karyawan }}
+                        </h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Detail Informasi Karyawan</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">NRP</span>
+                        <span class="font-medium text-slate-900 dark:text-slate-200">{{ props.karyawan.nrp }}</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Unit Kerja</span>
+                        <span class="font-medium text-slate-900 dark:text-slate-200">{{ props.karyawan.unit_kerja }}</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Bagian</span>
+                        <span class="font-medium text-slate-900 dark:text-slate-200">{{ props.karyawan.bagian }}</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Posisi Jabatan</span>
+                        <span class="font-medium text-slate-900 dark:text-slate-200">{{ props.karyawan.posisi_jabatan }}</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Klinis / Non Klinis</span>
+                        <span class="inline-flex w-fit items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+                            {{ props.karyawan.klinis_non_klinis }}
+                        </span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Jenis Kelamin</span>
+                        <span class="font-medium text-slate-900 dark:text-slate-200">{{ genderLabel }}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Table Section -->
-            <div class="rounded-xl bg-white shadow-sm">
-                <!-- Table Header -->
-                <div class="border-b border-gray-200 p-6">
-                    <div
-                        class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
-                    >
-                        <div>
-                            <h4>
-                                Target ({{ props.kategori }}):
-                                {{ props.totalJam }} / {{ props.target }} Jam
+            <!-- Table Section Container -->
+            <div class="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                
+                <!-- Table Header & Toolbar -->
+                <div class="flex flex-col gap-4 border-b border-slate-200 p-6 lg:flex-row lg:items-center lg:justify-between dark:border-slate-800">
+                    
+                    <!-- Target Progress -->
+                    <div class="flex flex-col gap-1.5">
+                        <div class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            Target <span class="font-semibold text-slate-900 dark:text-white">({{ props.kategori }})</span>: 
+                            {{ props.totalJam }} / {{ props.target }} Jam 
+                            <span :class="props.percentage >= 100 ? 'text-emerald-600' : 'text-blue-600'">
                                 ({{ props.percentage }}%)
-                            </h4>
-
-                            <div class="mt-2 h-3 w-52 rounded-full bg-gray-200">
-                                <div
-                                    class="h-3 rounded-full bg-blue-600"
-                                    :style="{ width: props.percentage + '%' }"
-                                ></div>
-                            </div>
+                            </span>
                         </div>
-
-                        <div class="flex flex-col gap-3 sm:flex-row">
-                            <!-- Search -->
-                            <div class="relative">
-                                <Input
-                                    v-model="searchQuery"
-                                    type="text"
-                                    placeholder="Search..."
-                                    class="w-full rounded-lg border border-gray-300 py-2 pr-4 pl-10 focus:border-transparent focus:ring-2 focus:ring-blue-500 sm:w-64"
-                                />
-                                <svg
-                                    class="absolute top-2.5 left-3 h-5 w-5 text-gray-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                    ></path>
-                                </svg>
-                            </div>
-                            
-                            <select class="w-36 rounded text-center h-10 bg-green-400 text-white hover:bg-green-500"
-                                onchange="if(this.value) window.location.href=this.value;"
-                            >
-                                <option value="" disabled selected>
-                                    Lihat Jadwal...
-                                </option>
-                                <option value="/JadwalDiklat/Internal">
-                                    Internal
-                                </option>
-                                <option value="/JadwalDiklat/Eksternal">
-                                    Eksternal
-                                </option>
-                                <option value="/JadwalDiklat/HLC">HLC</option>
-                            </select>
-
-                            <button
-                                @click="tambah"
-                                class="flex items-center justify-center rounded-lg bg-blue-600 px-2 py-2 text-white transition-colors hover:bg-blue-700"
-                            >
-                                <svg
-                                    class="mr-2 h-5 w-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M12 4v16m8-8H4"
-                                    ></path>
-                                </svg>
-                                Tambah Diklat
-                            </button>
+                        <div class="h-2 w-full max-w-[280px] overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                            <div
+                                class="h-full rounded-full transition-all duration-1000 ease-out"
+                                :class="props.percentage >= 100 ? 'bg-emerald-500' : 'bg-blue-600'"
+                                :style="{ width: Math.min(props.percentage, 100) + '%' }"
+                            ></div>
                         </div>
+                    </div>
+
+                    <!-- Actions (Search, Filter, Add) -->
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <!-- Search Input -->
+                        <div class="relative">
+                            <Input
+                                v-model="searchQuery"
+                                type="text"
+                                placeholder="Cari diklat..."
+                                class="h-10 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-4 text-sm transition-shadow focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:w-56 dark:border-slate-700 dark:bg-slate-900"
+                            />
+                            <svg class="absolute left-3 top-2.5 h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        
+                        <!-- Filter Dropdown -->
+                        <select 
+                            class="h-10 cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors hover:border-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                            onchange="if(this.value) window.location.href=this.value;"
+                        >
+                            <option value="" disabled selected>Lihat Jadwal...</option>
+                            <option value="/JadwalDiklat/Internal">Internal</option>
+                            <option value="/JadwalDiklat/Eksternal">Eksternal</option>
+                            <option value="/JadwalDiklat/HLC">HLC</option>
+                        </select>
+
+                        <!-- Add Button -->
+                        <button
+                            @click="tambah"
+                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600/50"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Tambah
+                        </button>
                     </div>
                 </div>
 
-                <!-- Table -->
+                <!-- Table Content -->
                 <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="border-b border-gray-200 bg-gray-50">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500 dark:bg-slate-800/50 dark:text-slate-400">
                             <tr>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    No
-                                </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    Tanggal mulai
-                                </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    Tanggal Selesai
-                                </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    Nama Diklat
-                                </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    Pengajar
-                                </th>
-                                <th
-                                    class="hidden px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase sm:table-cell"
-                                >
-                                    Jam
-                                </th>
-                                <th
-                                    class="hidden px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase lg:table-cell"
-                                >
-                                    Diklat
-                                </th>
-                                <th
-                                    class="hidden px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase lg:table-cell"
-                                >
-                                    Penyelenggara
-                                </th>
-                                <th
-                                    class="hidden px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase lg:table-cell"
-                                >
-                                    Status
-                                </th>
-                                <th
-                                    class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    Aksi
-                                </th>
+                                <th class="px-6 py-4 font-semibold uppercase tracking-wider">No</th>
+                                <th class="px-6 py-4 font-semibold uppercase tracking-wider">Tanggal Mulai</th>
+                                <th class="px-6 py-4 font-semibold uppercase tracking-wider">Tanggal Selesai</th>
+                                <th class="px-6 py-4 font-semibold uppercase tracking-wider">Nama Diklat</th>
+                                <th class="px-6 py-4 font-semibold uppercase tracking-wider">Pengajar</th>
+                                <th class="hidden px-6 py-4 font-semibold uppercase tracking-wider sm:table-cell">Jam</th>
+                                <th class="hidden px-6 py-4 font-semibold uppercase tracking-wider lg:table-cell">Diklat</th>
+                                <th class="hidden px-6 py-4 font-semibold uppercase tracking-wider lg:table-cell">Penyelenggara</th>
+                                <th class="hidden px-6 py-4 font-semibold uppercase tracking-wider lg:table-cell">Status</th>
+                                <th class="px-6 py-4 text-right font-semibold uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             <tr
                                 v-for="(item, index) in daftarDiklat"
                                 :key="item.id"
+                                class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/25"
                             >
-                                <td
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    {{ index + 1 }}
+                                <td class="px-6 py-4 text-slate-500">{{ index + 1 }}</td>
+                                <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-200">{{ formatDate(item.tanggal_mulai) ?? '-' }}</td>
+                                <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-200">{{ formatDate(item.tanggal_selesai) ?? '-' }}</td>
+                                <td class="px-6 py-4 text-slate-700 dark:text-slate-300">{{ item.nama_diklat ?? '-' }}</td>
+                                <td class="px-6 py-4 text-slate-700 dark:text-slate-300">{{ item.pengajar }}</td>
+                                <td class="hidden px-6 py-4 text-slate-700 dark:text-slate-300 sm:table-cell">
+                                    <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                        {{ item.jam_diklat ?? '-' }} Jam
+                                    </span>
                                 </td>
-                                <td
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    {{ formatDate(item.tanggal_mulai) ?? '-' }}
+                                <td class="hidden px-6 py-4 text-slate-700 dark:text-slate-300 lg:table-cell">{{ item.diklat }}</td>
+                                <td class="hidden px-6 py-4 text-slate-700 dark:text-slate-300 lg:table-cell">{{ item.penyelenggara }}</td>
+                                <td class="hidden px-6 py-4 lg:table-cell">
+                                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                        {{ item.status }}
+                                    </span>
                                 </td>
-                                <td
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    {{
-                                        formatDate(item.tanggal_selesai) ?? '-'
-                                    }}
-                                </td>
-                                <td
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    {{ item.nama_diklat ?? '-' }}
-                                </td>
-                                <td
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    {{ item.pengajar }}
-                                </td>
-                                <td
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    {{ item.jam_diklat ?? '-' }}
-                                </td>
-                                <td
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    {{ item.diklat }}
-                                </td>
-                                <td
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    {{ item.penyelenggara }}
-                                </td>
-                                <td
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    {{ item.status }}
-                                </td>
-                                <td
-                                    class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                                >
-                                    <div class="flex gap-2">
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <!-- View Button -->
                                         <a
                                             v-if="item.file_path"
-                                            :href="
-                                                route('diklat.preview', item.id)
-                                            "
+                                            :href="route('diklat.preview', item.id)"
+                                            class="rounded-lg p-2 text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                                            title="Lihat Berkas"
                                         >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="#0080ff"
-                                                stroke-width="1"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                class="lucide lucide-eye-icon lucide-eye"
-                                            >
-                                                <path
-                                                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                                                />
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
                                                 <circle cx="12" cy="12" r="3" />
                                             </svg>
                                         </a>
+                                        
+                                        <!-- Edit Button -->
                                         <a
                                             v-if="item.source === 'user'"
-                                            :href="
-                                                route('diklat.edit', item.id)
-                                            "
+                                            :href="route('diklat.edit', item.id)"
+                                            class="rounded-lg p-2 text-emerald-600 transition-colors hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
+                                            title="Edit Data"
                                         >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="#0080ff"
-                                                stroke-width="1"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                class="lucide lucide-file-cog-icon lucide-file-cog"
-                                            >
-                                                <path
-                                                    d="M13.85 22H18a2 2 0 0 0 2-2V8a2 2 0 0 0-.586-1.414l-4-4A2 2 0 0 0 14 2H6a2 2 0 0 0-2 2v6.6"
-                                                />
-                                                <path
-                                                    d="M14 2v5a1 1 0 0 0 1 1h5"
-                                                />
-                                                <path
-                                                    d="m3.305 19.53.923-.382"
-                                                />
-                                                <path
-                                                    d="m4.228 16.852-.924-.383"
-                                                />
-                                                <path
-                                                    d="m5.852 15.228-.383-.923"
-                                                />
-                                                <path
-                                                    d="m5.852 20.772-.383.924"
-                                                />
-                                                <path
-                                                    d="m8.148 15.228.383-.923"
-                                                />
-                                                <path
-                                                    d="m8.53 21.696-.382-.924"
-                                                />
-                                                <path
-                                                    d="m9.773 16.852.922-.383"
-                                                />
-                                                <path
-                                                    d="m9.773 19.148.922.383"
-                                                />
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M13.85 22H18a2 2 0 0 0 2-2V8a2 2 0 0 0-.586-1.414l-4-4A2 2 0 0 0 14 2H6a2 2 0 0 0-2 2v6.6" />
+                                                <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+                                                <path d="m3.305 19.53.923-.382" />
+                                                <path d="m4.228 16.852-.924-.383" />
+                                                <path d="m5.852 15.228-.383-.923" />
+                                                <path d="m5.852 20.772-.383.924" />
+                                                <path d="m8.148 15.228.383-.923" />
+                                                <path d="m8.53 21.696-.382-.924" />
+                                                <path d="m9.773 16.852.922-.383" />
+                                                <path d="m9.773 19.148.922.383" />
                                                 <circle cx="7" cy="18" r="3" />
                                             </svg>
                                         </a>
+
+                                        <!-- Delete Button -->
                                         <button
                                             v-if="item.source === 'user'"
                                             @click="openModal(item.id)"
-                                            class="cursor-pointer"
+                                            class="rounded-lg p-2 text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30"
+                                            title="Hapus Data"
                                         >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="#ff0000"
-                                                stroke-width="1"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                class="lucide lucide-eraser-icon lucide-eraser"
-                                            >
-                                                <path
-                                                    d="M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21"
-                                                />
-                                                <path
-                                                    d="m5.082 11.09 8.828 8.828"
-                                                />
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21" />
+                                                <path d="m5.082 11.09 8.828 8.828" />
                                             </svg>
                                         </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Empty State -->
+                            <tr v-if="daftarDiklat.length === 0">
+                                <td colspan="10" class="px-6 py-10 text-center text-slate-500">
+                                    <div class="flex flex-col items-center justify-center gap-2">
+                                        <svg class="h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                        </svg>
+                                        <span>Tidak ada data diklat ditemukan.</span>
                                     </div>
                                 </td>
                             </tr>
@@ -515,22 +387,22 @@ function destroy(id: number | null) {
                     </table>
                 </div>
 
-                <!-- Pagination -->
-                <div class="border-t border-gray-200 px-6 py-4">
+                <!-- Pagination Footer -->
+                <div class="border-t border-slate-200 bg-slate-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-900/50">
                     <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-700">
-                            Menampilkan 0 hasil
+                        <div class="text-sm font-medium text-slate-500 dark:text-slate-400">
+                            Menampilkan {{ daftarDiklat.length }} hasil
                         </div>
                         <div class="flex space-x-2">
                             <button
                                 disabled
-                                class="rounded-md border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                             >
                                 Previous
                             </button>
                             <button
                                 disabled
-                                class="rounded-md border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                             >
                                 Next
                             </button>
@@ -538,7 +410,10 @@ function destroy(id: number | null) {
                     </div>
                 </div>
             </div>
+            
         </div>
+
+        <!-- Modal Component -->
         <div>
             <ConfirmDeleteModal
                 :show="showModal"

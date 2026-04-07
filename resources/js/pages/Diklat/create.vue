@@ -35,6 +35,9 @@ function submit() {
     router.post(route('diklat.store'), form, {
         onSuccess:()=>{
             toast.success('Data Berhasil Disimpan!')
+        },
+        onError:()=>{
+            toast.error('Data Gagal Disimpan!, Pastikan semua kolom terisi dengan benar.')
         }
     });
 }

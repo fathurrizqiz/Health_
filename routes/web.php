@@ -105,6 +105,7 @@ Route::post('/DetailInternal/Dokumentasi/store', [DokumentasiController::class,'
 
 // Evaluasi
 Route::get('/Diklat/Evaluasi',[EvaluasiController::class,'index']);
+Route::get('/Diklat/Evaluasi/detail/{id}',[EvaluasiController::class,'show']);
 
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');

@@ -10,7 +10,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Datamaster', href: '#' },
 ];
 
-// 🧩 Props dari Inertia
 interface Employee {
     id: number;
     nama_karyawan: string;
@@ -129,294 +128,267 @@ const closeEditModal = () => {
     <Head title="Master Data" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="m-5">
-            <h1 class="text-xl font-bold">Master Data</h1>
-            <h4 class="font-stretch-50%">Target Jam diklat per kategori</h4>
-        </div>
-        <div>
-            <div class="flex justify-center gap-7">
-                <div class="h-32 w-60 rounded-md bg-white shadow-2xl">
-                    <div class="m-5 font-medium">
-                        Klinis
-                        <div class="text-xl font-bold">
-                            {{ targetJam['KLINIS'] }} Jam
-                        </div>
-                        <div class="flex justify-end">
-                            <button
-                                @click="openEditModal('KLINIS')"
-                                class="rounded-md bg-blue-500 px-3 py-2 text-white hover:bg-blue-700"
-                            >
-                                Edit
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="h-32 w-60 rounded-md bg-white shadow-2xl">
-                    <div class="m-5 font-medium">
-                        Non Klinis
-                        <div class="text-xl font-bold">
-                            {{ targetJam['NON KLINIS'] }} Jam
-                        </div>
-                        <div class="flex justify-end">
-                            <button @click="openEditModal('NON KLINIS')"
-                                class="rounded-md bg-blue-500 px-3 py-2 text-white hover:bg-blue-700"
-                            >
-                                Edit
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="h-32 w-60 rounded-md bg-white shadow-2xl">
-                    <div class="m-5 font-medium">
-                        Manajerial Klinis
-                        <div class="text-xl font-bold">
-                            {{ targetJam['MANAJERIAL KLINIS'] }} Jam
-                        </div>
-                        <div class="flex justify-end">
-                            <button @click="openEditModal('MANAJERIAL KLINIS')"
-                                class="rounded-md bg-blue-500 px-3 py-2 text-white hover:bg-blue-700"
-                            >
-                                Edit
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="h-32 w-60 rounded-md bg-white shadow-2xl">
-                    <div class="m-5 font-medium">
-                        Manajerial Non Klinis
-                        <div class="text-xl font-bold">
-                            {{ targetJam['MANAJERIAL NON KLINIS'] }} Jam
-                        </div>
-                        <div class="flex justify-end">
-                            <button @click="openEditModal('MANAJERIAL NON KLINIS')"
-                                class="rounded-md bg-blue-500 px-3 py-2 text-white hover:bg-blue-700"
-                            >
-                                Edit
-                            </button>
-                        </div>
-                    </div>
-                </div>
+        <div class="space-y-8 p-4 md:p-6 lg:p-8">
+            
+            <!-- Page Header -->
+            <div class="flex flex-col gap-2 border-b border-slate-200 pb-6 dark:border-slate-800">
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                    Master Data
+                </h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Kelola target jam diklat per kategori dan tinjau database karyawan secara menyeluruh.
+                </p>
             </div>
-            <div class="flex justify-center gap-3 py-2">
-                <div class="h-32 w-52 rounded-md bg-white shadow-2xl">
-                    <div class="m-5 font-medium">
-                        Total Karyawan
-                        <div class="text-xl font-bold">
+
+            <!-- ===================================== -->
+            <!-- SECTION: Target Jam Diklat            -->
+            <!-- ===================================== -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2">
+                    <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Target Jam Diklat per Kategori</h2>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <!-- Klinis -->
+                    <div class="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+                        <div class="flex items-start justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Klinis</span>
+                            <button @click="openEditModal('KLINIS')" class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-slate-800 dark:hover:text-blue-400" title="Edit Target">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="mt-4 flex items-baseline gap-1.5">
+                            <span class="text-3xl font-bold text-slate-900 dark:text-white">{{ targetJam['KLINIS'] }}</span>
+                            <span class="text-sm font-medium text-slate-500">Jam</span>
+                        </div>
+                    </div>
+
+                    <!-- Non Klinis -->
+                    <div class="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+                        <div class="flex items-start justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Non Klinis</span>
+                            <button @click="openEditModal('NON KLINIS')" class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-slate-800 dark:hover:text-blue-400" title="Edit Target">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="mt-4 flex items-baseline gap-1.5">
+                            <span class="text-3xl font-bold text-slate-900 dark:text-white">{{ targetJam['NON KLINIS'] }}</span>
+                            <span class="text-sm font-medium text-slate-500">Jam</span>
+                        </div>
+                    </div>
+
+                    <!-- Manajerial Klinis -->
+                    <div class="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+                        <div class="flex items-start justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Manajerial Klinis</span>
+                            <button @click="openEditModal('MANAJERIAL KLINIS')" class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-slate-800 dark:hover:text-blue-400" title="Edit Target">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="mt-4 flex items-baseline gap-1.5">
+                            <span class="text-3xl font-bold text-slate-900 dark:text-white">{{ targetJam['MANAJERIAL KLINIS'] }}</span>
+                            <span class="text-sm font-medium text-slate-500">Jam</span>
+                        </div>
+                    </div>
+
+                    <!-- Manajerial Non Klinis -->
+                    <div class="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+                        <div class="flex items-start justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Manajerial Non Klinis</span>
+                            <button @click="openEditModal('MANAJERIAL NON KLINIS')" class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-slate-800 dark:hover:text-blue-400" title="Edit Target">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="mt-4 flex items-baseline gap-1.5">
+                            <span class="text-3xl font-bold text-slate-900 dark:text-white">{{ targetJam['MANAJERIAL NON KLINIS'] }}</span>
+                            <span class="text-sm font-medium text-slate-500">Jam</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================================== -->
+            <!-- SECTION: Statistik Karyawan           -->
+            <!-- ===================================== -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2">
+                    <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Statistik Karyawan</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+                    <!-- Total Keseluruhan -->
+                    <div class="col-span-2 flex flex-col justify-center rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm md:col-span-1 dark:border-blue-900/50 dark:bg-blue-900/20">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Total Karyawan</span>
+                        <div class="mt-2 text-4xl font-black text-blue-700 dark:text-blue-300">
                             {{ totals.totalKaryawan }}
                         </div>
                     </div>
-                </div>
-                <div class="flex flex-wrap gap-5">
-                    <div
-                        v-for="(total, kategori) in totals.byCategory"
+
+                    <!-- Total by Category -->
+                    <div 
+                        v-for="(total, kategori) in totals.byCategory" 
                         :key="kategori"
-                        class="h-32 w-52 rounded-md bg-white shadow-2xl"
+                        class="flex flex-col justify-center rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
                     >
-                        <div class="m-5 font-medium">
-                            {{ kategori }}
-                            <div class="mt-2 text-xl font-bold">
-                                {{ total }}
-                            </div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ kategori }}</span>
+                        <div class="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                            {{ total }}
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
+
+            <!-- ===================================== -->
+            <!-- SECTION: Tabel Data Karyawan          -->
+            <!-- ===================================== -->
+            <section class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                
+                <!-- Toolbar & Filters -->
+                <div class="flex flex-col gap-4 border-b border-slate-100 p-5 lg:flex-row lg:items-center lg:justify-between dark:border-slate-800">
+                    <h2 class="text-lg font-bold text-slate-800 dark:text-white">Data Karyawan</h2>
+                    
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <!-- Search Box -->
+                        <div class="relative w-full lg:w-80">
+                            <input
+                                type="text"
+                                v-model="searchQuery"
+                                placeholder="Cari nama, NRP, bagian..."
+                                class="h-10 w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 pr-4 text-sm transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
+                            />
+                            <svg class="absolute left-3 top-2.5 h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        
+                        <!-- Filter Kategori -->
+                        <div class="w-full sm:w-48">
+                            <select
+                                v-model="selectedCategory"
+                                class="h-10 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
+                            >
+                                <option v-for="option in categoryOptions" :key="option" :value="option">
+                                    {{ option }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Content -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-left text-sm dark:divide-slate-800">
+                        <thead class="bg-slate-50 text-slate-500 dark:bg-slate-800/50 dark:text-slate-400">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 font-semibold uppercase tracking-wider">Nama</th>
+                                <th scope="col" class="px-6 py-4 font-semibold uppercase tracking-wider">NRP</th>
+                                <th scope="col" class="px-6 py-4 font-semibold uppercase tracking-wider">Bagian</th>
+                                <th scope="col" class="px-6 py-4 font-semibold uppercase tracking-wider">Unit Kerja</th>
+                                <th scope="col" class="px-6 py-4 font-semibold uppercase tracking-wider">Posisi Jabatan</th>
+                                <th scope="col" class="px-6 py-4 font-semibold uppercase tracking-wider">Kategori</th>
+                                <th scope="col" class="px-6 py-4 font-semibold uppercase tracking-wider">TMT</th>
+                                <th scope="col" class="px-6 py-4 font-semibold uppercase tracking-wider">L/P</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white dark:divide-slate-800 dark:bg-slate-900">
+                            <tr v-for="employee in filteredEmployees" :key="employee.id" class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/25">
+                                <td class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-slate-200">
+                                    {{ employee.nama_karyawan }}
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 font-mono text-slate-500 dark:text-slate-400">
+                                    {{ employee.nrp }}
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">
+                                    {{ employee.bagian }}
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">
+                                    {{ employee.unit_kerja }}
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">
+                                    {{ employee.posisi_jabatan }}
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    <span
+                                        :class="{
+                                            'inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-sm': true,
+                                            'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800': employee.klinis_non_klinis === 'Klinis',
+                                            'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800': employee.klinis_non_klinis === 'Non Klinis',
+                                            'bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800': employee.klinis_non_klinis === 'Manajerial Klinis',
+                                            'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800': employee.klinis_non_klinis === 'Manajerial Non Klinis',
+                                        }"
+                                    >
+                                        {{ employee.klinis_non_klinis }}
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">
+                                    {{ formatDate(employee.tmt) }}
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">
+                                    {{ employee.jenis_kelamin }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Empty State List -->
+                    <div v-if="filteredEmployees.length === 0" class="flex flex-col items-center justify-center py-16 text-center">
+                        <svg class="mb-4 h-12 w-12 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <p class="text-slate-500 dark:text-slate-400">Tidak ada data karyawan yang sesuai dengan filter.</p>
+                    </div>
+                </div>
+            </section>
+
         </div>
 
-        <!-- Tabel Data Karyawan -->
-        <div class="m-5 rounded-md bg-white p-5 shadow-2xl">
-            <h2 class="mb-4 text-lg font-bold">Data Karyawan</h2>
-
-            <!-- Filter Section -->
-            <div class="mb-4 flex flex-col gap-4 md:flex-row">
-                <div class="flex-1">
-                    <input
-                        type="text"
-                        v-model="searchQuery"
-                        placeholder="Cari berdasarkan nama, NRP, bagian, unit kerja, atau posisi jabatan..."
-                        class="w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    />
-                </div>
-                <div class="w-full md:w-48">
-                    <select
-                        v-model="selectedCategory"
-                        class="w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    >
-                        <option
-                            v-for="option in categoryOptions"
-                            :key="option"
-                            :value="option"
-                        >
-                            {{ option }}
-                        </option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Table -->
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                            >
-                                Nama
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                            >
-                                NRP
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                            >
-                                Bagian
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                            >
-                                Unit Kerja
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                            >
-                                Posisi Jabatan
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                            >
-                                Kategori
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                            >
-                                TMT
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                            >
-                                Jenis Kelamin
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white">
-                        <tr
-                            v-for="employee in filteredEmployees"
-                            :key="employee.id"
-                        >
-                            <td
-                                class="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900"
-                            >
-                                {{ employee.nama_karyawan }}
-                            </td>
-                            <td
-                                class="px-6 py-4 text-sm whitespace-nowrap text-gray-500"
-                            >
-                                {{ employee.nrp }}
-                            </td>
-                            <td
-                                class="px-6 py-4 text-sm whitespace-nowrap text-gray-500"
-                            >
-                                {{ employee.bagian }}
-                            </td>
-                            <td
-                                class="px-6 py-4 text-sm whitespace-nowrap text-gray-500"
-                            >
-                                {{ employee.unit_kerja }}
-                            </td>
-                            <td
-                                class="px-6 py-4 text-sm whitespace-nowrap text-gray-500"
-                            >
-                                {{ employee.posisi_jabatan }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    :class="{
-                                        'inline-flex rounded-full px-2 text-xs leading-5 font-semibold': true,
-                                        'bg-green-100 text-green-800':
-                                            employee.klinis_non_klinis ===
-                                            'Klinis',
-                                        'bg-blue-100 text-blue-800':
-                                            employee.klinis_non_klinis ===
-                                            'Non Klinis',
-                                        'bg-purple-100 text-purple-800':
-                                            employee.klinis_non_klinis ===
-                                            'Manajerial Klinis',
-                                        'bg-yellow-100 text-yellow-800':
-                                            employee.klinis_non_klinis ===
-                                            'Manajerial Non Klinis',
-                                    }"
-                                >
-                                    {{ employee.klinis_non_klinis }}
-                                </span>
-                            </td>
-                            <td
-                                class="px-6 py-4 text-sm whitespace-nowrap text-gray-500"
-                            >
-                                {{ formatDate(employee.tmt) }}
-                            </td>
-                            <td
-                                class="px-6 py-4 text-sm whitespace-nowrap text-gray-500"
-                            >
-                                {{ employee.jenis_kelamin }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <!-- Empty State -->
-                <div
-                    v-if="filteredEmployees.length === 0"
-                    class="py-4 text-center"
-                >
-                    <p class="text-gray-500">
-                        Tidak ada data yang sesuai dengan filter
-                    </p>
-                </div>
-            </div>
-        </div>
-        <!-- Modal Edit Target Jam -->
+        <!-- ===================================== -->
+        <!-- MODAL: Edit Target Jam                -->
+        <!-- ===================================== -->
         <teleport to="body">
-            <div
-                v-if="editingCategory"
-                class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md"
-            >
-                <div class="w-96 rounded-lg bg-white p-6">
-                    <h3 class="mb-4 text-lg font-bold">
-                        Edit Target Jam - {{ editingCategory }}
-                    </h3>
-                    <input
-                        v-model.number="newTargetJam"
-                        type="number"
-                        min="0"
-                        class="mb-4 w-full rounded border px-3 py-2"
-                        placeholder="Masukkan target jam"
-                    />
-                    <div class="flex justify-end gap-2">
-                        <button
-                            @click="closeEditModal"
-                            class="rounded px-4 py-2 text-gray-600 hover:bg-gray-100"
-                        >
-                            Batal
-                        </button>
-                        <button
-                            @click="saveTargetJam"
-                            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                        >
-                            Simpan
-                        </button>
+            <div v-if="editingCategory" class="fixed inset-0 z-50 overflow-y-auto">
+                <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" @click="closeEditModal"></div>
+                <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                    <div class="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all" @click.stop>
+                        
+                        <!-- Modal Header -->
+                        <div class="border-b border-slate-100 px-6 py-4">
+                            <h3 class="text-lg font-bold text-slate-900">
+                                Edit Target Jam
+                            </h3>
+                            <p class="mt-1 text-sm text-slate-500">Kategori: <span class="font-semibold text-slate-700">{{ editingCategory }}</span></p>
+                        </div>
+                        
+                        <!-- Modal Body -->
+                        <div class="px-6 py-5">
+                            <label class="mb-1 block text-sm font-medium text-slate-700">Target Jam Baru</label>
+                            <input
+                                v-model.number="newTargetJam"
+                                type="number"
+                                min="0"
+                                class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                                placeholder="Masukkan target jam"
+                            />
+                        </div>
+                        
+                        <!-- Modal Actions -->
+                        <div class="flex justify-end gap-3 bg-slate-50 px-6 py-4">
+                            <button
+                                @click="closeEditModal"
+                                class="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                @click="saveTargetJam"
+                                class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                            >
+                                Simpan Perubahan
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </teleport>
+
     </AppLayout>
 </template>

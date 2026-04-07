@@ -4,6 +4,7 @@ namespace App\Http\Controllers\RencanaDiklat\RPT;
 
 use App\Http\Controllers\Controller;
 use App\Models\PeriodeBagianDetailInternal;
+use App\Models\PresensiDetailDiklat;
 use App\Models\TemplatePembahasanSertifikat;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -52,16 +53,28 @@ class SertifikatController extends Controller
 
     public function generate(PeriodeBagianDetailInternal $peserta)
     {
+        // cek kehadiran (sesuai NRP & detail_program_id)
+        $cekHadir = PresensiDetailDiklat::where('nrp', $peserta->nrp)
+            ->where('detail_program_id', $peserta->detail_program_id)
+            ->exists();
+
+        if (!$cekHadir) {
+            return back()->withErrors(['message' => 'Gagal! Karyawan belum tercatat hadir pada pelatihan ini.']);
+        }
+
+        // CEK PRE & POST TEST
         if (!$peserta->pree_done_at || !$peserta->post_done_at) {
-            return back()->with('error', 'Pre dan Post test belum lengkap');
+            return back()->withErrors(['message' => 'Gagal! Pre dan Post test belum lengkap.']);
         }
 
-        if ($peserta->sertifikat_generated_at) {
-            return back()->with('warning', 'Sertifikat sudah dibuat');
-        }
+        // // 3. CEK SERTIFIKAT GANDA
+        // if ($peserta->sertifikat_generated_at) {
+        //     return back()->withErrors(['message' => 'Sertifikat sudah pernah dibuat sebelumnya.']);
+        // }
 
+        // 4. CEK KELENGKAPAN DATA PERIODE
         if (!$peserta->periode || !$peserta->periode->detail) {
-            return back()->with('error', 'Data periode / diklat tidak lengkap');
+            return back()->withErrors(['message' => 'Gagal! Data periode / diklat tidak lengkap.']);
         }
 
         $materi = TemplatePembahasanSertifikat::where('periode_id', $peserta->periode_id)
@@ -79,10 +92,10 @@ class SertifikatController extends Controller
                 'mime' => 'font/ttf',
                 'base64' => base64_encode(file_get_contents($scriptFont)),
             ];
-            Log::info("Font ScriptMTBold dimuat. Panjang base64: " . strlen($fonts['ScriptMTBold']['base64']));
+            // Log::info("Font ScriptMTBold dimuat. Panjang base64: " . strlen($fonts['ScriptMTBold']['base64']));
         } else {
-            Log::error("Font ScriptMTBold TIDAK DITEMUKAN atau tidak bisa dibaca: $scriptFont");
-            return back()->with('error', 'Font ScriptMTBold tidak tersedia.');
+            // Log::error("Font ScriptMTBold TIDAK DITEMUKAN atau tidak bisa dibaca: $scriptFont");
+            return back()->withErrors(['message' => 'Gagal! Font ScriptMTBold tidak tersedia di server.']);
         }
 
         $Arial = storage_path('fonts/ARIALBOLDMT.otf');
@@ -91,7 +104,7 @@ class SertifikatController extends Controller
                 'mime' => 'font/otf',
                 'base64' => base64_encode(file_get_contents($Arial)),
             ];
-            Log::info("Font ARIALBOLDMT dimuat. Panjang base64: " . strlen($fonts['ARIALBOLDMT']['base64']));
+            // Log::info("Font ARIALBOLDMT dimuat. Panjang base64: " . strlen($fonts['ARIALBOLDMT']['base64']));
         } else {
             Log::warning("Font ARIALBOLDMT tidak ditemukan: $Arial");
         }
@@ -107,27 +120,26 @@ class SertifikatController extends Controller
         $assets = [];
         foreach ($assetPaths as $key => $path) {
             if (!file_exists($path)) {
-                Log::error("ASET TIDAK DITEMUKAN: $key → $path");
-                return back()->with('error', "Template sertifikat tidak lengkap: $key.png hilang.");
+                // Log::error("ASET TIDAK DITEMUKAN: $key → $path");
+                return back()->withErrors(['message' => "Gagal! Template sertifikat tidak lengkap: $key.png hilang."]);
             }
 
             if (!is_readable($path)) {
-                Log::error("ASET TIDAK BISA DIBACA (permission?): $key → $path");
-                return back()->with('error', "File $key tidak bisa diakses.");
+                // Log::error("ASET TIDAK BISA DIBACA (permission?): $key → $path");
+                return back()->withErrors(['message' => "Gagal! File $key tidak bisa diakses (masalah permission)."]);
             }
 
-            // Opsional: cek ukuran file
             $size = filesize($path);
             if ($size === 0) {
-                Log::error("ASET KOSONG: $key → $path");
-                return back()->with('error', "File $key rusak (ukuran 0 byte).");
+                // Log::error("ASET KOSONG: $key → $path");
+                return back()->withErrors(['message' => "Gagal! File $key rusak (ukuran 0 byte)."]);
             }
 
-            // Baca file
+            // untuk baca file
             $content = file_get_contents($path);
             if ($content === false) {
-                Log::error("GAGAL MEMBACA FILE: $key → $path");
-                return back()->with('error', "Gagal membaca file $key.");
+                // Log::error("GAGAL MEMBACA FILE: $key → $path");
+                return back()->withErrors(['message' => "Gagal membaca file $key."]);
             }
 
             $assets[$key] = base64_encode($content);
@@ -144,14 +156,14 @@ class SertifikatController extends Controller
                 'materi' => $materi,
                 'fonts' => $fonts,
                 'assets' => $assets,
-            ])->setPaper('a4', 'landscape'); // lowercase 'a4'
+            ])->setPaper('a4', 'landscape');
 
             $path = "sertifikat/{$peserta->nrp}_{$peserta->id}.pdf";
             $pdfContent = $pdf->output();
 
             if (empty($pdfContent)) {
                 Log::error("PDF output KOSONG untuk peserta ID: {$peserta->id}");
-                return back()->with('error', 'Gagal membuat PDF (output kosong).');
+                return back()->withErrors(['message' => 'Gagal membuat PDF (output kosong).']);
             }
 
             Storage::disk('public')->put($path, $pdfContent);
@@ -163,11 +175,13 @@ class SertifikatController extends Controller
 
             Log::info("Sertifikat berhasil digenerate untuk: {$peserta->nama_karyawan} (ID: {$peserta->id})");
 
+            // Untuk return success, tetap gunakan format biasa, karena onSuccess di Vue sudah menangkap statusnya
             return back()->with('success', 'Sertifikat berhasil digenerate');
 
         } catch (\Exception $e) {
             Log::error("GAGAL GENERATE PDF: " . $e->getMessage() . " (File: {$e->getFile()}, Line: {$e->getLine()})");
-            return back()->with('error', 'Terjadi kesalahan saat membuat sertifikat: ' . $e->getMessage());
+            // Ubah menjadi withErrors agar tertangkap di frontend
+            return back()->withErrors(['message' => 'Terjadi kesalahan saat memproses PDF: ' . $e->getMessage()]);
         }
     }
 

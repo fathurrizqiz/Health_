@@ -565,9 +565,9 @@ class PostPreeController extends Controller
             abort(403, 'Token tidak valid');
         }
 
-        $evaluasi = EvaluasiDetailInternal::updateOrCreate(
-            ['detail_id' => $request->detail_id],
-            ['evaluasimateri' => $request->evaluasimateri, 'evaluasipengajar' => $request->evaluasipengajar]
+        $evaluasi = EvaluasiDetailInternal::create(
+            ['detail_id' => $request->detail_id,
+            'evaluasimateri' => $request->evaluasimateri, 'evaluasipengajar' => $request->evaluasipengajar]
         );
 
         Log::info('Evaluasi berhasil disimpan / diperbarui', [
@@ -575,7 +575,7 @@ class PostPreeController extends Controller
             'detail_id' => $evaluasi->detail_id
         ]);
 
-        $token->update(['is_used' => true]);
+        $token->update(['is_used' => false]);
 
         Log::info('Token evaluasi ditandai sebagai digunakan', [
             'token_id' => $token->id

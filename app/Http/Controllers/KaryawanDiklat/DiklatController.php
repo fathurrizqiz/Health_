@@ -113,7 +113,7 @@ class DiklatController extends Controller
             'diklat' => 'required|string|max:255',
             'penyelenggara' => 'required|string|max:255',
             'jam_diklat' => 'required|integer|min:1',
-            'file' => 'nullable|file|mimes:pdf|max:2048',
+            'file' => 'required|file|mimes:pdf|max:2048',
         ]);
 
         $tanggalMulai = Carbon::parse($validated['tanggal_mulai']);

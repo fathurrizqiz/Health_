@@ -37,46 +37,94 @@ function formatDate(date: string) {
 </script>
 
 <template>
-  <Head title="Evaluasi" />
+    <Head title="Jadwal HLC" />
 
-  <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="p-6 sm:p-8">
-      <h1 class="text-3xl font-semibold text-gray-800 mb-6">Jadwal HLC</h1>
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class=" space-y-6 p-4 md:p-6 lg:p-8">
+            
+            <!-- Page Header -->
+            <div class="flex flex-col gap-2 border-b border-slate-200 pb-6 dark:border-slate-800">
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                    Jadwal HLC
+                </h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Daftar jadwal Human Learning Center (HLC).
+                </p>
+            </div>
 
-      <div class="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
-        <table class="w-full">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">NRP</th>
-              <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Program</th>
-              <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Diklat</th>
-              <th class="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Tanggal Mulai</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 bg-white">
-            <template v-for="program in props.HLCJadwal" :key="program.id">
-              <tr
-                v-for="hlc in program.hlc"
-                :key="hlc.id"
-                class="transition-colors duration-150 hover:bg-gray-50"
-              >
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {{ hlc.nrp }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {{ program.nama_program }}
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-700">
-                  {{ hlc.nama_diklat }}
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-700">
-                  {{ formatDate(hlc.tanggal_mulai) }}
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </AppLayout>
+            <!-- Table Container -->
+            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                
+                <!-- Empty State (Jika tidak ada data) -->
+                <div 
+                    v-if="!props.HLCJadwal || props.HLCJadwal.length === 0" 
+                    class="flex flex-col items-center justify-center py-20 text-center"
+                >
+                    <div class="rounded-full bg-slate-50 p-4 dark:bg-slate-800">
+                        <svg class="h-10 w-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 text-lg font-bold text-slate-900 dark:text-white">Belum ada jadwal HLC</h3>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Jadwal pelatihan HLC akan muncul di sini setelah ditambahkan ke dalam sistem.</p>
+                </div>
+
+                <!-- Table Content -->
+                <div v-else class="overflow-x-auto">
+                    <table class="w-full whitespace-nowrap text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500 dark:bg-slate-800/50 dark:text-slate-400">
+                            <tr>
+                                <th class="px-6 py-4 font-semibold uppercase tracking-wider">NRP Peserta</th>
+                                <th class="px-6 py-4 font-semibold uppercase tracking-wider">Program</th>
+                                <th class="px-6 py-4 font-semibold uppercase tracking-wider">Nama Diklat</th>
+                                <th class="px-6 py-4 font-semibold uppercase tracking-wider">Tanggal Mulai</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <template v-for="program in props.HLCJadwal" :key="program.id">
+                                <tr
+                                    v-for="hlc in program.hlc"
+                                    :key="hlc.id"
+                                    class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/25"
+                                >
+                                    <!-- NRP -->
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                                #
+                                            </div>
+                                            <span class="font-mono text-sm font-medium">{{ hlc.nrp }}</span>
+                                        </div>
+                                    </td>
+
+                                    <!-- Program -->
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                            {{ program.nama_program }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Diklat -->
+                                    <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-200">
+                                        {{ hlc.nama_diklat }}
+                                    </td>
+
+                                    <!-- Tanggal Mulai -->
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                            <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            {{ formatDate(hlc.tanggal_mulai) }}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </AppLayout>
 </template>

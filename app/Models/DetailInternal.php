@@ -24,7 +24,7 @@ class DetailInternal extends Model
     }
     public function evaluasi()
     {
-        return $this->hasOne(EvaluasiDetailInternal::class, 'detail_id');
+        return $this->hasMany(EvaluasiDetailInternal::class, 'detail_id');
     }
 
 

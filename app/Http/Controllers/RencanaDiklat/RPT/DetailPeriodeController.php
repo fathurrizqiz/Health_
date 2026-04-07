@@ -51,6 +51,12 @@ class DetailPeriodeController extends Controller
                     'jenis_kelamin' => $item->karyawan->jenis_kelamin,
                 ];
             });
+        // Log::info('PERIODE ID MASUK', [
+        //     'request_periode_id' => $request->periode_id
+        // ]);
+        // Log::info('DATA DI DB', [
+        //     'count' => PeriodeBagianDetailInternal::where('periode_id', $request->periode_id)->count()
+        // ]);
 
 
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/DetailPeriode/index', [

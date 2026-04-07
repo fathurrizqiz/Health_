@@ -310,320 +310,378 @@ onUnmounted(() => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <HeaderMenu :items="menuItems" />
 
-        <div class="p-6">
-            <!-- Header -->
-            <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 class="text-2xl font-bold text-gray-800">Pendidikan Non Formal</h2>
+        <div class=" space-y-6 p-4 md:p-6 lg:p-8">
+            
+            <!-- Header Section -->
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                        Pendidikan Non Formal
+                    </h2>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        Kelola daftar program pelatihan dan detail peserta diklat eksternal.
+                    </p>
+                </div>
                 <button
                     @click="openProgramModal"
-                    class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md transition"
+                    class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Tambah Program
                 </button>
             </div>
 
-            <!-- Filter Controls -->
-            <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Search -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Cari Program</label>
-                    <input
-                        v-model="searchQuery"
-                        @input="resetToPage1"
-                        type="text"
-                        placeholder="Nama program..."
-                        class="w-full rounded border px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+            <!-- Filters & Controls Toolbar -->
+            <div class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-end dark:border-slate-800 dark:bg-slate-900">
+                <div class="flex-1">
+                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">Cari Program</label>
+                    <div class="relative">
+                        <input
+                            v-model="searchQuery"
+                            @input="resetToPage1"
+                            type="text"
+                            placeholder="Ketik nama program..."
+                            class="h-10 w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 pr-4 text-sm transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
+                        />
+                        <svg class="absolute left-3 top-2.5 h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
                 </div>
-
-                <!-- Filter Tahun -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tahun</label>
+                <div class="w-full md:w-48">
+                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">Tahun</label>
                     <select
                         v-model="selectedYear"
                         @change="resetToPage1"
-                        class="w-full rounded border px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                        class="h-10 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
                     >
                         <option v-for="year in availableYears" :key="year" :value="year">
                             {{ year === 'all' ? 'Semua Tahun' : year }}
                         </option>
                     </select>
                 </div>
-
-                <!-- Items Per Page -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tampilan per Halaman</label>
+                <div class="w-full md:w-48">
+                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">Tampilan</label>
                     <select
                         v-model.number="itemsPerPage"
                         @change="resetToPage1"
-                        class="w-full rounded border px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                        class="h-10 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
                     >
-                        <option :value="5">5</option>
-                        <option :value="10">10</option>
-                        <option :value="20">20</option>
+                        <option :value="5">5 baris</option>
+                        <option :value="10">10 baris</option>
+                        <option :value="20">20 baris</option>
                     </select>
                 </div>
             </div>
 
-            <!-- Info Jumlah Data -->
-            <div class="mb-4 text-sm text-gray-600">
-                Menampilkan {{ paginatedPrograms.length }} dari {{ filteredPrograms.length }} program
+            <!-- List Summary -->
+            <div class="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Menampilkan <span class="text-slate-900 dark:text-white">{{ paginatedPrograms.length }}</span> dari 
+                <span class="text-slate-900 dark:text-white">{{ filteredPrograms.length }}</span> program
             </div>
 
-            <!-- Daftar Program -->
-            <div v-if="paginatedPrograms.length > 0" class="space-y-8">
+            <!-- Program List -->
+            <div v-if="paginatedPrograms.length > 0" class="space-y-6">
                 <div
                     v-for="prog in paginatedPrograms"
                     :key="prog.id"
-                    class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+                    class="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                 >
-                    <div class="bg-gray-50 px-6 py-4 flex justify-between items-center">
+                    <!-- Card Header -->
+                    <div class="flex flex-col gap-4 border-b border-slate-100 bg-slate-50/50 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-800/50">
                         <div>
-                            <h3 class="text-xl font-semibold text-gray-800">{{ prog.nama_diklat }}</h3>
-                            <p class="text-sm text-gray-500">Tahun: {{ prog.tahun }}</p>
+                            <h3 class="text-xl font-bold text-slate-800 dark:text-white">
+                                {{ prog.nama_diklat }}
+                            </h3>
+                            <div class="mt-2 flex items-center gap-2">
+                                <span class="inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                    Tahun: {{ prog.tahun }}
+                                </span>
+                            </div>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex shrink-0 items-center gap-2">
+                            <button
+                                @click="hapusProgram(prog.id)"
+                                class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30"
+                                title="Hapus Program"
+                            >
+                                Hapus
+                            </button>
                             <button
                                 @click="openDetailModal(prog.id)"
-                                class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm"
+                                class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                             >
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
                                 Tambah Diklat
                             </button>
-                            <button
-                                @click="hapusProgram(prog.id)"
-                                class="text-red-600 hover:text-red-800 font-medium text-sm"
-                            >
-                                Hapus Program
-                            </button>
                         </div>
                     </div>
 
-                    <div class="p-6">
-                        <div v-if="prog.eksternal && prog.eksternal.length > 0" class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
+                    <!-- Card Body / Nested Table -->
+                    <div class="p-5">
+                        <div v-if="prog.eksternal && prog.eksternal.length > 0" class="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                            <table class="w-full whitespace-nowrap text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 dark:bg-slate-800/50 dark:text-slate-400">
                                     <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nama Karyawan</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">NRP</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Mulai</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Selesai</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Jam Diklat</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Penyelenggara</th>
-                                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                                        <th class="px-4 py-3 font-semibold uppercase tracking-wider">Nama Karyawan</th>
+                                        <th class="px-4 py-3 font-semibold uppercase tracking-wider">NRP</th>
+                                        <th class="px-4 py-3 font-semibold uppercase tracking-wider">Tanggal Mulai</th>
+                                        <th class="px-4 py-3 font-semibold uppercase tracking-wider">Tanggal Selesai</th>
+                                        <th class="px-4 py-3 font-semibold uppercase tracking-wider">Jam Diklat</th>
+                                        <th class="px-4 py-3 font-semibold uppercase tracking-wider">Penyelenggara</th>
+                                        <th class="px-4 py-3 text-center font-semibold uppercase tracking-wider">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                    <tr v-for="detail in prog.eksternal" :key="detail.id" class="hover:bg-gray-50">
-                                        <td class="px-4 py-3">{{ detail.nama_karyawan }}</td>
-                                        <td class="px-4 py-3">{{ detail.nrp }}</td>
-                                        <td class="px-4 py-3">{{ detail.tanggal_mulai }}</td>
-                                        <td class="px-4 py-3">{{ detail.tanggal_selesai }}</td>
-                                        <td class="px-4 py-3">{{ detail.jam_diklat }}</td>
-                                        <td class="px-4 py-3">{{ detail.penyelenggara }}</td>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    <tr
+                                        v-for="detail in prog.eksternal"
+                                        :key="detail.id"
+                                        class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/25"
+                                    >
+                                        <td class="px-4 py-3 font-medium text-slate-900 dark:text-slate-200">
+                                            <div class="flex items-center gap-2">
+                                                <div class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                                                    {{ detail.nama_karyawan?.charAt(0) || '?' }}
+                                                </div>
+                                                {{ detail.nama_karyawan }}
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ detail.nrp }}</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ detail.tanggal_mulai }}</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ detail.tanggal_selesai }}</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">
+                                            <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                                {{ detail.jam_diklat }} Jam
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ detail.penyelenggara }}</td>
                                         <td class="px-4 py-3 text-center">
                                             <button
                                                 @click="hapusDetail(detail.id)"
-                                                class="text-red-600 hover:text-red-800 text-sm"
+                                                class="rounded-lg p-2 text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30"
+                                                title="Hapus Diklat"
                                             >
-                                                Hapus
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                             </button>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-
-                        <div v-else class="text-center py-6 text-gray-500">
-                            Belum ada data diklat.
+                        <div v-else class="flex flex-col items-center justify-center py-8 text-slate-500 dark:text-slate-400">
+                            <svg class="mb-2 h-10 w-10 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            <span>Belum ada data peserta diklat.</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div v-else class="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <h3 class="mt-4 text-lg font-medium text-gray-900">Tidak ada program yang sesuai</h3>
-                <p class="mt-1 text-gray-500">Coba ubah filter pencarian atau tambah program baru.</p>
+            <!-- Empty State Global -->
+            <div v-else class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center dark:border-slate-700 dark:bg-slate-900">
+                <div class="rounded-full bg-slate-50 p-4 dark:bg-slate-800">
+                    <svg class="h-10 w-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <h3 class="mt-4 text-lg font-bold text-slate-900 dark:text-white">Tidak ada program ditemukan</h3>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Coba ubah kata kunci filter atau tambah program baru.</p>
             </div>
 
             <!-- Pagination -->
-            <div v-if="totalPages > 1" class="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div class="text-sm text-gray-700">
-                    Halaman {{ currentPage }} dari {{ totalPages }}
+            <div v-if="totalPages > 1" class="flex flex-col items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4 sm:flex-row dark:border-slate-800 dark:bg-slate-900">
+                <div class="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    Halaman <span class="text-slate-900 dark:text-white">{{ currentPage }}</span> dari <span class="text-slate-900 dark:text-white">{{ totalPages }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <button
                         :disabled="currentPage === 1"
                         @click="prevPage"
-                        class="px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                     >
                         Sebelumnya
                     </button>
-                    <span class="px-3 py-1">...</span>
                     <button
                         :disabled="currentPage === totalPages"
                         @click="nextPage"
-                        class="px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                     >
                         Berikutnya
                     </button>
                 </div>
             </div>
+
         </div>
 
+        <!-- ============================================== -->
         <!-- Modal Tambah Program -->
+        <!-- ============================================== -->
         <div v-if="isProgramModalOpen" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="fixed inset-0 backdrop-blur-md bg-opacity-50" @click="closeProgramModal"></div>
+            <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" @click="closeProgramModal"></div>
             <div class="flex min-h-full items-center justify-center p-4">
-                <div class="relative w-full max-w-md rounded-lg bg-white shadow-xl" @click.stop>
-                    <div class="px-6 py-4">
-                        <h3 class="text-lg font-medium text-gray-900">Tambah Program Baru</h3>
-                        <div class="mt-4 space-y-4">
+                <div class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl transition-all" @click.stop>
+                    <div class="border-b border-slate-100 px-6 py-4">
+                        <h3 class="text-lg font-bold text-slate-900">Tambah Program Baru</h3>
+                    </div>
+                    <div class="px-6 py-5">
+                        <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Nama Program</label>
+                                <label class="mb-1 block text-sm font-medium text-slate-700">Nama Program</label>
                                 <input
                                     v-model="newProgram.nama_diklat"
                                     type="text"
-                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm placeholder-slate-400 transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                     placeholder="Contoh: Pelatihan Public Speaking"
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Tahun</label>
+                                <label class="mb-1 block text-sm font-medium text-slate-700">Tahun</label>
                                 <input
                                     v-model="newProgram.tahun"
                                     type="text"
-                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm placeholder-slate-400 transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                 />
                             </div>
                         </div>
                     </div>
-                    <div class="bg-gray-50 px-6 py-3 flex justify-end gap-3">
-                        <button @click="closeProgramModal" class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">
+                    <div class="flex justify-end gap-3 bg-slate-50 px-6 py-4">
+                        <button
+                            @click="closeProgramModal"
+                            class="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                        >
                             Batal
                         </button>
-                        <button @click="tambahProgram" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded">
-                            Simpan
+                        <button
+                            @click="tambahProgram"
+                            class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                        >
+                            Simpan Program
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Modal Tambah Detail -->
+        <!-- ============================================== -->
+        <!-- Modal Tambah Detail (Diklat Eksternal) -->
+        <!-- ============================================== -->
         <div v-if="isDetailModalOpen" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="fixed inset-0 backdrop-blur-md bg-opacity-50" @click="closeDetailModal"></div>
+            <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" @click="closeDetailModal"></div>
             <div class="flex min-h-full items-center justify-center p-4">
-                <div class="relative w-full max-w-md rounded-lg bg-white shadow-xl" @click.stop>
-                    <div class="px-6 py-4">
-                        <h3 class="text-lg font-medium text-gray-900">Tambah Diklat Baru</h3>
-                        <div class="mt-4 space-y-4">
-                            <div class="autocomplete-container relative">
-                                <label class="block text-sm font-medium text-gray-700">Cari Karyawan (NRP/Nama)</label>
-                                <input
-                                    v-model="employeeSearchQuery"
-                                    @input="handleEmployeeSearch"
-                                    @keydown="handleKeyDown"
-                                    type="text"
-                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Ketik NRP atau nama karyawan..."
-                                />
-                                
-                                <!-- Autocomplete Results -->
-                                <div v-if="showEmployeeResults && filteredEmployees.length > 0" class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md overflow-auto">
-                                    <ul class="py-1">
-                                        <li 
-                                            v-for="(employee, index) in filteredEmployees" 
-                                            :key="employee.id"
-                                            :class="[
-                                                'px-3 py-2 cursor-pointer',
-                                                index === selectedEmployeeIndex ? 'bg-blue-100' : 'hover:bg-gray-100'
-                                            ]"
-                                            @click="selectEmployee(employee)"
-                                        >
-                                            <div class="font-medium">{{ employee.nama_karyawan }}</div>
-                                            <div class="text-sm text-gray-500">{{ employee.nrp }}</div>
-                                        </li>
-                                    </ul>
+                <div class="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl transition-all" @click.stop>
+                    <div class="border-b border-slate-100 px-6 py-4">
+                        <h3 class="text-lg font-bold text-slate-900">Tambah Diklat Baru</h3>
+                    </div>
+                    <div class="px-6 py-5">
+                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            
+                            <!-- Pencarian Karyawan -->
+                            <div class="sm:col-span-2">
+                                <label class="mb-1 block text-sm font-medium text-slate-700">Cari Karyawan (NRP/Nama)</label>
+                                <div class="relative">
+                                    <input
+                                        v-model="employeeSearchQuery"
+                                        @input="handleEmployeeSearch"
+                                        @keydown="handleKeyDown"
+                                        type="text"
+                                        class="h-10 w-full rounded-lg border border-slate-300 pl-3 pr-10 text-sm placeholder-slate-400 transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                                        placeholder="Ketik NRP atau nama karyawan..."
+                                    />
+                                    <!-- Autocomplete Results -->
+                                    <div v-if="showEmployeeResults && filteredEmployees.length > 0" class="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-xl outline-none">
+                                        <ul>
+                                            <li 
+                                                v-for="(employee, index) in filteredEmployees" 
+                                                :key="employee.id"
+                                                :class="[
+                                                    'flex flex-col cursor-pointer px-4 py-2 text-sm transition-colors',
+                                                    index === selectedEmployeeIndex ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'
+                                                ]"
+                                                @click="selectEmployee(employee)"
+                                            >
+                                                <span class="font-medium">{{ employee.nama_karyawan }}</span>
+                                                <span class="text-xs text-slate-500">{{ employee.nrp }}</span>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                             
+                            <!-- NRP & Nama (Readonly) -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">NRP Karyawan</label>
+                                <label class="mb-1 block text-sm font-medium text-slate-700">NRP Karyawan</label>
                                 <input
                                     v-model="newDetail.nrp"
                                     type="text"
-                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    class="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 outline-none"
                                     readonly
                                 />
                             </div>
-                            
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Nama Karyawan</label>
+                                <label class="mb-1 block text-sm font-medium text-slate-700">Nama Karyawan</label>
                                 <input
                                     v-model="newDetail.nama_karyawan"
                                     type="text"
-                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    class="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 outline-none"
                                     readonly
                                 />
                             </div>
                             
+                            <!-- Tanggal Mulai & Selesai -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                                <label class="mb-1 block text-sm font-medium text-slate-700">Tanggal Mulai</label>
                                 <input
                                     v-model="newDetail.tanggal_mulai"
                                     type="date"
-                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                 />
                             </div>
-                            
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Tanggal Selesai</label>
+                                <label class="mb-1 block text-sm font-medium text-slate-700">Tanggal Selesai</label>
                                 <input
                                     v-model="newDetail.tanggal_selesai"
                                     type="date"
-                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                 />
                             </div>
                             
+                            <!-- Jam & Penyelenggara -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Jam Diklat per Hari</label>
+                                <label class="mb-1 block text-sm font-medium text-slate-700">Jam Diklat per Hari</label>
                                 <input
                                     v-model.number="newDetail.jam_diklat"
                                     type="number"
                                     min="1"
-                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                 />
                             </div>
-                            
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Penyelenggara</label>
+                                <label class="mb-1 block text-sm font-medium text-slate-700">Penyelenggara</label>
                                 <input
                                     v-model="newDetail.penyelenggara"
                                     type="text"
-                                    class="mt-1 block w-full rounded border px-3 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                 />
                             </div>
+
                         </div>
                     </div>
-                    <div class="bg-gray-50 px-6 py-3 flex justify-end gap-3">
-                        <button @click="closeDetailModal" class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">
+                    <div class="flex justify-end gap-3 bg-slate-50 px-6 py-4">
+                        <button
+                            @click="closeDetailModal"
+                            class="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                        >
                             Batal
                         </button>
-                        <button @click="tambahDetail" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded">
-                            Simpan
+                        <button
+                            @click="tambahDetail"
+                            class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+                        >
+                            Simpan Diklat
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+
     </AppLayout>
 </template>
