@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookCopy, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, LayoutGrid, Library, Signature } from 'lucide-vue-next';
+import { BookCopy, BookLock, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, LayoutGrid, Library, Signature } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -95,6 +95,12 @@ const mainNavItems:  (NavItem & { roles?: string[] })[] = [
         title: 'Evaluasi',
         href: '/Diklat/Evaluasi',
         icon: ChartLine,
+        roles: ['admin_diklat'],
+    },
+    {
+        title: 'Laporan',
+        href: '/Laporan/Diklat',
+        icon: BookLock,
         roles: ['admin_diklat'],
     },
     {

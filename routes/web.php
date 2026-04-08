@@ -19,6 +19,7 @@ use App\Http\Controllers\RencanaDiklat\RPT\pendidikanController;
 use App\Http\Controllers\RencanaDiklat\RPT\PostPreeController;
 use App\Http\Controllers\RencanaDiklat\RPT\PresensiDetailController;
 use App\Http\Controllers\RencanaDiklat\RPT\SertifikatController;
+use App\Http\Controllers\report\ReportController;
 use App\Http\Controllers\Silabus\SilabusController;
 use App\Http\Controllers\RencanaDiklat\HLC\HLCController;
 use Illuminate\Support\Facades\Route;
@@ -106,6 +107,9 @@ Route::post('/DetailInternal/Dokumentasi/store', [DokumentasiController::class,'
 // Evaluasi
 Route::get('/Diklat/Evaluasi',[EvaluasiController::class,'index']);
 Route::get('/Diklat/Evaluasi/detail/{id}',[EvaluasiController::class,'show']);
+
+// Laporan
+Route::get('/Laporan/Diklat', [ReportController::class, 'index'])->name('laporan.diklat');
 
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
