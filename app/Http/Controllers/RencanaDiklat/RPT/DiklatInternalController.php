@@ -42,6 +42,7 @@ class DiklatInternalController extends Controller
             'keterangan' => 'required|string|max:255',
             'pengajar' => 'required|string|max:255',
         ]);
+
         DetailInternal::create($validate);
         return redirect()->back();
     }

@@ -106,6 +106,14 @@ const addProgram = () => {
             closeAddProgramModal();
             window.location.reload();
         },
+        onError: (errors) => {
+            // Display validation errors from the backend
+            Object.values(errors).forEach((error) => {
+                toast.error(
+                    Array.isArray(error) ? error[0] : (error as string),
+                );
+            });
+        },
     });
 };
 
@@ -118,6 +126,9 @@ const openDetailModal = (programId: number) => {
     detailForm.keterangan = '';
     detailForm.pengajar = '';
     isDetailModalOpen.value = true;
+
+    
+    
 };
 
 const closeDetailModal = () => {
@@ -127,19 +138,22 @@ const closeDetailModal = () => {
 };
 
 const submitDetail = () => {
+    console.log('Submit ditekan');
+
+    if (!detailForm.nama_diklat?.trim()) {
+        console.log('Nama kosong');
+        toast.error('Nama Diklat harus diisi!');
+        return;
+    }
+
     detailForm.post('/RencanaDiklat/RPT/PF/DetailStore', {
         onSuccess: () => {
             toast.success('Detail Diklat berhasil ditambahkan!');
             closeDetailModal();
             router.reload();
         },
-        onError: (errors) => {
-            // Display validation errors from the backend
-            Object.values(errors).forEach((error) => {
-                toast.error(
-                    Array.isArray(error) ? error[0] : (error as string),
-                );
-            });
+        onError: () => {
+            toast.error('Gagal menambahkan detail diklat.');
         },
     });
 };
