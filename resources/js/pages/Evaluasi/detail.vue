@@ -14,10 +14,12 @@ const props = defineProps<{
     sentiment: {
         materi: {
             positive: number;
+            neutral: number;
             negative: number;
         };
         pemateri: {
             positive: number;
+            neutral: number;
             negative: number;
         };
     };
@@ -25,10 +27,10 @@ const props = defineProps<{
 
 // hitung persentase
 const materiTotal =
-    props.sentiment.materi.positive + props.sentiment.materi.negative;
+    props.sentiment.materi.positive + props.sentiment.materi.negative + props.sentiment.materi.neutral;
 
 const pemateriTotal =
-    props.sentiment.pemateri.positive + props.sentiment.pemateri.negative;
+    props.sentiment.pemateri.positive + props.sentiment.pemateri.negative + props.sentiment.pemateri.neutral;
 
 const materiPositivePercent = materiTotal
     ? (props.sentiment.materi.positive / materiTotal) * 100
@@ -36,6 +38,10 @@ const materiPositivePercent = materiTotal
 
 const materiNegativePercent = materiTotal
     ? (props.sentiment.materi.negative / materiTotal) * 100
+    : 0;
+
+const materiNeutralPercent = materiTotal
+    ? (props.sentiment.materi.neutral / materiTotal) * 100
     : 0;
 
 const pemateriPositivePercent = pemateriTotal
@@ -46,6 +52,9 @@ const pemateriNegativePercent = pemateriTotal
     ? (props.sentiment.pemateri.negative / pemateriTotal) * 100
     : 0;
 
+const pemateriNeutralPercent = pemateriTotal
+    ? (props.sentiment.pemateri.neutral / pemateriTotal) * 100
+    : 0;
 
 // Chart
 onMounted(() => {
@@ -56,12 +65,13 @@ onMounted(() => {
         new Chart(ctxMateri, {
             type: 'doughnut',
             data: {
-                labels: ['Positive', 'Negative'],
+                labels: ['Positive', 'Negative', 'Neutral'],
                 datasets: [
                     {
                         data: [
                             props.sentiment.materi.positive,
-                            props.sentiment.materi.negative
+                            props.sentiment.materi.negative,
+                            props.sentiment.materi.neutral
                         ],
                     },
                 ],
@@ -73,12 +83,13 @@ onMounted(() => {
         new Chart(ctxPemateri, {
             type: 'doughnut',
             data: {
-                labels: ['Positive', 'Negative'],
+                labels: ['Positive', 'Negative', 'Neutral'],
                 datasets: [
                     {
                         data: [
                             props.sentiment.pemateri.positive,
-                            props.sentiment.pemateri.negative
+                            props.sentiment.pemateri.negative,
+                            props.sentiment.pemateri.neutral
                         ],
                     },
                 ],
@@ -108,6 +119,9 @@ onMounted(() => {
                         <span class="text-green-600">
                             {{ materiPositivePercent.toFixed(1) }}%
                         </span>
+                        <span class="text-yellow-600">
+                            {{ materiNeutralPercent.toFixed(1) }}%
+                        </span>
                         <span class="text-red-600">
                             {{ materiNegativePercent.toFixed(1) }}%
                         </span>
@@ -123,6 +137,9 @@ onMounted(() => {
                     <div class="mt-3 flex justify-between text-xs">
                         <span class="text-green-600">
                             {{ pemateriPositivePercent.toFixed(1) }}%
+                        </span>
+                        <span class="text-yellow-600">
+                            {{ pemateriNeutralPercent.toFixed(1) }}%
                         </span>
                         <span class="text-red-600">
                             {{ pemateriNegativePercent.toFixed(1) }}%
@@ -158,6 +175,12 @@ onMounted(() => {
                             class="text-green-600"
                         >
                             Positif
+                        </span>
+                        <span
+                            v-else-if="comment.sentiment === 'neutral'"
+                            class="text-yellow-600"
+                        >
+                            Netral
                         </span>
                         <span v-else class="text-red-600">
                             Negatif

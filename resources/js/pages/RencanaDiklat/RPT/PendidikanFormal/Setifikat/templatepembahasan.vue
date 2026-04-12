@@ -24,6 +24,10 @@ function hapus(index: number) {
 }
 
 function simpan() {
+    if (materi.value.some(m => !m.trim())) {
+        toast.error('Isi materi Diklat Minimal 1!');
+        return;
+    }
     router.post('/DiklatInternal/detail/pembahasan/template/store', {
         periode_id: props.periode_id,
         materi: materi.value

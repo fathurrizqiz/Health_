@@ -30,6 +30,7 @@ class EvaluasiController extends Controller
             ];
 
             $positive = 0;
+            $neutral = 0;
             $negative = 0;
 
             foreach ($comments as $c) {
@@ -44,12 +45,16 @@ class EvaluasiController extends Controller
                 if ($result) {
                     if (($result['materi']['label'] ?? null) === 'positive') {
                         $positive++;
+                    } elseif (($result['materi']['label'] ?? null) === 'neutral') {
+                        $neutral++;
                     } elseif (($result['materi']['label'] ?? null) === 'negative') {
                         $negative++;
                     }
 
                     if (($result['pemateri']['label'] ?? null) === 'positive') {
                         $positive++;
+                    } elseif (($result['pemateri']['label'] ?? null) === 'neutral') {
+                        $neutral++;
                     } elseif (($result['pemateri']['label'] ?? null) === 'negative') {
                         $negative++;
                     }
@@ -57,6 +62,7 @@ class EvaluasiController extends Controller
 
                 $item->sentiment = [
                     'positive' => $positive,
+                    'neutral' => $neutral,
                     'negative' => $negative,
                 ];
                 // dd($result);
@@ -86,6 +92,8 @@ class EvaluasiController extends Controller
                             'positive' => rand(5, 15),
 
                             'negative' => rand(1, 5),
+                            'neutral' => rand(1, 5)
+
                         ];
                         return $detail;
                     }
@@ -107,8 +115,8 @@ class EvaluasiController extends Controller
 
         // 1. Inisialisasi penghitung terpisah
         $counts = [
-            'materi' => ['positive' => 0, 'negative' => 0],
-            'pemateri' => ['positive' => 0, 'negative' => 0],
+            'materi' => ['positive' => 0, 'neutral' => 0, 'negative' => 0],
+            'pemateri' => ['positive' => 0, 'neutral' => 0, 'negative' => 0],
         ];
 
         $comments = [];
@@ -124,6 +132,8 @@ class EvaluasiController extends Controller
             $materiLabel = $res['materi']['label'] ?? null;
             if ($materiLabel === 'positive')
                 $counts['materi']['positive']++;
+            elseif ($materiLabel === 'neutral')
+                $counts['materi']['neutral']++;
             elseif ($materiLabel === 'negative')
                 $counts['materi']['negative']++;
 
@@ -131,6 +141,8 @@ class EvaluasiController extends Controller
             $pemateriLabel = $res['pemateri']['label'] ?? null;
             if ($pemateriLabel === 'positive')
                 $counts['pemateri']['positive']++;
+            elseif ($pemateriLabel === 'neutral')
+                $counts['pemateri']['neutral']++;
             elseif ($pemateriLabel === 'negative')
                 $counts['pemateri']['negative']++;
 
@@ -139,14 +151,14 @@ class EvaluasiController extends Controller
                 $comments[] = [
                     'text' => $ev->evaluasimateri,
                     'aspect' => 'materi',
-                    'sentiment' => ($materiLabel === 'positive') ? 'positive' : 'negative'
+                    'sentiment' => $this->mapSentiment($materiLabel)
                 ];
             }
             if (!empty($ev->evaluasipengajar)) {
                 $comments[] = [
                     'text' => $ev->evaluasipengajar,
                     'aspect' => 'pemateri',
-                    'sentiment' => ($pemateriLabel === 'positive') ? 'positive' : 'negative'
+                    'sentiment' => $this->mapSentiment($pemateriLabel)
                 ];
             }
         }
@@ -157,6 +169,17 @@ class EvaluasiController extends Controller
             'sentiment' => $counts // Sekarang datanya dinamis!
         ]);
     }
+
+    // Mapping 
+    function mapSentiment($label)
+{
+    return match ($label) {
+        'positive' => 'positive',
+        'neutral' => 'neutral',
+        'negative' => 'negative',
+        default => 'negative',
+    };
+}
 
     // Helper untuk AI
     private function analyzeSentiment($materi = null, $pemateri = null)

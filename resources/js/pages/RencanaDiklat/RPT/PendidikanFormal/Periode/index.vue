@@ -48,6 +48,23 @@ function selectPengajar(nama: string) {
 //  FUNGSI SUBMIT YG BENAR
 // ----------------------
 function submit() {
+    if (!form.value.tanggal || !form.value.nama_pengajar || !form.value.tempat) {
+        toast.error('Lengkapi Periode!');
+        return;
+    }
+    if (!form.value.tanggal) {
+        toast.error('Lengkapi Tanggal Periode!');
+        return;
+    }
+    if (!form.value.nama_pengajar) {
+        toast.error('Lengkapi Nama Pengajar!');
+        return;
+    }
+    if (!form.value.tempat) {
+        toast.error('Lengkapi Tempat!');
+        return;
+    }
+    
     router.post(
         '/RencanaDiklat/Internal/detail/periode/store',
         {
