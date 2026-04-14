@@ -26,10 +26,10 @@ const questions = ref(
 
 function save() {
   // Debug 1: tampilkan props.detail_id
-  console.log('Detail ID:', props.detail_id);
+  // console.log('Detail ID:', props.detail_id);
 
-  // Debug 2: tampilkan questions saat ini
-  console.log('Questions payload:', questions.value);
+  // // Debug 2: tampilkan questions saat ini
+  // console.log('Questions payload:', questions.value);
 
   // Kirim request POST
   router.post('/DiklatInternal/posttest', {
@@ -40,7 +40,7 @@ function save() {
       toast.success('Post-Test Berhasil disimpan!')
     },
     onError: (errors) => {
-      toast.error('Request gagal, errors:', errors);
+      toast.error('Pastikan Data Terisi dengan Benar!', errors);
     },
     onFinish: () => {
       console.log('Request selesai');

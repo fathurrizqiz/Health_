@@ -23,7 +23,7 @@ function save() {
       toast.success('Pree-Test Berhasil disimpan');
     },
     onError(errors){
-      toast.error('Error:', errors);
+      toast.error('Pastikan Data Terisi dengan Benar!:', errors);
     }
   });
 }

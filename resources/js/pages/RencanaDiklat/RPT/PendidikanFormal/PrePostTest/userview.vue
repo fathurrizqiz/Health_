@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import Input from "@/components/ui/input/Input.vue";
+import { toast } from "vue3-toastify";
 
 interface Choice {
     id: number;
@@ -32,6 +33,16 @@ const loading = ref(false);
 const nrp = ref(props.user_nrp || '');
 
 const submitTest = () => {
+
+    if (!nrp.value) {
+        toast.error('NRP harus diisi sebelum mengirim jawaban.');
+        return;
+    }
+    if (Object.keys(answers.value).length !== props.test.questions.length) {
+        toast.error('Pastikan semua pertanyaan telah dijawab sebelum mengirim.');
+        return;
+    }
+
     console.log("Submitting test...");
     console.log("Answers:", answers.value);
     console.log("Type:", props.test.type);
@@ -48,14 +59,19 @@ const submitTest = () => {
             detail_id: props.detail_id,
             nrp: nrp.value,
         },
+        
         {
-            onStart: () => console.log("Request started..."),
-            onFinish: () => {
-                console.log("Request finished");
-                loading.value = false;
+            onSuccess: () => {
+                toast.success("Jawaban berhasil disimpan.");
             },
+            
+            // onStart: () => console.log("Request started..."),
+            // onFinish: () => {
+            //     console.log("Request finished");
+            //     loading.value = false;
+            // },
             onError: (errors) => console.error("Request errors:", errors),
-            onSuccess: (page) => console.log("Server response:", page)
+            // onSuccess: (page) => console.log("Server response:", page)
         }
     );
 };

@@ -58,12 +58,16 @@ const validasiStarted = computed(() => {
 
 function start() {
     if (!selectedPeriode.value) {
-        alert('Pilih periode terlebih dahulu!');
+        toast.error('Pilih periode terlebih dahulu!');
         return;
     }
 
     if (validasiStarted.value.has(String(selectedPeriode.value))) {
         toast.error('Periode sudah pernah dimulai');
+        return;
+    }
+    if (!jam.value || Number(jam.value) <= 0) {
+        toast.error('Masukkan durasi diklat yang valid');
         return;
     }
 
@@ -76,7 +80,7 @@ function start() {
         {
             preserveState: true,
             onSuccess: () => {
-                toast.success('Token generated');
+                toast.success('Diklat berhasil dimulai.');
                 // refresh halaman
                 router.visit(route('aksi-internal', { id: props.detail_id }), {
                     preserveScroll: true,
@@ -127,7 +131,7 @@ const flash = page.props.flash as TokenFlash | undefined;
 
 function detailPeriode() {
     if (!selectedPeriode.value) {
-        alert('Pilih periode terlebih dahulu!');
+        toast.error('Pilih periode terlebih dahulu!');
         return;
     }
 
@@ -135,7 +139,7 @@ function detailPeriode() {
 }
 function presensi() {
     if (!selectedPeriode.value) {
-        alert('Pilih periode terlebih dahulu!');
+        toast.error('Pilih periode terlebih dahulu!');
         return;
     }
     router.visit(`/DiklatInternal/detail/presensi/${selectedPeriode.value}`);
@@ -143,7 +147,7 @@ function presensi() {
 
 function bukaTemplate() {
     if (!selectedPeriode.value) {
-        alert('Pilih periode terlebih dahulu!');
+        toast.error('Pilih periode terlebih dahulu!');
         return;
     }
 
@@ -153,7 +157,7 @@ function bukaTemplate() {
 }
 function bukaDokumentasi() {
     if (!selectedPeriode.value) {
-        alert('Pilih periode terlebih dahulu!');
+        toast.error('Pilih periode terlebih dahulu!');
         return;
     }
 
