@@ -46,7 +46,7 @@ Route::delete('/Diklat/destroy/{id}', [DiklatController::class, 'destroy'])->nam
 Route::get('/DiklatInternal/user',[InternalController::class,'index'])->name('diklat.internal.index');
 
 // Appprove HLC dan Eksternal
-Route::get('/Approve/Diklat', [ApprovDiklateController::class,'index']);
+Route::get('/Approve/Diklat', [ApprovDiklateController::class,'index'])->name('diklat.approve.index');
 Route::put('/diklat/{id}/approve', [ApprovDiklateController::class, 'approve'])->name('diklat.approve');
 Route::put('/diklat/{id}/reject', [ApprovDiklateController::class, 'reject'])->name('diklat.reject');
 

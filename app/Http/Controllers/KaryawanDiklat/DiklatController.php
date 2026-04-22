@@ -53,7 +53,8 @@ class DiklatController extends Controller
                     ->orWhere('penyelenggara', 'ILIKE', "%{$search}%");
             });
         }
-        $diklat = $diklatQuery->get();
+        $diklat = $diklatQuery->latest()     // urutkan berdasarkan created_at DESC
+            ->limit(10)->get();
 
         // === HLC Management (Admin Input) ===
         $adminQuery = HLCManajement::where('nrp', $karyawan->nrp);
@@ -63,7 +64,8 @@ class DiklatController extends Controller
                     ->orWhere('penyelenggara', 'ILIKE', "%{$search}%");
             });
         }
-        $admin = $adminQuery->get();
+        $admin = $adminQuery->latest()     // urutkan berdasarkan created_at DESC
+            ->limit(10)->get();
 
         // === Diklat Eksternal ===
         $eksternalQuery = DiklatEksternal::with('program')->where('nrp', $karyawan->nrp);
@@ -72,7 +74,8 @@ class DiklatController extends Controller
                 $q->where('nama_diklat', 'ILIKE', "%{$search}%");
             })->orWhere('penyelenggara', 'ILIKE', "%{$search}%");
         }
-        $eksternal = $eksternalQuery->get();
+        $eksternal = $eksternalQuery->latest()     // urutkan berdasarkan created_at DESC
+            ->limit(10)->get();
 
         // ✅ DO NOT re-fetch here! Keep the filtered results above.
 

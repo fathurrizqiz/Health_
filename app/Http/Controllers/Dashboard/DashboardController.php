@@ -10,8 +10,9 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(request $request)
     {
+        $search = $request->input('search');
         $karyawan = Karyawans::count();
         $year = now()->year;
 
@@ -28,8 +29,11 @@ class DashboardController extends Controller
         //     ->get();
 
         // 2. Ambil Aktual dari RekapJamDiklat
-        $aktualPerBagian = Karyawans::join('rekap_jam_diklat', 'karyawans.nrp', '=', 'rekap_jam_diklat.nrp')
-            ->where('rekap_jam_diklat.tahun', $year)
+        $aktualPerBagian = Karyawans::when($search, function ($query, $search) {
+            $query->where('bagian', 'ILIKE', "%{$search}%");
+        })
+            ->join('rekap_jam_diklat', 'karyawans.nrp', '=', 'rekap_jam_diklat.nrp')
+            ->where('rekap_jam_diklat.tahun', now()->year)
             ->select('karyawans.bagian')
             ->selectRaw('SUM(rekap_jam_diklat.total_jam) as total_aktual')
             ->groupBy('karyawans.bagian')
@@ -50,7 +54,10 @@ class DashboardController extends Controller
         //     ];
         // });
 
-        $totalPerBagian = Karyawans::select('bagian')
+        $totalPerBagian = Karyawans::when($search, function ($query, $search) {
+            $query->where('bagian', 'ILIKE', "%{$search}%");
+        })
+            ->select('bagian')
             ->selectRaw('COUNT(*) as total_karyawan')
             ->groupBy('bagian')
             ->get();
@@ -67,7 +74,7 @@ class DashboardController extends Controller
                 )
                 ->avg('target_jam_datamaster.target_jam');
 
-            $targetTotal = $row->total_karyawan * $targetPerOrang;
+            $targetTotal = $row->total_karyawan * $targetPerOrang * 12;
             $aktual = $aktualPerBagian[$row->bagian] ?? 0;
 
             return [
@@ -94,6 +101,9 @@ class DashboardController extends Controller
                 'totalJamDiklat' => $rekapJam // Pastikan key sesuai dengan interface frontend
             ],
             'targetAll' => $targetAll,
+            'filters' => [
+                'search' => $search
+            ]
         ]);
     }
 }

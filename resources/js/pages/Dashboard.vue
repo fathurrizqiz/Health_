@@ -2,7 +2,8 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -31,30 +32,68 @@ interface FollowDiklat {
     total_karyawan_ikut: number;
     total_jam_diklat: number;
 }
+
+interface Filters {
+    search?: string
+}
+
 const props = defineProps<{
     totalKaryawans: number;
     totalPerKategori: TargetKategori[];
     totalJamDiklat: JamDiklat;
     targetAll: number;
     realisasiPerBagian: FollowDiklat[];
+    filters: {
+        search?: string
+    };
 }>();
+
+const search = ref(props.filters?.search || '');
+
+// Debounce helper
+function debounce(func: (...args: any[]) => void, wait: number) {
+    let timeout: NodeJS.Timeout;
+    return function executedFunction(...args: any[]) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+watch(
+    search,
+    debounce((newSearch: string) => {
+        router.get(
+            route('dashboard'), // Make sure this route name matches your web.php
+            { search: newSearch || undefined }, // Remove param if empty
+            {
+                preserveState: true,
+                replace: true,
+            }
+        );
+    }, 300)
+);
 </script>
 
 <template>
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="m-3">
+            <input type="text" v-model="search" placeholder="Cari bagian ..." class="mb-4 w-full rounded-md border border-slate-300 bg-white px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" />
+        </div>
         <div class="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6 md:pt-4">
             
             <!-- Highlight Cards Section -->
             <div class="grid gap-6 md:grid-cols-3">
-                <!-- Card 1: Total Karyawan -->
                 <div class="relative flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
                     <div class="flex items-center justify-between">
                         <div class="text-sm font-medium text-slate-500 dark:text-slate-400">
                             Total Karyawan
                         </div>
-                        <!-- Optional: Icon slot here if you have one -->
                         <div class="rounded-lg bg-blue-50 p-2 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />

@@ -22,10 +22,9 @@ class ReportController extends Controller
             $selectedMonths = [$selectedMonths];
         }
 
-        // Hitung berapa bulan yang dipilih untuk mengalikan target
         $countSelectedMonths = count($selectedMonths);
 
-        // 1. Ambil Aktual pake whereIn()
+        // 1. Ambil Aktual Jam Diklat per Bagian
         $queryAktual = Karyawans::join('rekap_jam_diklat', 'karyawans.nrp', '=', 'rekap_jam_diklat.nrp')
             ->whereIn('rekap_jam_diklat.bulan', $selectedMonths)
             ->where('rekap_jam_diklat.tahun', $year)
@@ -34,43 +33,54 @@ class ReportController extends Controller
 
         if ($searchbagian) {
             $queryAktual->where('karyawans.bagian', 'ILIKE', '%' . $searchbagian . '%');
-
         }
+
+        // Menggunakan pluck agar langsung menjadi key-value: ['Nama Bagian' => Total Jam]
         $aktualPerBagian = $queryAktual->groupBy('karyawans.bagian')
-            ->get()
             ->pluck('total_aktual', 'bagian');
-        // 2. Ambil total karyawan per bagian
-        $queryTotalBagian = Karyawans::select('bagian')
-            ->selectRaw('COUNT(*) as total_karyawan');
+
+
+        // 2. Ambil Total Karyawan & Total Target per Bagian (Tanpa Looping Database)
+        // Melakukan JOIN langsung ke target jam dan melakukan SUM. 
+        $queryTarget = Karyawans::leftJoin('target_jam_datamaster', 'karyawans.klinis_non_klinis', '=', 'target_jam_datamaster.kategori')
+            ->select('karyawans.bagian')
+            ->selectRaw('COUNT(karyawans.nrp) as total_karyawan')
+            ->selectRaw('SUM(target_jam_datamaster.target_jam) as total_target_jam_dasar');
 
         if ($searchbagian) {
-            $queryTotalBagian->where('bagian', 'ILIKE', '%' . $searchbagian . '%');
+            $queryTarget->where('karyawans.bagian', 'ILIKE', '%' . $searchbagian . '%');
         }
 
-        $totalPerBagian = $queryTotalBagian->groupBy('bagian')->get();
+        $targetKaryawanPerBagian = $queryTarget->groupBy('karyawans.bagian')->get();
+
 
         // 3. Gabungkan Data
-        $dataFinal = $totalPerBagian->map(function ($row) use ($aktualPerBagian, $countSelectedMonths) {
-            $targetPerOrangTahunan = Karyawans::where('bagian', $row->bagian)
-                ->join('target_jam_datamaster', 'karyawans.klinis_non_klinis', '=', 'target_jam_datamaster.kategori')
-                ->avg('target_jam_datamaster.target_jam');
+        $dataFinal = $targetKaryawanPerBagian->map(function ($row) use ($aktualPerBagian, $countSelectedMonths) {
 
-            // Target per bulan dikali jumlah bulan yang difilter
-            $targetPerOrang = ($targetPerOrangTahunan / 12) * $countSelectedMonths;
-            $targetTotal = $row->total_karyawan * $targetPerOrang;
+            // Jika nilai di database adalah target PER BULAN, cukup kalikan jumlah bulan yang difilter:
+            // Mengikuti contoh hitungan Anda (mengalikan hasil dengan suatu pengali, misal 30):
+            // Silakan sesuaikan angka '30' di bawah ini jika itu memang standar pengali instansi Anda.
+
+            // Saya asumsikan target di DB adalah target dasar per bulan berdasarkan deskripsi Anda.
+            $targetTotal = $row->total_target_jam_dasar * $countSelectedMonths;
+
+            // Catatan: Jika pada rumus Anda "x 30" itu adalah jumlah hari, Anda bisa ganti menjadi:
+            // $targetTotal = $row->total_target_jam_dasar * 30 * $countSelectedMonths;
+
             $aktual = $aktualPerBagian[$row->bagian] ?? 0;
 
             return [
                 'kategori' => $row->bagian,
                 'totalKaryawan' => $row->total_karyawan,
-                'targetPerOrang' => round($targetPerOrang, 2),
+                // Rata-rata target per orang di bagian tersebut
+                'targetPerOrang' => $row->total_karyawan > 0 ? round($targetTotal / $row->total_karyawan, 2) : 0,
                 'totalTargetJam' => round($targetTotal, 2),
                 'aktualJam' => (float) $aktual,
                 'persentase' => $targetTotal > 0 ? round(($aktual / $targetTotal) * 100, 2) : 0,
             ];
         });
 
-        // 4. Hitung Grand Total
+        // 4. Hitung Total
         $targetAll = $dataFinal->sum('totalTargetJam');
         $rekapJamTerpilih = RekapJamDiklat::whereIn('bulan', $selectedMonths)
             ->where('tahun', $year)
@@ -78,7 +88,7 @@ class ReportController extends Controller
 
         return Inertia::render('report/Report', [
             'filters' => [
-                'months' => $selectedMonths, // Kirim array bulan kembali ke Vue
+                'months' => $selectedMonths,
                 'year' => $year,
                 'bagian' => $searchbagian,
             ],

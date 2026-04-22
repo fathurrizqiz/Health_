@@ -12,12 +12,36 @@ use Inertia\Inertia;
 
 class ApprovDiklateController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $diklat = DiklatKaryawan::all();
+        $search = request()->query('search');
+        $status = request()->query('status');
+        $diklat = DiklatKaryawan::query()
+            
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama_diklat', 'ILIKE', "%{$search}%")
+                        ->orWhere('nrp', 'ILIKE', "%{$search}%")
+                        ->orWhere('pengajar', 'ILIKE', "%{$search}%");
+                });
+            })
+            ->when($status, function ($query) use ($status) {
+                if ($status === 'all') return;
+
+                if (is_array($status)) {
+                    $query->whereIn('status', $status);
+                } else {
+                    $query->where('status', $status);
+                }
+            })
+            ->latest()
+            ->limit(50)
+            ->get();
 
         return Inertia::render('Diklat/Approve/index', [
-            'diklat' => $diklat
+            'diklat' => $diklat,
+            'search' => $search,
+            'status' => $status
         ]);
     }
 
