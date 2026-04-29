@@ -114,11 +114,14 @@ Route::get('/Laporan/Diklat', [ReportController::class, 'index'])->name('laporan
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
 Route::post('/RencanaDiklat/RPT/PN/Program',[NonFormalController::class,'storeProgram'])->name('Diklat.eksternal-program');
-Route::post('/RencanaDiklat/RPT/PN/Detail',[NonFormalController::class,'storeDetail'])->name('Diklat.eksternal-program');
+Route::post('/RencanaDiklat/RPT/PN/Detail',[NonFormalController::class,'storeDetail'])->name('Diklat.eksternal-detail');
+Route::put('/RencanaDiklat/RPT/PN/Detail/{id}',[NonFormalController::class,'updateDetail'])->name('Diklat.eksternal-detail-update');
+Route::delete('/RencanaDiklat/RPT/PN/Detail/{id}',[NonFormalController::class,'destroyDetail'])->name('Diklat.eksternal-detail-destroy');
+Route::delete('/RencanaDiklat/RPT/PN/program/{id}',[NonFormalController::class,'destroyProgram'])->name('Diklat.eksternal-program-destroy');
+
 //jadwal diklat
-Route::get('/JadwalDiklat/HLC', [JadwalHLCController::class, 'index']);
-Route::get('/JadwalDiklat/Eksternal', [JadwalEksternalController::class, 'index']);
 Route::get('/JadwalDiklat/Internal', [JadwalInternalController::class, 'index'])->name('jadwal.internal');
+
 //Silabus
 Route::get('/silabus/diklat', [SilabusController::class, 'index']);
 
@@ -126,12 +129,18 @@ Route::get('/silabus/diklat', [SilabusController::class, 'index']);
 Route::get('/HLC/Home/manajemen', [HLCController::class, 'index'])->name('diklat.hlc.admin');
 Route::post('/HLC/Home/storeProgram', [HLCController::class, 'storeProgram'])->name('diklat.hlc.admin.store-program');
 Route::post('/HLC/Home/storeDetail', [HLCController::class, 'storeDetail'])->name('diklat.hlc.admin.store-detail');
-
+Route::post('/HLC/Home/updateProgram/{id}', [HLCController::class, 'updateProgram'])->name('diklat.hlc.admin.update-program');
+Route::post('/HLC/Home/updateDetail/{id}', [HLCController::class, 'updateDetail'])->name('diklat.hlc.admin.update-detail');
+Route::post('/HLC/Home/destroyProgram/{id}', [HLCController::class, 'destroyProgram'])->name('diklat.hlc.admin.destroy-program');
+Route::post('/HLC/Home/destroyDetail/{id}', [HLCController::class, 'destroyDetail'])->name('diklat.hlc.admin.destroy-detail');
 // Master Data
-Route::get('/MasterData/home', [MasterDataController::class, 'index']);
+Route::get('/MasterData/home', [MasterDataController::class, 'index'])->name('masterdata.home');
 Route::get('/MasterData/create', [MasterDataController::class, 'pages']);
 Route::post('/MasterData/store', [MasterDataController::class, 'store']);
 Route::put('/MasterData/update', [MasterDataController::class, 'updateTargetJam'])->name('update.masterdata');
+Route::post('/MasterData/store/karyawan', [MasterDataController::class, 'storekaryawan'])->name('store.masterdata');
+Route::put('/MasterData/update-karyawan/{id}', [MasterDataController::class, 'updatekaryawan']);
+Route::delete('/MasterData/destroy-karyawan/{id}', [MasterDataController::class, 'destroykaryawan']);
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

@@ -12,36 +12,43 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        // Tangkap input 'months' (array). Default ke bulan sekarang jika kosong.
         $selectedMonths = $request->input('months', [now()->month]);
         $searchbagian = $request->input('bagian', null);
         $year = now()->year;
 
-        // Pastikan selalu dalam bentuk array
         if (!is_array($selectedMonths)) {
             $selectedMonths = [$selectedMonths];
         }
 
         $countSelectedMonths = count($selectedMonths);
 
-        // 1. Ambil Aktual Jam Diklat per Bagian
-        $queryAktual = Karyawans::join('rekap_jam_diklat', 'karyawans.nrp', '=', 'rekap_jam_diklat.nrp')
+        // 1. Ambil Aktual Jam per Bagian (untuk tabel utama)
+        $aktualPerBagian = Karyawans::join('rekap_jam_diklat', 'karyawans.nrp', '=', 'rekap_jam_diklat.nrp')
             ->whereIn('rekap_jam_diklat.bulan', $selectedMonths)
             ->where('rekap_jam_diklat.tahun', $year)
-            ->select('karyawans.bagian')
-            ->selectRaw('SUM(rekap_jam_diklat.total_jam) as total_aktual');
+            ->groupBy('karyawans.bagian')
+            ->pluck(\DB::raw('SUM(rekap_jam_diklat.total_jam) as total_aktual'), 'bagian');
 
-        if ($searchbagian) {
-            $queryAktual->where('karyawans.bagian', 'ILIKE', '%' . $searchbagian . '%');
-        }
+        // 2. Ambil List Karyawan Detail per Bagian
+        // Kita ambil jam aktual masing-masing karyawan di periode terpilih
+        $karyawanDetail = Karyawans::leftJoin('rekap_jam_diklat', function ($join) use ($selectedMonths, $year) {
+            $join->on('karyawans.nrp', '=', 'rekap_jam_diklat.nrp')
+                ->whereIn('rekap_jam_diklat.bulan', $selectedMonths)
+                ->where('rekap_jam_diklat.tahun', $year);
+        })
+            ->leftJoin('target_jam_datamaster', 'karyawans.klinis_non_klinis', '=', 'target_jam_datamaster.kategori')
+            ->select(
+                'karyawans.bagian',
+                'karyawans.nrp',
+                'karyawans.nama_karyawan',
+                \DB::raw('SUM(COALESCE(rekap_jam_diklat.total_jam, 0)) as jam_aktual'),
+                \DB::raw('MAX(target_jam_datamaster.target_jam) as target_dasar')
+            )
+            ->groupBy('karyawans.bagian', 'karyawans.nrp', 'karyawans.nama_karyawan')
+            ->get()
+            ->groupBy('bagian'); // Kelompokkan berdasarkan bagian agar mudah di-map
 
-        // Menggunakan pluck agar langsung menjadi key-value: ['Nama Bagian' => Total Jam]
-        $aktualPerBagian = $queryAktual->groupBy('karyawans.bagian')
-            ->pluck('total_aktual', 'bagian');
-
-
-        // 2. Ambil Total Karyawan & Total Target per Bagian (Tanpa Looping Database)
-        // Melakukan JOIN langsung ke target jam dan melakukan SUM. 
+        // 3. Ambil Target per Bagian
         $queryTarget = Karyawans::leftJoin('target_jam_datamaster', 'karyawans.klinis_non_klinis', '=', 'target_jam_datamaster.kategori')
             ->select('karyawans.bagian')
             ->selectRaw('COUNT(karyawans.nrp) as total_karyawan')
@@ -53,34 +60,33 @@ class ReportController extends Controller
 
         $targetKaryawanPerBagian = $queryTarget->groupBy('karyawans.bagian')->get();
 
-
-        // 3. Gabungkan Data
-        $dataFinal = $targetKaryawanPerBagian->map(function ($row) use ($aktualPerBagian, $countSelectedMonths) {
-
-            // Jika nilai di database adalah target PER BULAN, cukup kalikan jumlah bulan yang difilter:
-            // Mengikuti contoh hitungan Anda (mengalikan hasil dengan suatu pengali, misal 30):
-            // Silakan sesuaikan angka '30' di bawah ini jika itu memang standar pengali instansi Anda.
-
-            // Saya asumsikan target di DB adalah target dasar per bulan berdasarkan deskripsi Anda.
+        // 4. Gabungkan Data Final
+        $dataFinal = $targetKaryawanPerBagian->map(function ($row) use ($aktualPerBagian, $countSelectedMonths, $karyawanDetail) {
             $targetTotal = $row->total_target_jam_dasar * $countSelectedMonths;
-
-            // Catatan: Jika pada rumus Anda "x 30" itu adalah jumlah hari, Anda bisa ganti menjadi:
-            // $targetTotal = $row->total_target_jam_dasar * 30 * $countSelectedMonths;
-
             $aktual = $aktualPerBagian[$row->bagian] ?? 0;
+
+            // Ambil detail karyawan untuk bagian ini
+            $listKaryawan = collect($karyawanDetail->get($row->bagian))->map(function ($k) use ($countSelectedMonths) {
+                $t_individu = $k->target_dasar * $countSelectedMonths;
+                return [
+                    'nrp' => $k->nrp,
+                    'nama' => $k->nama_karyawan,
+                    'aktual' => (float) $k->jam_aktual,
+                    'target' => round($t_individu, 2),
+                    'persentase' => $t_individu > 0 ? round(($k->jam_aktual / $t_individu) * 100, 2) : 0
+                ];
+            });
 
             return [
                 'kategori' => $row->bagian,
                 'totalKaryawan' => $row->total_karyawan,
-                // Rata-rata target per orang di bagian tersebut
-                'targetPerOrang' => $row->total_karyawan > 0 ? round($targetTotal / $row->total_karyawan, 2) : 0,
                 'totalTargetJam' => round($targetTotal, 2),
                 'aktualJam' => (float) $aktual,
                 'persentase' => $targetTotal > 0 ? round(($aktual / $targetTotal) * 100, 2) : 0,
+                'karyawans' => $listKaryawan // Inilah data drill-down nya
             ];
         });
 
-        // 4. Hitung Total
         $targetAll = $dataFinal->sum('totalTargetJam');
         $rekapJamTerpilih = RekapJamDiklat::whereIn('bulan', $selectedMonths)
             ->where('tahun', $year)

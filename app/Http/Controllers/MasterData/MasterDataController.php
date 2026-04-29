@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\MasterData;
 
 use App\Http\Controllers\Controller;
+use App\Models\Karyawans;
 use App\Models\MasterDataModels;
 use App\Models\TargetJam;
 use App\Models\TargetJamModels;
@@ -80,5 +81,60 @@ class MasterDataController extends Controller
         );
 
         return back()->with('success', 'Target jam berhasil diperbarui.');
+    }
+
+    public function createkaryawan()
+    {
+        return Inertia::render('MasterData/addkaryawan');
+    }
+
+    public function storekaryawan(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_karyawan' => 'required|string|max:255',
+            'tmt' => 'required|date',
+            'nrp' => 'required|string|unique:karyawans,nrp', // Sebaiknya NRP unik
+            'bagian' => 'required|string|max:255',
+            'unit_kerja' => 'required|string|max:255',
+            'posisi_jabatan' => 'required|string|max:255',
+            'klinis_non_klinis' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan', // Gunakan 'in' bukan 'enum' di validate
+        ]);
+
+        Karyawans::create($validated);
+
+        return redirect()->back()->with('success', 'Karyawan berhasil ditambahkan.');
+    }
+
+    public function updatekaryawan(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'nama_karyawan' => 'required|string|max:255',
+            'tmt' => 'required|date',
+            'nrp' => 'required|string|max:255|unique:karyawans,nrp,' . $id, // NRP unik kecuali ID sendiri
+            'bagian' => 'required|string|max:255',
+            'unit_kerja' => 'required|string|max:255',
+            'posisi_jabatan' => 'required|string|max:255',
+            'klinis_non_klinis' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+        ]);
+
+        $karyawan = Karyawans::findOrFail($id);
+        $karyawan->update($validated);
+
+        return redirect()->back()->with('success', 'Data karyawan berhasil diperbarui.');
+    }
+
+    public function destroykaryawan($id)
+    {
+        $karyawan = Karyawans::findOrFail($id);
+
+        $karyawan->diklat()->delete();
+        $karyawan->diklatHlc()->delete();
+
+        // Baru hapus karyawannya
+        $karyawan->delete();
+
+        return redirect()->back()->with('success', 'Karyawan dan riwayat diklatnya berhasil dihapus.');
     }
 }

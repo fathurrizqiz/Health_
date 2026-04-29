@@ -20,7 +20,7 @@ class NonFormalController extends Controller
     {
         $karyawan = Karyawans::all();
         $program = ProgramEksternal::with('eksternal.karyawan')->orderBy('tahun', 'desc')->get();
-        return Inertia::render('RencanaDiklat/RPT/PendidikanNonFormal/index',[
+        return Inertia::render('RencanaDiklat/RPT/PendidikanNonFormal/index', [
             'karyawan' => $karyawan,
             'program' => $program
         ]);
@@ -54,7 +54,7 @@ class NonFormalController extends Controller
 
         $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
         $validate['jam_diklat'] = $validate['jam_diklat'] * $selisihHari;
-        
+
         $eksternal = DiklatEksternal::create($validate);
 
         // Panggil rekap
@@ -112,6 +112,69 @@ class NonFormalController extends Controller
                 'total_jam' => $totalJam
             ]
         );
+    }
+
+    public function updateProgram(Request $request, $id)
+    {
+        $validate = $request->validate([
+            'nama_diklat' => 'required|string|max:255',
+            'tahun' => 'required|string|max:255',
+        ]);
+        ProgramEksternal::findOrFail($id)->update($validate);
+        return redirect()->back()->with('success', 'Program diperbarui');
+    }
+
+    public function updateDetail(Request $request, $id)
+    {
+        $validate = $request->validate([
+            'program_id' => 'required|exists:program_diklat_eksternal,id',
+            'nama_karyawan' => 'required|string|max:255',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date',
+            'jam_diklat' => 'required|integer',
+            'penyelenggara' => 'required|string|max:255',
+            'nrp' => 'nullable|string|max:255',
+        ]);
+
+        $tanggalMulai = Carbon::parse($validate['tanggal_mulai']);
+        $tanggalSelesai = Carbon::parse($validate['tanggal_selesai']);
+        $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
+
+        // Recalculate total jam
+        $validate['jam_diklat'] = $validate['jam_diklat'] * $selisihHari;
+
+        $eksternal = DiklatEksternal::findOrFail($id);
+        $eksternal->update($validate);
+
+        // Update rekap
+        $this->updateRekapBulanan(
+            $eksternal->nrp,
+            $tanggalMulai->year,
+            $tanggalMulai->month
+        );
+
+        return redirect()->back();
+    }
+
+    public function destroyDetail($id)
+    {
+        $eksternal = DiklatEksternal::findOrFail($id);
+        $eksternal->delete();
+
+        // Update rekap
+        $this->updateRekapBulanan(
+            $eksternal->nrp,
+            date('Y', strtotime($eksternal->tanggal_mulai)),
+            date('n', strtotime($eksternal->tanggal_mulai))
+        );
+
+        return redirect()->back()->with('success', 'Detail diklat eksternal dihapus');
+    }
+    public function destroyProgram($id)
+    {
+        $program = ProgramEksternal::findOrFail($id);
+        $program->delete();
+        return redirect()->back()->with('success', 'Program diklat eksternal dihapus');
     }
 
 }

@@ -22,6 +22,23 @@ interface TargetKategori {
     totalTargetJam: number;
     aktualJam: number;
     persentase: number;
+    karyawans: KaryawanDetail[];
+}
+
+interface DetailRiwayat {
+    id: number;
+    tanggal: string;
+    nama_diklat: string;
+    jam: number;
+}
+
+interface KaryawanDetail {
+    nrp: string;
+    nama: string;
+    aktual: number;
+    target: number;
+    persentase: number;
+    detail_diklat?: DetailRiwayat[];
 }
 
 const props = defineProps<{
@@ -60,10 +77,11 @@ const applyFilter = () => {
     // Ganti route url ini dengan name route kamu
     router.get(
         route('laporan.diklat'),
-        { months: selectedMonths.value,
+        {
+            months: selectedMonths.value,
             // year: props.filters.year,
             bagian: searchBagian.value,
-         },
+        },
         {
             preserveState: true,
             preserveScroll: true,
@@ -88,19 +106,19 @@ const persentaseTotal = computed(() => {
 });
 
 // const selectedMonths = ref<number[]>(props.filters.months);
-const searchBagian = ref<string>(props.filters.bagian || ''); 
+const searchBagian = ref<string>(props.filters.bagian || '');
 
 // grafik
 const chartSeries = computed(() => {
     return [
         {
             name: 'Target Jam',
-            data: props.totalPerKategori.map(item => item.totalTargetJam)
+            data: props.totalPerKategori.map((item) => item.totalTargetJam),
         },
         {
             name: 'Aktual Jam',
-            data: props.totalPerKategori.map(item => item.aktualJam)
-        }
+            data: props.totalPerKategori.map((item) => item.aktualJam),
+        },
     ];
 });
 
@@ -121,37 +139,49 @@ const chartOptions = computed(() => {
             },
         },
         dataLabels: {
-            enabled: false
+            enabled: false,
         },
         stroke: {
             show: true,
             width: 2,
-            colors: ['transparent']
+            colors: ['transparent'],
         },
         xaxis: {
-            categories: props.totalPerKategori.map(item => item.kategori), // Label bawah ambil dari nama bagian
+            categories: props.totalPerKategori.map((item) => item.kategori), // Label bawah ambil dari nama bagian
             labels: {
-                style: { colors: '#6B7280' }
-            }
+                style: { colors: '#6B7280' },
+            },
         },
         yaxis: {
-            title: { text: 'Total Jam', style: { color: '#6B7280' } }
+            title: { text: 'Total Jam', style: { color: '#6B7280' } },
         },
         fill: { opacity: 1 },
         colors: ['#E5E7EB', '#2563EB'], // Warna: Abu-abu (Target), Biru (Aktual)
         tooltip: {
             y: {
                 formatter: function (val: number) {
-                    return val + " Jam";
-                }
-            }
+                    return val + ' Jam';
+                },
+            },
         },
         legend: {
             position: 'top',
-            horizontalAlign: 'right'
-        }
+            horizontalAlign: 'right',
+        },
     };
 });
+
+const expandedRows = ref<string[]>([]);
+
+const expandedKaryawan = ref<string | null>(null);
+
+const toggleRow = (kategori: string) => {
+    if (expandedRows.value.includes(kategori)) {
+        expandedRows.value = expandedRows.value.filter((i) => i !== kategori);
+    } else {
+        expandedRows.value.push(kategori);
+    }
+};
 </script>
 
 <template>
@@ -159,14 +189,13 @@ const chartOptions = computed(() => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="mx-auto max-w-7xl space-y-6 py-6 sm:px-6 lg:px-8">
-            
-            <div class=" flex justify-end gap-3 sm:w-auto">
+            <div class="flex justify-end gap-3 sm:w-auto">
                 <input
                     type="text"
                     v-model="searchBagian"
                     @keyup.enter="applyFilter"
                     placeholder="Cari nama bagian..."
-                    class="w-full rounded-md justify-between border-gray-300 text-sm shadow-sm p-2 focus:border-blue-500 focus:ring-blue-500 sm:w-64"
+                    class="w-full justify-between rounded-md border-gray-300 p-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:w-64"
                 />
                 <button
                     @click="applyFilter"
@@ -231,8 +260,6 @@ const chartOptions = computed(() => {
                 </p>
             </div>
 
-            
-
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                 <!-- Card Target -->
@@ -280,14 +307,19 @@ const chartOptions = computed(() => {
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm" v-if="totalPerKategori.length > 0">
-                <h3 class="font-semibold text-gray-800 mb-2">Statistik Target vs Aktual Per Bagian</h3>
+            <div
+                class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm"
+                v-if="totalPerKategori.length > 0"
+            >
+                <h3 class="mb-2 font-semibold text-gray-800">
+                    Statistik Target vs Aktual Per Bagian
+                </h3>
                 <!-- Render komponen grafiknya di sini -->
-                <VueApexCharts 
-                    type="bar" 
-                    height="350" 
-                    :options="chartOptions" 
-                    :series="chartSeries" 
+                <VueApexCharts
+                    type="bar"
+                    height="350"
+                    :options="chartOptions"
+                    :series="chartSeries"
                 />
             </div>
 
@@ -297,7 +329,7 @@ const chartOptions = computed(() => {
             >
                 <div class="border-b border-gray-100 bg-gray-50/50 px-6 py-4">
                     <h3 class="font-semibold text-gray-800">
-                        Rincian Per Bagian
+                        Rincian Per Bagian & Karyawan
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
@@ -306,92 +338,317 @@ const chartOptions = computed(() => {
                             class="bg-gray-50 text-xs text-gray-500 uppercase"
                         >
                             <tr>
-                                <th scope="col" class="px-6 py-4 font-medium">
-                                    Bagian / Kategori
-                                </th>
-                                <th
-                                    scope="col"
-                                    class="px-6 py-4 text-center font-medium"
-                                >
+                                <th class="px-6 py-4">Bagian / Kategori</th>
+                                <th class="px-6 py-4 text-center">
                                     Total Karyawan
                                 </th>
-                                <th
-                                    scope="col"
-                                    class="px-6 py-4 text-right font-medium"
-                                >
-                                    Target/Orang
-                                </th>
-                                <th
-                                    scope="col"
-                                    class="px-6 py-4 text-right font-medium"
-                                >
+                                <th class="px-6 py-4 text-right">
                                     Total Target
                                 </th>
-                                <th
-                                    scope="col"
-                                    class="px-6 py-4 text-right font-medium"
-                                >
-                                    Aktual Jam
-                                </th>
-                                <th
-                                    scope="col"
-                                    class="min-w-[200px] px-6 py-4 font-medium"
-                                >
-                                    Pencapaian
-                                </th>
+                                <th class="px-6 py-4 text-right">Aktual Jam</th>
+                                <th class="px-6 py-4">Pencapaian</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody
+                            v-for="(item, index) in totalPerKategori"
+                            :key="index"
+                            class="border-b border-gray-100 last:border-0"
+                        >
                             <tr
-                                v-for="(item, index) in totalPerKategori"
-                                :key="index"
-                                class="border-b border-gray-50 transition-colors hover:bg-gray-50/50"
+                                @click="toggleRow(item.kategori)"
+                                class="cursor-pointer transition-colors hover:bg-gray-50/80"
+                                :class="{
+                                    'bg-blue-50/30': expandedRows.includes(
+                                        item.kategori,
+                                    ),
+                                }"
                             >
                                 <td
-                                    class="px-6 py-4 font-medium whitespace-nowrap text-gray-800"
+                                    class="flex items-center gap-2 px-6 py-4 font-bold text-gray-800"
                                 >
+                                    <span
+                                        class="text-gray-400 transition-transform duration-200"
+                                        :class="{
+                                            'rotate-90': expandedRows.includes(
+                                                item.kategori,
+                                            ),
+                                        }"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="h-4 w-4"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
+                                            <path
+                                                fill-rule="evenodd"
+                                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                                clip-rule="evenodd"
+                                            />
+                                        </svg>
+                                    </span>
                                     {{ item.kategori }}
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    {{ item.totalKaryawan }}
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    {{ item.targetPerOrang }} Jam
+                                    {{ item.totalKaryawan }} Orang
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     {{ item.totalTargetJam }} Jam
                                 </td>
                                 <td
-                                    class="px-6 py-4 text-right font-medium text-blue-600"
+                                    class="px-6 py-4 text-right font-semibold text-blue-600"
                                 >
                                     {{ item.aktualJam }} Jam
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div
-                                            class="h-2.5 w-full rounded-full bg-gray-200"
+                                            class="h-2 w-full rounded-full bg-gray-200"
                                         >
                                             <div
-                                                class="h-2.5 rounded-full bg-emerald-500 transition-all duration-500"
+                                                class="h-2 rounded-full bg-emerald-500"
                                                 :style="{
-                                                    width: `${item.persentase > 100 ? 100 : item.persentase}%`,
+                                                    width:
+                                                        Math.min(
+                                                            item.persentase,
+                                                            100,
+                                                        ) + '%',
                                                 }"
                                             ></div>
                                         </div>
                                         <span
-                                            class="min-w-[3rem] text-xs font-semibold text-gray-600"
+                                            class="min-w-[3rem] text-xs font-bold"
                                             >{{ item.persentase }}%</span
                                         >
                                     </div>
                                 </td>
                             </tr>
 
-                            <tr v-if="totalPerKategori.length === 0">
+                            <tr v-if="expandedRows.includes(item.kategori)">
+                                <td colspan="5" class="bg-gray-50/50 px-8 py-4">
+                                    <div
+                                        class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+                                    >
+                                        <table class="w-full text-xs">
+                                            <thead
+                                                class="bg-gray-100 text-gray-600 uppercase"
+                                            >
+                                                <tr>
+                                                    <th
+                                                        class="px-4 py-2 text-left font-semibold"
+                                                    >
+                                                        NRP / Nama Karyawan
+                                                    </th>
+                                                    <th
+                                                        class="px-4 py-2 text-right font-semibold"
+                                                    >
+                                                        Target
+                                                    </th>
+                                                    <th
+                                                        class="px-4 py-2 text-right font-semibold"
+                                                    >
+                                                        Aktual
+                                                    </th>
+                                                    <th
+                                                        class="px-4 py-2 text-center font-semibold"
+                                                    >
+                                                        Pencapaian
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody
+                                                v-for="karyawan in item.karyawans"
+                                                :key="karyawan.nrp"
+                                            >
+                                                <tr
+                                                    @click="
+                                                        toggleKaryawan(
+                                                            karyawan.nrp,
+                                                        )
+                                                    "
+                                                    class="cursor-pointer border-b transition-colors last:border-0 hover:bg-blue-50/50"
+                                                >
+                                                    <td
+                                                        class="px-4 py-3 font-medium text-gray-700"
+                                                    >
+                                                        <div
+                                                            class="flex items-center gap-2"
+                                                        >
+                                                            <div
+                                                                class="h-1.5 w-1.5 rounded-full bg-blue-400"
+                                                            ></div>
+                                                            <span
+                                                                class="font-mono text-blue-600 underline"
+                                                                >{{
+                                                                    karyawan.nrp
+                                                                }}</span
+                                                            >
+                                                            <span>-</span>
+                                                            <span>{{
+                                                                karyawan.nama
+                                                            }}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td
+                                                        class="px-4 py-3 text-right"
+                                                    >
+                                                        {{
+                                                            karyawan.target
+                                                        }}
+                                                        Jam
+                                                    </td>
+                                                    <td
+                                                        class="px-4 py-3 text-right font-bold text-blue-600"
+                                                    >
+                                                        {{
+                                                            karyawan.aktual
+                                                        }}
+                                                        Jam
+                                                    </td>
+                                                    <td
+                                                        class="px-4 py-3 text-center"
+                                                    >
+                                                        <span
+                                                            :class="[
+                                                                'inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
+                                                                karyawan.persentase >=
+                                                                100
+                                                                    ? 'bg-emerald-100 text-emerald-700'
+                                                                    : 'bg-orange-100 text-orange-700',
+                                                            ]"
+                                                        >
+                                                            {{
+                                                                karyawan.persentase
+                                                            }}%
+                                                        </span>
+                                                    </td>
+                                                </tr>
+
+                                                <tr
+                                                    v-if="
+                                                        expandedKaryawan ===
+                                                        karyawan.nrp
+                                                    "
+                                                    class="bg-blue-50/20"
+                                                >
+                                                    <td
+                                                        colspan="4"
+                                                        class="px-6 py-4"
+                                                    >
+                                                        <div
+                                                            class="rounded-lg border border-blue-100 bg-white p-4 shadow-inner"
+                                                        >
+                                                            <h4
+                                                                class="mb-3 flex items-center gap-2 text-xs font-bold text-blue-800 uppercase"
+                                                            >
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    class="h-4 w-4"
+                                                                    fill="none"
+                                                                    viewBox="0 0 24 24"
+                                                                    stroke="currentColor"
+                                                                >
+                                                                    <path
+                                                                        stroke-linecap="round"
+                                                                        stroke-linejoin="round"
+                                                                        stroke-width="2"
+                                                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                                                    />
+                                                                </svg>
+                                                                Riwayat Diklat
+                                                                Periode Terpilih
+                                                            </h4>
+                                                            <div
+                                                                v-if="
+                                                                    karyawan.detail_diklat &&
+                                                                    karyawan
+                                                                        .detail_diklat
+                                                                        .length >
+                                                                        0
+                                                                "
+                                                                class="space-y-2"
+                                                            >
+                                                                <div
+                                                                    v-for="diklat in karyawan.detail_diklat"
+                                                                    :key="
+                                                                        diklat.id
+                                                                    "
+                                                                    class="flex justify-between border-b border-blue-50 pb-2 last:border-0 last:pb-0"
+                                                                >
+                                                                    <div>
+                                                                        <p
+                                                                            class="text-[11px] font-semibold text-gray-800"
+                                                                        >
+                                                                            {{
+                                                                                diklat.nama_diklat
+                                                                            }}
+                                                                        </p>
+                                                                        <p
+                                                                            class="text-[10px] text-gray-500"
+                                                                        >
+                                                                            Periode:
+                                                                            {{
+                                                                                diklat.tanggal
+                                                                            }}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div
+                                                                        class="text-right"
+                                                                    >
+                                                                        <p
+                                                                            class="text-[11px] font-bold text-blue-600"
+                                                                        >
+                                                                            {{
+                                                                                diklat.jam
+                                                                            }}
+                                                                            Jam
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                v-else
+                                                                class="py-4 text-center text-gray-400 italic"
+                                                            >
+                                                                Tidak ada
+                                                                riwayat diklat
+                                                                pada periode
+                                                                ini.
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+
+                        <tbody v-if="totalPerKategori.length === 0">
+                            <tr>
                                 <td
-                                    colspan="6"
-                                    class="px-6 py-8 text-center text-gray-400"
+                                    colspan="5"
+                                    class="px-6 py-12 text-center text-gray-400"
                                 >
-                                    Tidak ada data diklat untuk bulan terpilih.
+                                    <div class="flex flex-col items-center">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="mb-2 h-10 w-10 opacity-20"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                            />
+                                        </svg>
+                                        Tidak ada data diklat untuk bagian/bulan
+                                        terpilih.
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

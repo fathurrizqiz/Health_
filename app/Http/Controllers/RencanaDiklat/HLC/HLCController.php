@@ -121,13 +121,26 @@ class HLCController extends Controller
 
         return redirect()->route('diklat.hlc.admin');
     }
-    public function edit($id)
+    public function updateProgram(Request $request, $id)
     {
-        $edit = HLCManajement::findOrFail($id);
-        return Inertia::render('RencanaDiklat/HLC/edit', [
-            'edit' => $edit
+        $validated = $request->validate([
+            'nama_program' => 'required|string|max:255',
+            'tahun' => 'required|digits:4'
         ]);
+
+        ProgramHlc::where('id', $id)->update($validated);
+        return redirect()->back()->with('success', 'Program diperbarui');
     }
+
+
+    public function destroyProgram($id)
+    {
+        $delete = ProgramHlc::findOrFail($id);
+        $delete->delete();
+
+        return redirect()->route('diklat.hlc.admin');
+    }
+
     public function updateDetail(Request $request, $id)
     {
         $validated = $request->validate([
@@ -138,46 +151,45 @@ class HLCController extends Controller
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date',
             'nrp' => 'nullable|string|max:255',
-            'jam_diklat' => 'nullable|integer'
+            'jam_diklat' => 'nullable|integer' // Ini adalah jam per hari dari input
         ]);
 
         $hlc = HLCManajement::findOrFail($id);
 
-        // status tetap approved karena admin yang update
-        $validated['status'] = 'approved';
+        // Hitung ulang total jam diklat (Jam per hari * Selisih hari)
+        $tanggalMulai = \Carbon\Carbon::parse($validated['tanggal_mulai']);
+        $tanggalSelesai = \Carbon\Carbon::parse($validated['tanggal_selesai']);
 
-        $tanggalMulai = Carbon::parse($validated['tanggal_mulai']);
-        $tanggalSelesai = Carbon::parse($validated['tanggal_selesai']);
         $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
 
-        // Hitung ulang jam_diklat hanya jika dikirim
-        if (isset($validated['jam_diklat'])) {
-            $validated['jam_diklat'] = $validated['jam_diklat'] * $selisihHari;
-        }
+        // Total jam = (input jam per hari) * jumlah hari
+        $validated['jam_diklat'] = ($validated['jam_diklat'] ?? 0) * $selisihHari;
 
         $hlc->update($validated);
 
-        // Update rekap bulanan
+        // Update rekap bulanan untuk peserta tersebut
         $this->updateRekapBulanan(
             $hlc->nrp,
-            date('Y', strtotime($hlc->tanggal_mulai)),
-            date('n', strtotime($hlc->tanggal_mulai))
+            $tanggalMulai->format('Y'),
+            $tanggalMulai->format('n')
         );
 
-        return redirect()->route('diklat.hlc.admin');
+        return redirect()->route('diklat.hlc.admin')->with('success', 'Detail diklat berhasil diperbarui.');
     }
-    public function destroy($id)
+
+    public function destroyDetail($id)
     {
-        $delete = HLCManajement::findOrFail($id);
+        $hlc = HLCManajement::findOrFail($id);
+        $nrp = $hlc->nrp;
+        $tahun = date('Y', strtotime($hlc->tanggal_mulai));
+        $bulan = date('n', strtotime($hlc->tanggal_mulai));
 
-        $tahun = Carbon::parse($delete->tanggal_mulai)->year;
-        $bulan = Carbon::parse($delete->tanggal_mulai)->month;
-        $delete->delete();
+        $hlc->delete();
 
-        if ($delete->status === 'approved') {
-            $this->updateRekapBulanan($delete->nrp, $tahun, $bulan);
-        }
-        return redirect()->route('diklat.hlc.admin');
+        // Jalankan rekap ulang setelah hapus agar total jam di rekap berkurang
+        $this->updateRekapBulanan($nrp, $tahun, $bulan);
+
+        return redirect()->route('diklat.hlc.admin')->with('success', 'Data diklat berhasil dihapus.');
     }
 
 }

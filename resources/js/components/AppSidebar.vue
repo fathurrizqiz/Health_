@@ -80,18 +80,6 @@ const mainNavItems:  (NavItem & { roles?: string[] })[] = [
         // roles: ['admin_diklat'],
     },
     {
-        title: 'Jadwal Diklat HLC',
-        href: '/JadwalDiklat/HLC',
-        icon: CalendarCheck2,
-        // roles: ['admin_diklat'],
-    },
-    {
-        title: 'Jadwal Diklat Eksternal',
-        href: '/JadwalDiklat/Eksternal',
-        icon: CalendarCheck2,
-        // roles: ['admin_diklat'],
-    },
-    {
         title: 'Evaluasi',
         href: '/Diklat/Evaluasi',
         icon: ChartLine,
