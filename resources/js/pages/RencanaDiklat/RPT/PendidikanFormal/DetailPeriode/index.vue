@@ -71,11 +71,17 @@ const breadcrumbs: BreadcrumbItem[] = [
    STATE
 ===================== */
 const selectedPeriodeId = ref<number | null>(props.selectedPeriodeId ?? null);
-const rows = ref<PeriodePeserta[]>([...props.rows]);
+
+// Tambahkan null check/fallback []
 const search = ref('');
 const selectedBagian = ref<string[]>(props.selectedBagian ?? []);
 const selectDelete = ref<number[]>([]);
 
+const rows = ref<PeriodePeserta[]>(
+    props.rows 
+        ? (Array.isArray(props.rows) ? [...props.rows] : Object.values(props.rows)) 
+        : []
+);
 /* =====================
    WATCH PERIODE
 ===================== */
@@ -93,7 +99,8 @@ watch(selectedPeriodeId, (id) => {
 });
 
 watch(() => props.rows, (newRows) => {
-    rows.value = [...newRows];
+    // Gunakan Object.values jika ternyata newRows adalah Object
+    rows.value = Array.isArray(newRows) ? [...newRows] : Object.values(newRows || {});
 }, { deep: true });
 
 /* =====================

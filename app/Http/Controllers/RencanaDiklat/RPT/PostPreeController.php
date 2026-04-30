@@ -10,6 +10,7 @@ use App\Models\DiklatEksternal;
 use App\Models\DiklatKaryawan;
 use App\Models\EvaluasiDetailInternal;
 use App\Models\HLCManajement;
+use App\Models\Karyawans;
 use App\Models\PeriodeBagianDetailInternal;
 use App\Models\PeriodeUtama;
 use App\Models\PostPreeDetailInternal;
@@ -157,6 +158,16 @@ class PostPreeController extends Controller
             'nrp' => 'required',
         ]);
 
+        // ✅ VALIDASI UNDANGAN (WAJIB DI ATAS)
+        $peserta = PeriodeBagianDetailInternal::where('nrp', $request->nrp)
+            ->where('detail_program_id', $request->detail_id)
+            ->first();
+
+        if (!$peserta) {
+            abort(403, 'Anda tidak terdaftar sebagai peserta.');
+        }
+
+        // ✅ CEK SUDAH PERNAH MENGERJAKAN
         $exists = UserAnswerPostPreeDetail::where('nrp', $request->nrp)
             ->whereIn('question_id', array_keys($request->answers))
             ->exists();
@@ -165,7 +176,9 @@ class PostPreeController extends Controller
             return back()->with('error', 'Anda sudah mengerjakan test ini.');
         }
 
-
+        // ===============================
+        // SIMPAN JAWABAN
+        // ===============================
         foreach ($request->answers as $questionId => $choiceId) {
 
             $choice = QuestionChoices::where('id', $choiceId)->first();
@@ -178,9 +191,12 @@ class PostPreeController extends Controller
             ]);
         }
 
+        // ===============================
+        // HITUNG NILAI
+        // ===============================
         $totalScore = 0;
+
         foreach ($request->answers as $questionId => $choiceId) {
-            // Ambil soal + pastikan milik test yang benar
             $question = QuestionTestDetailInternal::with('test')
                 ->where('id', $questionId)
                 ->whereHas('test', function ($q) use ($request) {
@@ -199,10 +215,9 @@ class PostPreeController extends Controller
 
         $totalScore = round($totalScore, 2);
 
-        $peserta = PeriodeBagianDetailInternal::where('nrp', $request->nrp)
-            ->where('detail_program_id', $request->detail_id)
-            ->firstOrFail();
-
+        // ===============================
+        // UPDATE STATUS PESERTA
+        // ===============================
         if ($request->type === 'post') {
             $peserta->update(['post_done_at' => now()]);
 
@@ -216,19 +231,18 @@ class PostPreeController extends Controller
             }
         }
 
-
         if ($request->type === 'pree') {
             $peserta->update(['pree_done_at' => now()]);
         }
 
         // ===============================
-// 🎯 CEK & GENERATE SERTIFIKAT
-// ===============================
+        // SERTIFIKAT
+        // ===============================
         $this->checkAndGenerateCertificate($peserta);
 
         return back()
             ->with('success', 'Jawaban berhasil disimpan!')
-            ->with('nilai_akhir', $totalScore); // ← kirim nilai ke frontend
+            ->with('nilai_akhir', $totalScore);
     }
 
     protected function checkAndGenerateCertificate($peserta)
@@ -476,9 +490,11 @@ class PostPreeController extends Controller
     }
 
 
+    // Pastikan model Karyawan atau yang setara di-use di atas
+// use App\Models\Karyawan;
+
     public function openByToken($type, $token)
     {
-        // dd($token);
         $tokenData = TestToken::where('token', $token)
             ->where('type', $type)
             ->firstOrFail();
@@ -489,17 +505,31 @@ class PostPreeController extends Controller
 
         $periode = $tokenData->periode;
 
-        // ambil test sesuai type token
         $test = PostPreeDetailInternal::with('questions.choices')
             ->where('detail_program_id', $periode->detail_id)
             ->where('type', $type)
             ->firstOrFail();
 
+        $karyawans = Karyawans::select('nrp', 'nama_karyawan')->get();
+
+        $allowed_bagians = PeriodeBagianDetailInternal::with('karyawan')
+            ->where('periode_id', $periode->id)
+            ->get()
+            ->pluck('karyawan.bagian')
+            ->filter() // Hilangkan yang null
+            ->unique() // Hindari duplikat bagian
+            ->values()
+            ->toArray();
+
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/PrePostTest/userview', [
             'test' => $test,
             'type' => $type,
             'detail_id' => $periode->detail_id,
-            'token' => $tokenData->token
+            'token' => $tokenData->token,
+            // Cek apakah user sedang login. Jika ya, kirim NRP-nya, jika tidak null
+            'user_nrp' => auth()->check() ? auth()->user()->nrp : null,
+            'karyawans' => $karyawans,
+
         ]);
     }
 
@@ -566,8 +596,11 @@ class PostPreeController extends Controller
         }
 
         $evaluasi = EvaluasiDetailInternal::create(
-            ['detail_id' => $request->detail_id,
-            'evaluasimateri' => $request->evaluasimateri, 'evaluasipengajar' => $request->evaluasipengajar]
+            [
+                'detail_id' => $request->detail_id,
+                'evaluasimateri' => $request->evaluasimateri,
+                'evaluasipengajar' => $request->evaluasipengajar
+            ]
         );
 
         Log::info('Evaluasi berhasil disimpan / diperbarui', [

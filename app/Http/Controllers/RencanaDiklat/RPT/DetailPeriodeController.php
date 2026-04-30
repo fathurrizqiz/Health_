@@ -50,7 +50,7 @@ class DetailPeriodeController extends Controller
                     'klinis_non_klinis' => $item->karyawan->klinis_non_klinis,
                     'jenis_kelamin' => $item->karyawan->jenis_kelamin,
                 ];
-            });
+            })->values();;
         // Log::info('PERIODE ID MASUK', [
         //     'request_periode_id' => $request->periode_id
         // ]);

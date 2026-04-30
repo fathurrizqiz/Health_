@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { router } from "@inertiajs/vue3";
 import Input from "@/components/ui/input/Input.vue";
 import { toast } from "vue3-toastify";
@@ -13,7 +13,13 @@ interface Question {
     id: number;
     pertanyaan: string;
     choices: Choice[];
-    nrp:string;
+    nrp: string;
+}
+
+interface Karyawan {
+    nrp: string;
+    nama_karyawan: string;
+    bagian?: string; 
 }
 
 interface Props {
@@ -24,6 +30,8 @@ interface Props {
     };
     detail_id: number;
     user_nrp: string | null;
+    karyawans: Karyawan[]; 
+    allowed_bagians: string[];
 }
 
 const props = defineProps<Props>();
@@ -32,8 +40,34 @@ const answers = ref<{ [key: number]: number | null }>({});
 const loading = ref(false);
 const nrp = ref(props.user_nrp || '');
 
-const submitTest = () => {
+// --- STATE UNTUK AUTOCOMPLETE ---
+const showDropdown = ref(false);
 
+const filteredKaryawan = computed(() => {
+    if (!nrp.value) return [];
+    const query = nrp.value.toLowerCase();
+    
+    // Filter berdasarkan NRP atau Nama, limit 5 hasil agar tidak terlalu panjang
+    return props.karyawans.filter(k => 
+        k.nrp.toLowerCase().includes(query) || 
+        (k.nama_karyawan && k.nama_karyawan.toLowerCase().includes(query))
+    ).slice(0, 5);
+});
+
+const selectNrp = (selected: Karyawan) => {
+    nrp.value = selected.nrp;
+    showDropdown.value = false;
+};
+
+// Delay penutupan dropdown agar klik item sempat tereksekusi sebelum onBlur
+const hideDropdown = () => {
+    setTimeout(() => {
+        showDropdown.value = false;
+    }, 200);
+};
+// ---------------------------------
+
+const submitTest = () => {
     if (!nrp.value) {
         toast.error('NRP harus diisi sebelum mengirim jawaban.');
         return;
@@ -42,12 +76,6 @@ const submitTest = () => {
         toast.error('Pastikan semua pertanyaan telah dijawab sebelum mengirim.');
         return;
     }
-
-    console.log("Submitting test...");
-    console.log("Answers:", answers.value);
-    console.log("Type:", props.test.type);
-    console.log("Detail ID:", props.detail_id);
-    console.log("NRP:", props.user_nrp);
 
     loading.value = true;
 
@@ -59,19 +87,14 @@ const submitTest = () => {
             detail_id: props.detail_id,
             nrp: nrp.value,
         },
-        
         {
             onSuccess: () => {
                 toast.success("Jawaban berhasil disimpan.");
             },
-            
-            // onStart: () => console.log("Request started..."),
-            // onFinish: () => {
-            //     console.log("Request finished");
-            //     loading.value = false;
-            // },
-            onError: (errors) => console.error("Request errors:", errors),
-            // onSuccess: (page) => console.log("Server response:", page)
+            onError: (errors) => {
+                console.error("Request errors:", errors);
+                loading.value = false;
+            },
         }
     );
 };
@@ -89,11 +112,55 @@ const submitTest = () => {
             <p class="text-gray-500 text-sm">Silakan jawab semua pertanyaan di bawah ini</p>
         </div>
 
+        <!-- Identitas / NRP Autocomplete -->
+        <div class="mb-6 p-5 border border-gray-200 rounded-lg bg-white shadow-sm">
+            <h2 class="font-semibold text-gray-800 mb-2">Identitas Peserta</h2>
+            
+            <!-- JIKA USER SUDAH LOGIN (NRP TERISI DARI PROPS) -->
+            <div v-if="props.user_nrp">
+                <Input 
+                    v-model="nrp" 
+                    disabled 
+                    class="bg-gray-100 cursor-not-allowed"
+                />
+                <p class="text-xs text-green-600 mt-1">✓ Anda sudah login sebagai NRP: {{ props.user_nrp }}</p>
+            </div>
+
+            <!-- JIKA USER BELUM LOGIN (MUNCULKAN AUTOCOMPLETE) -->
+            <div v-else class="relative">
+                <Input 
+                    v-model="nrp" 
+                    placeholder="Ketik NRP atau Nama Anda..."
+                    @focus="showDropdown = true"
+                    @blur="hideDropdown"
+                    autocomplete="off"
+                />
+                
+                <!-- Dropdown Autocomplete -->
+                <ul 
+                    v-if="showDropdown && filteredKaryawan.length > 0" 
+                    class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto"
+                >
+                    <li 
+                        v-for="k in filteredKaryawan" 
+                        :key="k.nrp"
+                        @click="selectNrp(k)"
+                        class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm flex justify-between"
+                    >
+                        <span class="font-medium text-gray-800">{{ k.nrp }}</span>
+                        <span class="text-gray-500">{{ k.nama_karyawan }}</span>
+                    </li>
+                </ul>
+                <ul 
+                    v-else-if="showDropdown && nrp.length > 0 && filteredKaryawan.length === 0" 
+                    class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg"
+                >
+                    <li class="px-4 py-2 text-sm text-gray-500">NRP tidak ditemukan</li>
+                </ul>
+            </div>
+        </div>
+
         <!-- Questions -->
-         <div class="mb-6 p-5 border border-gray-200 rounded-lg bg-white shadow-sm">
-            <h2>Masukan NRP</h2>
-            <Input v-model="nrp" placeholder="Masukan NRP"/>
-         </div>
         <div 
             v-for="(q, index) in props.test.questions" 
             :key="q.id"
@@ -107,14 +174,14 @@ const submitTest = () => {
                 <label 
                     v-for="choice in q.choices" 
                     :key="choice.id"
-                    class="flex items-center space-x-3 p-2 border rounded-lg cursor-pointer hover:bg-gray-50"
+                    class="flex items-center space-x-3 p-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                 >
                     <input 
                         type="radio"
                         :name="'question_' + q.id"
                         :value="choice.id"
                         v-model="answers[q.id]"
-                        class="w-4 h-4"
+                        class="w-4 h-4 text-blue-600"
                     />
                     <span class="text-gray-700">{{ choice.text }}</span>
                 </label>
@@ -126,7 +193,7 @@ const submitTest = () => {
             <button 
                 @click="submitTest"
                 :disabled="loading"
-                class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 disabled:bg-gray-400"
+                class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
             >
                 {{ loading ? 'Menyimpan...' : 'Kirim Jawaban' }}
             </button>
@@ -136,4 +203,12 @@ const submitTest = () => {
 </template>
 
 <style scoped>
+/* Optional: Custom scrollbar styling for the autocomplete dropdown */
+ul::-webkit-scrollbar {
+    width: 6px;
+}
+ul::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
 </style>

@@ -74,7 +74,7 @@ const mainNavItems:  (NavItem & { roles?: string[] })[] = [
         roles: ['admin_diklat'],
     },
     {
-        title: 'Jadwal Diklat Internal',
+        title: 'Jadwal Diklat',
         href: '/JadwalDiklat/Internal',
         icon: CalendarCheck,
         // roles: ['admin_diklat'],
