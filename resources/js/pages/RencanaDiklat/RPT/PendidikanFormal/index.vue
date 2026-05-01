@@ -16,6 +16,11 @@ interface DiklatDetail {
     nama_diklat: string;
     keterangan: string;
     pengajar: string;
+    aksi?: {
+        id: number;
+        jam_diklat: number;
+        ended_at: string | null;
+    };
 }
 
 interface DiklatProgram {
@@ -25,8 +30,6 @@ interface DiklatProgram {
     tahun: string;
     details: DiklatDetail[]; // Changed from 'rows' to 'details'
 }
-
-
 
 const props = defineProps<{
     programs: DiklatProgram[];
@@ -126,9 +129,6 @@ const openDetailModal = (programId: number) => {
     detailForm.keterangan = '';
     detailForm.pengajar = '';
     isDetailModalOpen.value = true;
-
-    
-    
 };
 
 const closeDetailModal = () => {
@@ -211,7 +211,7 @@ const menuItems = [
 function detail(id: number) {
     router.visit(`/RencanaDiklat/Internal/detail/aksi/${id}`);
 }
-function periode(id:number) {
+function periode(id: number) {
     router.visit(`/RencanaDiklat/Internal/detail/periode/${id}`);
 }
 </script>
@@ -358,7 +358,9 @@ function periode(id:number) {
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         {{ details.pengajar }}
                                     </td>
-                                    <td class=" flex gap-3 px-4 py-3 text-sm text-gray-900">
+                                    <td
+                                        class="flex gap-3 px-4 py-3 text-sm text-gray-900"
+                                    >
                                         <button
                                             @click.stop="detail(details.id)"
                                             class="cursor-pointer rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-700"
@@ -366,13 +368,44 @@ function periode(id:number) {
                                             Aksi
                                         </button>
                                         <button
-                                            @click.stop="deleteDetail(details.id)"
+                                            @click.stop="
+                                                deleteDetail(details.id)
+                                            "
                                             class="cursor-pointer rounded bg-red-500 px-5 py-2 text-white hover:bg-red-700"
                                         >
                                             Hapus
                                         </button>
+                                        <div v-if="details.aksi">
+                                            <span
+                                                v-if="!details.aksi.ended_at"
+                                                class="inline-flex animate-pulse items-center gap-1 text-[10px] font-bold text-green-600"
+                                            >
+                                                <span
+                                                    class="h-1.5 w-1.5 rounded-full bg-green-600"
+                                                ></span>
+                                                LIVE: PELATIHAN BERJALAN
+                                            </span>
+                                            <span
+                                                v-else
+                                                class="inline-flex items-center gap-1 text-[10px] font-medium text-gray-400"
+                                            >
+                                                <svg
+                                                    class="h-3 w-3"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M5 13l4 4L19 7"
+                                                    />
+                                                </svg>
+                                                SESI SELESAI
+                                            </span>
+                                        </div>
                                     </td>
-                                    
                                 </tr>
                             </tbody>
                         </table>

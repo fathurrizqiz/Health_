@@ -2,6 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\DiklatEksternal;
+use App\Models\HLCManajement;
+use App\Models\PeriodeUtama;
+use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -37,6 +41,26 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        $countJadwal = 0;
+        if ($request->user()) {
+            $nrp = $request->user()->nrp;
+            $today = Carbon::today();
+
+            // Hitung total dari 3 sumber
+            $internalCount = PeriodeUtama::whereHas('peserta', fn($q) => $q->where('nrp', $nrp))
+                ->where('tanggal', '>=', $today)
+                ->count();
+
+            $hlcCount = HLCManajement::where('nrp', $nrp)
+                ->where('tanggal_mulai', '>=', $today)
+                ->count();
+
+            $eksternalCount = DiklatEksternal::where('nrp', $nrp)
+                ->where('tanggal_mulai', '>=', $today)
+                ->count();
+
+            $countJadwal = $internalCount + $hlcCount + $eksternalCount;
+        }
 
         return [
             ...parent::share($request),
@@ -45,7 +69,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'notifications' => [
+                'jadwal_count' => $countJadwal,
+            ],
         ];
     }
 }

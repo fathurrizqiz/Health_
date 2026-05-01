@@ -43,4 +43,5 @@ public function peserta()
         return $this->hasMany(PeriodeBagianDetailInternal::class, 'periode_id');
     }
 
+    
 }

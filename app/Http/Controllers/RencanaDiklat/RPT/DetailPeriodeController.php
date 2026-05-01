@@ -50,7 +50,8 @@ class DetailPeriodeController extends Controller
                     'klinis_non_klinis' => $item->karyawan->klinis_non_klinis,
                     'jenis_kelamin' => $item->karyawan->jenis_kelamin,
                 ];
-            })->values();;
+            })->values();
+        ;
         // Log::info('PERIODE ID MASUK', [
         //     'request_periode_id' => $request->periode_id
         // ]);
@@ -86,6 +87,21 @@ class DetailPeriodeController extends Controller
         Log::info('Data tervalidasi', $validated);
 
         $bagianDipilih = $validated['bagian'];
+
+        $bagianSudahAda = PeriodeBagianDetailInternal::where('detail_program_id', $request->detail_program_id)
+            ->whereIn('bagian', $bagianDipilih)
+            ->distinct()
+            ->pluck('bagian')
+            ->toArray();
+
+        // 2. Jika ada bagian yang duplikat, kembalikan error ke UX
+        if (!empty($bagianSudahAda)) {
+            // Menggabungkan nama bagian yang duplikat untuk pesan error
+            $namaBagian = implode(', ', $bagianSudahAda);
+            return back()->withErrors([
+                'bagian' => "Bagian berikut sudah terdaftar di program ini: $namaBagian"
+            ]);
+        }
 
         $karyawan = Karyawans::whereIn('bagian', $bagianDipilih)->get();
 

@@ -54,29 +54,18 @@ class SertifikatController extends Controller
     public function generate(PeriodeBagianDetailInternal $peserta)
     {
         // cek kehadiran (sesuai NRP & detail_program_id)
-        $cekHadir = PresensiDetailDiklat::where('nrp', $peserta->nrp)
-            ->where('detail_program_id', $peserta->detail_program_id)
-            ->exists();
-
-        if (!$cekHadir) {
-            return back()->withErrors(['message' => 'Gagal! Karyawan belum tercatat hadir pada pelatihan ini.']);
-        }
-
-        // CEK PRE & POST TEST
         if (!$peserta->pree_done_at || !$peserta->post_done_at) {
-            return back()->withErrors(['message' => 'Gagal! Pre dan Post test belum lengkap.']);
+            return back()->withErrors([
+                'message' => 'Gagal! Karyawan belum menyelesaikan Pre-test atau Post-test sebagai syarat kehadiran.'
+            ]);
         }
 
-        // // 3. CEK SERTIFIKAT GANDA
-        // if ($peserta->sertifikat_generated_at) {
-        //     return back()->withErrors(['message' => 'Sertifikat sudah pernah dibuat sebelumnya.']);
-        // }
-
-        // 4. CEK KELENGKAPAN DATA PERIODE
+        // 2. CEK KELENGKAPAN DATA PERIODE (Tetap diperlukan untuk nama diklat di sertifikat)
         if (!$peserta->periode || !$peserta->periode->detail) {
             return back()->withErrors(['message' => 'Gagal! Data periode / diklat tidak lengkap.']);
         }
 
+        // Ambil materi untuk halaman belakang sertifikat
         $materi = TemplatePembahasanSertifikat::where('periode_id', $peserta->periode_id)
             ->get()
             ->values()
@@ -159,29 +148,18 @@ class SertifikatController extends Controller
             ])->setPaper('a4', 'landscape');
 
             $path = "sertifikat/{$peserta->nrp}_{$peserta->id}.pdf";
-            $pdfContent = $pdf->output();
+            Storage::disk('public')->put($path, $pdf->output());
 
-            if (empty($pdfContent)) {
-                Log::error("PDF output KOSONG untuk peserta ID: {$peserta->id}");
-                return back()->withErrors(['message' => 'Gagal membuat PDF (output kosong).']);
-            }
-
-            Storage::disk('public')->put($path, $pdfContent);
-
+            // Update status sertifikat
             $peserta->update([
                 'sertifikat_path' => $path,
                 'sertifikat_generated_at' => now(),
             ]);
 
-            Log::info("Sertifikat berhasil digenerate untuk: {$peserta->nama_karyawan} (ID: {$peserta->id})");
-
-            // Untuk return success, tetap gunakan format biasa, karena onSuccess di Vue sudah menangkap statusnya
             return back()->with('success', 'Sertifikat berhasil digenerate');
 
         } catch (\Exception $e) {
-            Log::error("GAGAL GENERATE PDF: " . $e->getMessage() . " (File: {$e->getFile()}, Line: {$e->getLine()})");
-            // Ubah menjadi withErrors agar tertangkap di frontend
-            return back()->withErrors(['message' => 'Terjadi kesalahan saat memproses PDF: ' . $e->getMessage()]);
+            return back()->withErrors(['message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
     }
 

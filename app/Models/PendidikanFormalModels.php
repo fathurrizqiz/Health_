@@ -17,4 +17,5 @@ class PendidikanFormalModels extends Model
     {
         return $this->hasMany(DetailInternal::class, 'program_id');
     }
+   
 }

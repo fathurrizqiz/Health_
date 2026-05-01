@@ -321,16 +321,7 @@ function bukaDokumentasi() {
                     Manajemen Test
                 </h2>
                 <div class="flex flex-col gap-3 sm:flex-row">
-                    <button
-                        @click="
-                            router.get(
-                                `/DiklatInternal/post/${props.detail_id}`,
-                            )
-                        "
-                        class="flex-1 rounded-md bg-blue-600 px-4 py-2.5 text-white"
-                    >
-                        Post-test
-                    </button>
+                    
 
                     <button
                         @click="
@@ -341,6 +332,16 @@ function bukaDokumentasi() {
                         class="flex-1 rounded-md bg-teal-600 px-4 py-2.5 text-white"
                     >
                         Pre-test
+                    </button>
+                    <button
+                        @click="
+                            router.get(
+                                `/DiklatInternal/post/${props.detail_id}`,
+                            )
+                        "
+                        class="flex-1 rounded-md bg-blue-600 px-4 py-2.5 text-white"
+                    >
+                        Post-test
                     </button>
                 </div>
             </div>

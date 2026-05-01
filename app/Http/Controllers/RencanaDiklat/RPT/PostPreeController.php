@@ -158,7 +158,7 @@ class PostPreeController extends Controller
             'nrp' => 'required',
         ]);
 
-        // ✅ VALIDASI UNDANGAN (WAJIB DI ATAS)
+        // 1. Validasi Peserta
         $peserta = PeriodeBagianDetailInternal::where('nrp', $request->nrp)
             ->where('detail_program_id', $request->detail_id)
             ->first();
@@ -167,7 +167,7 @@ class PostPreeController extends Controller
             abort(403, 'Anda tidak terdaftar sebagai peserta.');
         }
 
-        // ✅ CEK SUDAH PERNAH MENGERJAKAN
+        // 2. Cek Duplikasi Jawaban
         $exists = UserAnswerPostPreeDetail::where('nrp', $request->nrp)
             ->whereIn('question_id', array_keys($request->answers))
             ->exists();
@@ -176,12 +176,10 @@ class PostPreeController extends Controller
             return back()->with('error', 'Anda sudah mengerjakan test ini.');
         }
 
-        // ===============================
-        // SIMPAN JAWABAN
-        // ===============================
+        // 3. Simpan Jawaban & Hitung Nilai
+        $totalScore = 0;
         foreach ($request->answers as $questionId => $choiceId) {
-
-            $choice = QuestionChoices::where('id', $choiceId)->first();
+            $choice = QuestionChoices::find($choiceId);
 
             UserAnswerPostPreeDetail::create([
                 'question_id' => $questionId,
@@ -189,39 +187,28 @@ class PostPreeController extends Controller
                 'nrp' => $request->nrp,
                 'is_correct' => $choice ? $choice->is_correct : false,
             ]);
-        }
 
-        // ===============================
-        // HITUNG NILAI
-        // ===============================
-        $totalScore = 0;
-
-        foreach ($request->answers as $questionId => $choiceId) {
-            $question = QuestionTestDetailInternal::with('test')
-                ->where('id', $questionId)
-                ->whereHas('test', function ($q) use ($request) {
-                    $q->where('type', $request->type)
-                        ->where('detail_program_id', $request->detail_id);
-                })->first();
-
-            if (!$question)
-                continue;
-
-            $choice = QuestionChoices::find($choiceId);
-            if ($choice && $choice->is_correct) {
+            // Hitung skor langsung di sini untuk efisiensi
+            $question = QuestionTestDetailInternal::find($questionId);
+            if ($question && $choice && $choice->is_correct) {
                 $totalScore += $question->bobot;
             }
         }
-
         $totalScore = round($totalScore, 2);
 
-        // ===============================
-        // UPDATE STATUS PESERTA
-        // ===============================
+        // 4. Update Status (Pre / Post)
         if ($request->type === 'post') {
             $peserta->update(['post_done_at' => now()]);
+        } else {
+            $peserta->update(['pree_done_at' => now()]);
+        }
 
-            $periode = PeriodeUtama::where('detail_id', $request->detail_id)->first();
+        // 5. Penting: Refresh data agar status terbaru terbaca oleh query rekap & sertifikat
+        $peserta->refresh();
+
+        // 6. Update Jam Diklat (Jika Post Test sudah done)
+        if ($peserta->post_done_at) {
+            $periode = $peserta->periode;
             if ($periode) {
                 $this->updateRekapBulanan(
                     $peserta->nrp,
@@ -231,15 +218,10 @@ class PostPreeController extends Controller
             }
         }
 
-        if ($request->type === 'pree') {
-            $peserta->update(['pree_done_at' => now()]);
-        }
-
-        // ===============================
-        // SERTIFIKAT
-        // ===============================
+        // 7. Cek & Generate Sertifikat (Hanya jika Pre & Post sudah Done)
         $this->checkAndGenerateCertificate($peserta);
 
+        // 8. Cukup Satu Return di akhir
         return back()
             ->with('success', 'Jawaban berhasil disimpan!')
             ->with('nilai_akhir', $totalScore);
@@ -608,7 +590,7 @@ class PostPreeController extends Controller
             'detail_id' => $evaluasi->detail_id
         ]);
 
-        $token->update(['is_used' => false]);
+        $token->update(['is_used' => true]);
 
         Log::info('Token evaluasi ditandai sebagai digunakan', [
             'token_id' => $token->id

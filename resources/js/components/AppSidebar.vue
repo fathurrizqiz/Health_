@@ -19,12 +19,12 @@ import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
 
-const filteredNavItems = computed(() => {
-    return mainNavItems.filter(item => {
-        if (!item.roles) return true; // menu umum
-        return item.roles.some(role => roles.includes(role));
-    });
-});
+// const filteredNavItems = computed(() => {
+//     return mainNavItems.filter(item => {
+//         if (!item.roles) return true; // menu umum
+//         return item.roles.some(role => roles.includes(role));
+//     });
+// });
 
 interface MyPageProps {
     auth: {
@@ -35,11 +35,14 @@ interface MyPageProps {
         } | null;
     };
 }
+
+const page = usePage();
+const jadwalCount = computed(() => page.props.notifications?.jadwal_count || 0);
 const { props } = usePage<any>() as { props: MyPageProps };
 const rawRole = props.auth.user?.role || [];
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 
-const mainNavItems:  (NavItem & { roles?: string[] })[] = [
+const mainNavItems = computed(() => [
     {
         title: 'Dashboard Diklat',
         href: dashboard(),
@@ -78,6 +81,7 @@ const mainNavItems:  (NavItem & { roles?: string[] })[] = [
         href: '/JadwalDiklat/Internal',
         icon: CalendarCheck,
         // roles: ['admin_diklat'],
+        badge: jadwalCount.value > 0 ? jadwalCount.value : null,
     },
     {
         title: 'Evaluasi',
@@ -97,8 +101,13 @@ const mainNavItems:  (NavItem & { roles?: string[] })[] = [
         icon: BookCopy,
         roles: ['admin_diklat'],
     },
-];
-
+]);
+const filteredNavItems = computed(() => {
+    return mainNavItems.value.filter(item => {
+        if (!item.roles) return true;
+        return item.roles.some(role => roles.includes(role));
+    });
+});
 
 </script>
 

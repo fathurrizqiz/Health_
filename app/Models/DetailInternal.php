@@ -27,5 +27,18 @@ class DetailInternal extends Model
         return $this->hasMany(EvaluasiDetailInternal::class, 'detail_id');
     }
 
+    // App\Models\DetailInternal.php
+
+    public function aksi()
+    {
+        return $this->hasOneThrough(
+            AksiDetailInternal::class,
+            PeriodeUtama::class,
+            'detail_id',
+            'periode_id',
+            'id',
+            'id'
+        )->latest('aksi_detail_internal.created_at'); // Ambil aksi yang paling baru
+    }
 
 }

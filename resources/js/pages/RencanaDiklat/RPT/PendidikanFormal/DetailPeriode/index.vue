@@ -71,6 +71,7 @@ const breadcrumbs: BreadcrumbItem[] = [
    STATE
 ===================== */
 const selectedPeriodeId = ref<number | null>(props.selectedPeriodeId ?? null);
+const bagianOptions = ref<string[]>(props.bagians ?? []);
 
 // Tambahkan null check/fallback []
 const search = ref('');
@@ -101,6 +102,13 @@ watch(selectedPeriodeId, (id) => {
 watch(() => props.rows, (newRows) => {
     // Gunakan Object.values jika ternyata newRows adalah Object
     rows.value = Array.isArray(newRows) ? [...newRows] : Object.values(newRows || {});
+}, { deep: true });
+
+
+watch(() => props.errors, (newErrors) => {
+    if (newErrors && newErrors.bagian) {
+        toast.error(newErrors.bagian);
+    }
 }, { deep: true });
 
 /* =====================
@@ -137,11 +145,13 @@ const form = ref({
     bagian: [] as string[],
 });
 
+
 function store() {
     if (!selectedPeriodeId.value) {
         toast.error('Silakan pilih periode terlebih dahulu');
         return;
     }
+
     if (selectedBagian.value.length === 0) {
         toast.error('Pilih minimal satu bagian');
         return;
@@ -150,7 +160,18 @@ function store() {
     form.value.periode_id = selectedPeriodeId.value;
     form.value.bagian = selectedBagian.value;
 
-    router.post('/DiklatInternal/detailperiod/list/store', form.value);
+    router.post('/DiklatInternal/detailperiod/list/store', form.value, {
+        onError: (err) => {
+            // Jika Anda ingin toast spesifik dari error validation Laravel
+            if (err.bagian) {
+                toast.error(err.bagian);
+            }
+        },
+        onSuccess: () => {
+            toast.success('Data berhasil disimpan');
+            selectedBagian.value = []; // Opsional: kosongkan pilihan setelah berhasil
+        }
+    });
 }
 
 function hapusTerpilih() {

@@ -16,7 +16,7 @@ class DiklatInternalController extends Controller
 {
     public function index()
     {
-        $programs = PendidikanFormalModels::with('details')->get();
+        $programs = PendidikanFormalModels::with(['details.aksi'])->get();
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/index', [
             'programs' => $programs,
         ]);
