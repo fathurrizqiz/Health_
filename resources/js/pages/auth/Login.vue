@@ -56,6 +56,7 @@
 
 <script setup lang="ts">
 import { router, useForm } from '@inertiajs/vue3';
+import { toast } from 'vue3-toastify';
 
 const form = useForm({
     nrp: '',
@@ -64,7 +65,11 @@ const form = useForm({
 const handleLogin = () => {
     form.post(route('login'), {
         onSuccess: () => {
+            toast.success('Login berhasil!');
             router.reload(); // ✅ hanya reload props global, tidak full reload halaman
+        },
+        onError: () => {
+            toast.error('Login gagal. Pastikan NRP dan Password benar.');
         },
         onFinish: () => form.reset('password'),
     });

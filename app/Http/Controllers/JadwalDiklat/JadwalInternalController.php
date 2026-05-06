@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\JadwalDiklat;
 
+use App\Helpers\WhatsappHelper;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendWhatsappJob;
+use App\Models\NoHpKaryawan;
 use App\Models\PeriodeBagianDetailInternal;
 use App\Models\PeriodeUtama;
 use App\Models\ProgramEksternal;
 use App\Models\ProgramHlc;
+use App\Models\WaTemplate;
 use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -42,11 +47,40 @@ class JadwalInternalController extends Controller
             ->when($search, fn($q) => $q->where('nama_diklat', 'ILIKE', "%{$search}%"))
             ->get();
 
+        $templates = WaTemplate::all(['id', 'nama_template', 'slug']);
         return Inertia::render('Jadwal/AdminInternalJadwal', [
             'jadwalInternal' => $internal,
             'jadwalHLC' => $hlc,
             'jadwalEksternal' => $eksternal,
-            'filters' => ['search' => $search]
+            'filters' => ['search' => $search],
+            'templates' => $templates
         ]);
+    }
+
+    public function sendWhatsappNotification(Request $request)
+    {
+        $idJadwal = $request->id;
+        $slugDicari = $request->template_slug;
+
+        $jadwal = PeriodeUtama::findOrFail($idJadwal);
+        $penerima = NoHpKaryawan::all();
+        $tanggal = Carbon::parse($jadwal->tanggal)->translatedFormat('d F Y');
+
+        foreach ($penerima as $karyawan) {
+            // Panggil Job (ini instan, tidak menunggu API)
+            SendWhatsappJob::dispatch(
+                $karyawan->nomor_wa,
+                $karyawan->nama,
+                $slugDicari,
+                [
+                    'nama' => $karyawan->nama,
+                    'judul' => $jadwal->nama_kegiatan ?? 'Diklat',
+                    'tanggal' => $tanggal,
+                    'lokasi' => $jadwal->lokasi ?? 'Kantor'
+                ]
+            );
+        }
+
+        return redirect()->back()->with('success', 'Antrean dimulai');
     }
 }

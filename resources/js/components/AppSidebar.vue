@@ -37,6 +37,7 @@ interface MyPageProps {
 }
 
 const page = usePage();
+const persetujuanCount = computed(() => page.props.notifications?.persetujuan_count || 0);
 const jadwalCount = computed(() => page.props.notifications?.jadwal_count || 0);
 const { props } = usePage<any>() as { props: MyPageProps };
 const rawRole = props.auth.user?.role || [];
@@ -64,6 +65,7 @@ const mainNavItems = computed(() => [
         href: '/Approve/Diklat',
         icon: Signature,
         roles: ['admin_diklat'],
+        badge: persetujuanCount.value > 0 ? persetujuanCount.value : null,
     },
     {
         title: 'Library Materi',
@@ -101,6 +103,7 @@ const mainNavItems = computed(() => [
         icon: BookCopy,
         roles: ['admin_diklat'],
     },
+    
 ]);
 const filteredNavItems = computed(() => {
     return mainNavItems.value.filter(item => {

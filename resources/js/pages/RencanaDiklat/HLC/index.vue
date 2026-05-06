@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import HeaderMenu from '@/components/HeaderMenu.vue';
+import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ProgramModal from '@/pages/RencanaDiklat/HLC/ProgramModal.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -787,7 +788,7 @@ const destroyDetail = (id: number) => {
                                         class="mb-1 block text-sm font-medium text-slate-700"
                                         >Nama Program</label
                                     >
-                                    <input
+                                    <Input
                                         v-model="newProgram.nama_program"
                                         type="text"
                                         class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm placeholder-slate-400 transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"

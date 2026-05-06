@@ -42,6 +42,11 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
         $countJadwal = 0;
+        $countPersetujuan = 0;
+
+        if ($request->user()){
+            $countPersetujuan = DiklatEksternal::where('status', 'pending')->count() + HLCManajement::where('status', 'pending')->count();
+        }
         if ($request->user()) {
             $nrp = $request->user()->nrp;
             $today = Carbon::today();
@@ -72,6 +77,7 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'notifications' => [
                 'jadwal_count' => $countJadwal,
+                'persetujuan_count' => $countPersetujuan,
             ],
         ];
     }

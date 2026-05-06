@@ -11,6 +11,7 @@ use App\Http\Controllers\jadwalDiklat\JadwalDiklatController;
 use App\Http\Controllers\KaryawanDiklat\InternalController;
 use App\Http\Controllers\MasterData\MasterDataController;
 use App\Http\Controllers\Materi\MateriController;
+use App\Http\Controllers\no_hp\NohpController;
 use App\Http\Controllers\RencanaDiklat\RPT\DetailPeriodeController;
 use App\Http\Controllers\RencanaDiklat\RPT\DiklatInternalController;
 use App\Http\Controllers\RencanaDiklat\RPT\DokumentasiController;
@@ -22,6 +23,8 @@ use App\Http\Controllers\RencanaDiklat\RPT\SertifikatController;
 use App\Http\Controllers\report\ReportController;
 use App\Http\Controllers\Silabus\SilabusController;
 use App\Http\Controllers\RencanaDiklat\HLC\HLCController;
+use App\Http\Controllers\Template_WA\TemplateController;
+use App\Http\Controllers\WaLog\WaLogController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -121,6 +124,15 @@ Route::delete('/RencanaDiklat/RPT/PN/program/{id}',[NonFormalController::class,'
 
 //jadwal diklat
 Route::get('/JadwalDiklat/Internal', [JadwalInternalController::class, 'index'])->name('jadwal.internal');
+Route::post('/jadwal-internal/send-wa', [JadwalInternalController::class, 'sendWhatsappNotification'])->name('jadwal.send-wa');
+
+// Nomor HP Karyawan
+Route::get('/NoHP', [NohpController::class, 'index'])->name('nohp.index');
+Route::post('/NoHP/store', [NohpController::class, 'store'])->name('nohp.store');
+
+// template WA
+Route::get('/Template/WA', [TemplateController::class, 'index'])->name('template.index');
+Route::post('/Template/WA/store', [TemplateController::class, 'store'])->name('template.store');
 
 //Silabus
 Route::get('/silabus/diklat', [SilabusController::class, 'index']);

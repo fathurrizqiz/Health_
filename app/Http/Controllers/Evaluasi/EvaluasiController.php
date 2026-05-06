@@ -110,6 +110,7 @@ class EvaluasiController extends Controller
     }
     public function show($id)
     {
+        set_time_limit(0);
         $detail = DetailInternal::with('evaluasi')->findOrFail($id);
         $evaluasis = $detail->evaluasi;
 
@@ -172,20 +173,20 @@ class EvaluasiController extends Controller
 
     // Mapping 
     function mapSentiment($label)
-{
-    return match ($label) {
-        'positive' => 'positive',
-        'neutral' => 'neutral',
-        'negative' => 'negative',
-        default => 'negative',
-    };
-}
+    {
+        return match ($label) {
+            'positive' => 'positive',
+            'neutral' => 'neutral',
+            'negative' => 'negative',
+            default => 'negative',
+        };
+    }
 
     // Helper untuk AI
     private function analyzeSentiment($materi = null, $pemateri = null)
     {
         try {
-            $response = Http::timeout(5)->post('http://127.0.0.1:5000/predict', [
+            $response = Http::timeout(1000)->post('http://127.0.0.1:5000/predict', [
                 'materi' => $materi,
                 'pemateri' => $pemateri
             ]);
