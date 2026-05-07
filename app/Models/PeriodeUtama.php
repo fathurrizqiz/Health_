@@ -14,10 +14,10 @@ class PeriodeUtama extends Model
         'tempat'
     ];
 
-public function peserta()
-{
-    return $this->hasMany(PeriodeBagianDetailInternal::class, 'periode_id');
-}
+    public function peserta()
+    {
+        return $this->hasMany(PeriodeBagianDetailInternal::class, 'periode_id');
+    }
 
 
     public function detailProgram()
@@ -42,6 +42,14 @@ public function peserta()
     {
         return $this->hasMany(PeriodeBagianDetailInternal::class, 'periode_id');
     }
+    // PeriodeUtama.php
 
-    
+    // datamaster
+    public function aksi()
+    {
+        // Karena satu periode biasanya punya satu setting aksi/jam diklat
+        return $this->hasOne(AksiDetailInternal::class, 'periode_id');
+    }
+
+
 }

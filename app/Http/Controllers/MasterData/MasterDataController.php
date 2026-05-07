@@ -14,38 +14,87 @@ class MasterDataController extends Controller
 {
     public function index()
     {
-        $data = MasterDataModels::orderBy('nama_karyawan')->get();
+        // Ambil data karyawan dengan semua relasi diklat
+        $data = MasterDataModels::with([
+            'diklatByNrp',
+            'diklatHlc',
+            'diklatEksternal',
+            'diklatInternalUtama.periode.aksi',
+            'diklatInternalUtama.periode.detail'
+        ])
+            ->orderBy('nama_karyawan')
+            ->get()
+            ->map(function ($karyawan) {
 
-        // Hitung total seluruh karyawan
+                // 1. Data dari Diklat Karyawan (Input Mandiri)
+                $internalMandiri = $karyawan->diklatByNrp->where('status', 'approved')->map(fn($d) => [
+                    'nama_diklat' => $d->nama_diklat,
+                    'tanggal_mulai' => $d->tanggal_mulai,
+                    'jam' => $d->jam_diklat,
+                    'jenis' => 'Diklat (Mandiri)'
+                ]);
+
+                // 2. Data dari HLC
+                $hlc = $karyawan->diklatHlc->where('status', 'sukses')->map(fn($d) => [
+                    'nama_diklat' => $d->nama_diklat,
+                    'tanggal_mulai' => $d->tanggal_mulai,
+                    'jam' => $d->jam_diklat,
+                    'jenis' => 'HLC'
+                ]);
+
+                // 3. Data dari Eksternal
+                $eksternal = $karyawan->diklatEksternal->where('status', 'sukses')->map(fn($d) => [
+                    'nama_diklat' => $d->nama_diklat, // Dari appends getNamaDiklatAttribute
+                    'tanggal_mulai' => $d->tanggal_mulai,
+                    'jam' => $d->jam_diklat,
+                    'jenis' => 'Eksternal'
+                ]);
+
+                // 4. Update Data dari Internal Utama (Nested Relation)
+                $internalUtama = $karyawan->diklatInternalUtama
+                    ->whereNotNull('sertifikat_generated_at')
+                    ->map(function ($d) {
+                    // Ambil nama dari relasi periode -> detail
+                    $namaDiklat = $d->periode->detail->nama_diklat ?? 'Diklat Internal';
+                    // Ambil jam dari relasi periode -> aksi
+                    $jamDiklat = $d->periode->aksi->first()->jam_diklat ?? 0;
+                    // Ambil tanggal dari periode
+                    $tanggal = $d->periode->tanggal ?? '-';
+
+                    return [
+                        'nama_diklat' => $namaDiklat,
+                        'tanggal' => $tanggal,
+                        'jam' => (int) $jamDiklat,
+                        'jenis' => 'Internal'
+                    ];
+                });
+
+                // Gabungkan SEMUA sumber
+                $karyawan->rekam_jejak = collect()
+                    ->concat($internalMandiri)
+                    ->concat($hlc)
+                    ->concat($eksternal)
+                    ->concat($internalUtama)
+                    ->sortByDesc('tanggal')
+                    ->values();
+
+                $karyawan->total_jam_diklat = $karyawan->rekam_jejak->sum('jam');
+
+                return $karyawan;
+            });
+
+        // Logika statistik kategori dan target jam (tetap sama)
         $totalKaryawan = MasterDataModels::count();
-
-        // Ambil semua kategori unik dari kolom klinis_non_klinis
-        $kategoriList = MasterDataModels::select('klinis_non_klinis')
-            ->distinct()
-            ->pluck('klinis_non_klinis')
-            ->toArray();
-
-        // Buat total dinamis per kategori
-        $totalsByCategory = [];
-        foreach ($kategoriList as $kategori) {
-            $totalsByCategory[$kategori] = MasterDataModels::where('klinis_non_klinis', $kategori)->count();
-        }
-
-        // Ambil target jam dari database, ubah jadi array key-value
+        $kategoriList = MasterDataModels::distinct()->pluck('klinis_non_klinis')->toArray();
         $targetJam = TargetJamModels::pluck('target_jam', 'kategori')->toArray();
-
-        // Pastikan semua kategori punya nilai default target jam (jaga-jaga)
-        foreach ($kategoriList as $kategori) {
-            if (!isset($targetJam[$kategori])) {
-                $targetJam[$kategori] = 0;
-            }
-        }
 
         return Inertia::render('MasterData/index', [
             'data' => $data,
             'totals' => [
                 'totalKaryawan' => $totalKaryawan,
-                'byCategory' => $totalsByCategory,
+                'byCategory' => collect($kategoriList)->mapWithKeys(fn($cat) => [
+                    $cat => MasterDataModels::where('klinis_non_klinis', $cat)->count()
+                ])
             ],
             'targetJam' => $targetJam,
             'kategoriList' => $kategoriList,

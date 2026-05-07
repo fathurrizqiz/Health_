@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useForm, Head, router } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue';
 
 // Definisi Interface untuk Type Safety
 interface KaryawanAutocomplete {
@@ -70,6 +71,7 @@ function goTemplate() {
 <template>
     <Head title="Manajemen Nomor WhatsApp" />
 
+    <AppLayout>
     <div class="p-6 max-w-7xl mx-auto">
         <h2 class="text-2xl font-bold mb-6 text-gray-800 tracking-tight">Manajemen Nomor WhatsApp</h2>
 
@@ -202,4 +204,5 @@ function goTemplate() {
 
         </div>
     </div>
+    </AppLayout>
 </template>

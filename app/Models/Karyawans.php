@@ -21,11 +21,20 @@ class Karyawans extends Model
 
     public function diklat()
     {
-        return $this->hasMany(DiklatKaryawan::class, 'karyawan_id', 'id');
+        return $this->hasMany(DiklatKaryawan::class, 'karyawan_id', 'id', );
+    }
+
+    public function diklatByNrp()
+    {
+        return $this->hasMany(DiklatKaryawan::class, 'nrp', 'nrp');
     }
     public function diklatHlc()
     {
         return $this->hasMany(HLCManajement::class, 'nrp', 'nrp');
+    }
+    public function diklatEksternal()
+    {
+        return $this->hasMany(DiklatEksternal::class, 'nrp', 'nrp');
     }
 
 }

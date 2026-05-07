@@ -8,46 +8,54 @@ use App\Models\DiklatKaryawan;
 use App\Models\HLCManajement;
 use App\Models\RekapJamDiklat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class ApprovDiklateController extends Controller
 {
     public function index(Request $request)
     {
-        $search = request()->query('search');
-        $status = request()->query('status');
+        $search = $request->query('search');
+        $status = $request->query('status');
+
         $diklat = DiklatKaryawan::query()
-            
+            ->with([
+                'karyawan' => function ($query) {
+                    $query->select('nrp', 'nama_karyawan'); // Ambil kolom yang diperlukan saja
+                }
+            ])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nama_diklat', 'ILIKE', "%{$search}%")
                         ->orWhere('nrp', 'ILIKE', "%{$search}%")
-                        ->orWhere('pengajar', 'ILIKE', "%{$search}%");
+                        // Jika ingin cari berdasarkan nama karyawan juga:
+                        ->orWhereHas('karyawan', function ($q) use ($search) {
+                            $q->where('nama_karyawan', 'ILIKE', "%{$search}%");
+                        });
                 });
             })
-            ->when($status, function ($query) use ($status) {
-                if ($status === 'all') return;
-
-                if (is_array($status)) {
-                    $query->whereIn('status', $status);
-                } else {
-                    $query->where('status', $status);
-                }
-            })
             ->latest()
-            ->limit(50)
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                $item->link_file = $item->file_path
+                    ? \Storage::url(str_replace('public/', '', $item->file_path))
+                    : null;
+
+                // Tambahkan nama_karyawan ke level atas agar mudah diakses di Vue
+                $item->nama_karyawan = $item->karyawan->nama_karyawan ?? 'Tidak Ditemukan';
+
+                return $item;
+            });
 
         return Inertia::render('Diklat/Approve/index', [
             'diklat' => $diklat,
-            'search' => $search,
-            'status' => $status
+            'filters' => ['search' => $search, 'status' => $status]
         ]);
     }
 
     public function updateRekapBulanan($nrp, $tahun, $bulan)
     {
-        $totalJam =(
+        $totalJam = (
             DiklatKaryawan::where('nrp', $nrp)->where('status', 'approved')
                 ->whereYear('tanggal_mulai', $tahun)
                 ->whereMonth('tanggal_mulai', $bulan)

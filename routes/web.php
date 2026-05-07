@@ -21,6 +21,7 @@ use App\Http\Controllers\RencanaDiklat\RPT\PostPreeController;
 use App\Http\Controllers\RencanaDiklat\RPT\PresensiDetailController;
 use App\Http\Controllers\RencanaDiklat\RPT\SertifikatController;
 use App\Http\Controllers\report\ReportController;
+use App\Http\Controllers\SettingsMenu\SettingsController;
 use App\Http\Controllers\Silabus\SilabusController;
 use App\Http\Controllers\RencanaDiklat\HLC\HLCController;
 use App\Http\Controllers\Template_WA\TemplateController;
@@ -133,6 +134,9 @@ Route::post('/NoHP/store', [NohpController::class, 'store'])->name('nohp.store')
 // template WA
 Route::get('/Template/WA', [TemplateController::class, 'index'])->name('template.index');
 Route::post('/Template/WA/store', [TemplateController::class, 'store'])->name('template.store');
+
+// Settings UI
+Route::get('/Settings', [SettingsController::class, 'index'])->name('settings.index');
 
 //Silabus
 Route::get('/silabus/diklat', [SilabusController::class, 'index']);

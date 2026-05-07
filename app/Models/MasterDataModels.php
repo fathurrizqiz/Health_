@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class MasterDataModels extends Model
 {
     protected $table = 'master_data';
-     protected $fillable = [
+    protected $fillable = [
         'nama_karyawan',
         'tmt',
         'nrp',
@@ -22,4 +22,23 @@ class MasterDataModels extends Model
         'tmt' => 'date',
         'klinis' => 'boolean',
     ];
+
+    public function diklatByNrp()
+    {
+        return $this->hasMany(DiklatKaryawan::class, 'nrp', 'nrp');
+    }
+    public function diklatHlc()
+    {
+        return $this->hasMany(HLCManajement::class, 'nrp', 'nrp');
+    }
+    public function diklatEksternal()
+    {
+        return $this->hasMany(DiklatEksternal::class, 'nrp', 'nrp');
+    }
+    // MasterDataModels.php
+
+    public function diklatInternalUtama()
+    {
+        return $this->hasMany(PeriodeBagianDetailInternal::class, 'nrp', 'nrp');
+    }
 }

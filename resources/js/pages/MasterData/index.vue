@@ -202,6 +202,29 @@ const destroyKaryawan = (id: number) => {
         });
     }
 };
+// rekam jejak
+const showModal = ref(false);
+const selectedKaryawan = ref<any>(null);
+
+const openHistory = (karyawan: any) => {
+    selectedKaryawan.value = karyawan;
+    showModal.value = true;
+};
+
+const getBadgeClass = (jenis: string) => {
+    switch (jenis) {
+        case 'Internal':
+            return 'bg-purple-100 text-purple-700';
+        case 'Internal (Mandiri)':
+            return 'bg-indigo-100 text-indigo-700';
+        case 'HLC':
+            return 'bg-blue-100 text-blue-700';
+        case 'Eksternal':
+            return 'bg-emerald-100 text-emerald-700';
+        default:
+            return 'bg-slate-100 text-slate-700';
+    }
+};
 </script>
 
 <template>
@@ -624,6 +647,7 @@ const destroyKaryawan = (id: number) => {
                         >
                             <tr
                                 v-for="employee in filteredEmployees"
+                                @click="openHistory(employee)"
                                 :key="employee.id"
                                 class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/25"
                             >
@@ -684,7 +708,7 @@ const destroyKaryawan = (id: number) => {
                                     {{ employee.jenis_kelamin }}
                                 </td>
                                 <td
-                                    class="gap-2 flex px-6 py-4 text-right text-sm font-medium whitespace-nowrap"
+                                    class="flex gap-2 px-6 py-4 text-right text-sm font-medium whitespace-nowrap"
                                 >
                                     <button
                                         @click="openEditEmployeeModal(employee)"
@@ -692,6 +716,7 @@ const destroyKaryawan = (id: number) => {
                                     >
                                         Edit
                                     </button>
+
                                     <button
                                         @click="destroyKaryawan(employee.id)"
                                         class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
@@ -991,5 +1016,79 @@ const destroyKaryawan = (id: number) => {
                 </div>
             </div>
         </teleport>
+        <!-- Modal Component -->
+        <Modal :show="showModal" @close="showModal = false">
+            <div class="p-6">
+                <div class="mb-6 flex items-start justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">
+                            {{ selectedKaryawan?.nama_karyawan }}
+                        </h2>
+                        <p class="text-sm text-slate-500">
+                            NRP: {{ selectedKaryawan?.nrp }}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-black text-blue-600">
+                            {{ selectedKaryawan?.total_jam_diklat }}
+                        </div>
+                        <div
+                            class="text-[10px] font-bold tracking-widest text-slate-400 uppercase"
+                        >
+                            Total Jam Akumulasi
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="max-h-[400px] overflow-y-auto rounded-xl border border-slate-100"
+                >
+                    <table class="w-full text-xs">
+                        <thead class="sticky top-0 bg-slate-50">
+                            <tr
+                                class="text-[9px] font-bold text-slate-500 uppercase"
+                            >
+                                <th class="px-4 py-3 text-left">Pelatihan</th>
+                                <th class="px-4 py-3 text-left">Tanggal</th>
+                                <th class="px-4 py-3 text-center">Jam</th>
+                                <th class="px-4 py-3 text-right">Sumber</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <tr
+                                v-for="jejak in selectedKaryawan?.rekam_jejak"
+                                :key="jejak.id"
+                                class="hover:bg-slate-50/50"
+                            >
+                                <td
+                                    class="px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    {{ jejak.nama_diklat }}
+                                </td>
+                                <td class="px-4 py-3 text-slate-500">
+                                    {{ formatDate(jejak.tanggal_mulai || jejak.tanggal) }}
+                                </td>
+                                <td class="px-4 py-3 text-center font-bold">
+                                    {{ jejak.jam }}
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <span :class="getBadgeClass(jejak.jenis)">
+                                        {{ jejak.jenis }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr v-if="!selectedKaryawan?.rekam_jejak?.length">
+                                <td
+                                    colspan="4"
+                                    class="py-8 text-center text-slate-400 italic"
+                                >
+                                    Belum ada rekam jejak diklat yang disetujui.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </Modal>
     </AppLayout>
 </template>

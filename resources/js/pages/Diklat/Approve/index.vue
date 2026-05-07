@@ -24,6 +24,8 @@ interface DiklatItem {
     file_path: string | null;
     status: 'pending' | 'approved' | 'rejected';
     alasan_penolakan: string | null;
+    link_file?: string | null; 
+    nama_karyawan: string | null;
 }
 
 const props = defineProps<{
@@ -203,6 +205,15 @@ watch(
                         <!-- Pengajar Info -->
                         <div class="flex items-center gap-3">
                             <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold border border-indigo-100">
+                                {{ item.nama_karyawan ? item.nama_karyawan.charAt(0).toUpperCase() : '-' }}
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-slate-400 leading-none mb-1">User</p>
+                                <p class="text-sm font-semibold text-slate-800">{{ item.nama_karyawan || '-' }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold border border-indigo-100">
                                 {{ item.pengajar ? item.pengajar.charAt(0).toUpperCase() : '-' }}
                             </div>
                             <div>
@@ -236,7 +247,20 @@ watch(
                             <p class="text-[10px] font-bold text-rose-800 uppercase mb-1">Alasan Penolakan:</p>
                             <p class="text-xs text-rose-700 leading-relaxed">{{ item.alasan_penolakan }}</p>
                         </div>
+                        <a 
+                v-if="item.link_file" 
+                :href="item.link_file" 
+                target="_blank"
+                class="text-blue-600 hover:underline flex items-center gap-1"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Lihat File
+            </a>
                     </div>
+                    
 
                     <!-- Bottom Actions: Full width buttons for mobile -->
                     <div v-if="item.status === 'pending'" class="mt-auto border-t border-slate-100 p-3 bg-slate-50/50">
