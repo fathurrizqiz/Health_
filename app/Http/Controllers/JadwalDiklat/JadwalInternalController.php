@@ -31,19 +31,35 @@ class JadwalInternalController extends Controller
             ->when($search, fn($q) => $q->where('nama_kegiatan', 'ILIKE', "%{$search}%"))
             ->orderBy('tanggal', 'asc')->get();
 
-        // 2. HLC
+        // 2. HLC (Status Offered/Undangan)
         $hlc = ProgramHlc::whereHas('hlc', function ($q) use ($nrp) {
-            $q->where('nrp', $nrp)->whereDate('tanggal_mulai', '>=', Carbon::today());
+            $q->where('nrp', $nrp)
+                ->where('status', 'pending') // Filter status sebelum pending
+                ->whereDate('tanggal_mulai', '>=', Carbon::today());
         })
-            ->with(['hlc' => fn($q) => $q->where('nrp', $nrp)->orderBy('tanggal_mulai', 'asc')])
+            ->with([
+                'hlc' => function ($q) use ($nrp) {
+                    $q->where('nrp', $nrp)
+                        ->where('status', 'pending') // Pastikan detail yang dimuat juga status offered
+                        ->orderBy('tanggal_mulai', 'asc');
+                }
+            ])
             ->when($search, fn($q) => $q->where('nama_program', 'ILIKE', "%{$search}%"))
             ->get();
 
-        // 3. Eksternal
+        // 3. Eksternal (Status Offered/Undangan)
         $eksternal = ProgramEksternal::whereHas('eksternal', function ($q) use ($nrp) {
-            $q->where('nrp', $nrp)->whereDate('tanggal_mulai', '>=', Carbon::today());
+            $q->where('nrp', $nrp)
+                ->where('status', 'offered') // Filter status sebelum pending
+                ->whereDate('tanggal_mulai', '>=', Carbon::today());
         })
-            ->with(['eksternal' => fn($q) => $q->where('nrp', $nrp)->orderBy('tanggal_mulai', 'asc')])
+            ->with([
+                'eksternal' => function ($q) use ($nrp) {
+                    $q->where('nrp', $nrp)
+                        ->where('status', 'offered') // Pastikan detail yang dimuat juga status offered
+                        ->orderBy('tanggal_mulai', 'asc');
+                }
+            ])
             ->when($search, fn($q) => $q->where('nama_diklat', 'ILIKE', "%{$search}%"))
             ->get();
 

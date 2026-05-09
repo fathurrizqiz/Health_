@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Evaluasi\EvaluasiController;
+use App\Http\Controllers\Inbox\InboxController;
 use App\Http\Controllers\JadwalDiklat\JadwalEksternalController;
 use App\Http\Controllers\JadwalDiklat\JadwalHLCController;
 use App\Http\Controllers\JadwalDiklat\JadwalInternalController;
@@ -149,6 +150,13 @@ Route::post('/HLC/Home/updateProgram/{id}', [HLCController::class, 'updateProgra
 Route::post('/HLC/Home/updateDetail/{id}', [HLCController::class, 'updateDetail'])->name('diklat.hlc.admin.update-detail');
 Route::post('/HLC/Home/destroyProgram/{id}', [HLCController::class, 'destroyProgram'])->name('diklat.hlc.admin.destroy-program');
 Route::post('/HLC/Home/destroyDetail/{id}', [HLCController::class, 'destroyDetail'])->name('diklat.hlc.admin.destroy-detail');
+Route::post('/HLC/Home/konfirmasiHadir/{id}', [HLCController::class, 'konfirmasiHadir'])->name('diklat.hlc.admin.konfirmasi-hadir');
+
+// User
+Route::get('/HLC/Home/user', [InboxController::class, 'index'])->name('diklat.hlc.user');
+Route::post('/HLC/Home/konfirmasi/{id}', [InboxController::class, 'setujuRekomendasi'])->name('diklat.hlc.setujuRekomendasi');
+Route::post('/HLC/Home/tolak/{id}', [InboxController::class, 'tolakRekomendasi'])->name('diklat.hlc.tolakRekomendasi');
+
 // Master Data
 Route::get('/MasterData/home', [MasterDataController::class, 'index'])->name('masterdata.home');
 Route::get('/MasterData/create', [MasterDataController::class, 'pages']);

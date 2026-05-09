@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookCopy, BookLock, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, LayoutGrid, Library, Settings, Signature } from 'lucide-vue-next';
+import { BookCopy, BookLock, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, Inbox, LayoutGrid, Library, Settings, Signature } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -39,6 +39,7 @@ interface MyPageProps {
 const page = usePage();
 const persetujuanCount = computed(() => page.props.notifications?.persetujuan_count || 0);
 const jadwalCount = computed(() => page.props.notifications?.jadwal_count || 0);
+const countInboxData = computed(() => page.props.notifications?.InboxCount || 0);
 const { props } = usePage<any>() as { props: MyPageProps };
 const rawRole = props.auth.user?.role || [];
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
@@ -105,9 +106,15 @@ const mainNavItems = computed(() => [
     },
     {
         title: 'Whattsapp Settings',
-        href: '/Template/WA',
+        href: '/Settings',
         icon: Settings,
         roles: ['admin_diklat'],
+    },
+    {
+        title: 'Indbox',
+        href: '/HLC/Home/user',
+        icon: Inbox,
+        badge: countInboxData.value > 0 ? countInboxData.value : null,
     },
     
 ]);

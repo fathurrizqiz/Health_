@@ -97,6 +97,24 @@ const kirimNotifikasi = (id: number, tipe: string) => {
         });
     }
 };
+
+// konfirmasi hadir HLC
+const konfirmasiHLC = (id: number, status: string) => {
+    const action = status === 'approved' ? 'setuju' : 'tolak';
+    if (
+        confirm(
+            `Apakah Anda yakin ingin ${action} keikutsertaan Anda dalam HLC ini?`,
+        )
+    ) {
+        router.post(route('diklat.hlc.admin.konfirmasi-hadir', id), {
+            status: status,
+        },{
+            onSuccess: () => {
+                toast.success(`Anda telah ${action} keikutsertaan Anda!`);
+            },
+        });
+    }
+};  
 </script>
 
 <template>
@@ -342,6 +360,7 @@ const kirimNotifikasi = (id: number, tipe: string) => {
                                     </th>
                                     <th class="px-6 py-4">Program</th>
                                     <th class="px-6 py-4">Mulai</th>
+                                    <th class="px-6 py-4">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody
@@ -368,6 +387,14 @@ const kirimNotifikasi = (id: number, tipe: string) => {
                                         </td>
                                         <td class="px-6 py-4 font-mono text-xs">
                                             {{ formatDate(hlc.tanggal_mulai) }}
+                                        </td>
+                                        <td class="px-6 py-4 font-mono text-xs">
+                                            <button 
+                                                class="w-20 h-10 hover:shadow-2xl bg-green-500 text-white rounded-full"
+                                                @click="konfirmasiHLC(hlc.id, 'approved')"
+                                            >
+                                                Hadir
+                                            </button>
                                         </td>
                                     </tr>
                                 </template>

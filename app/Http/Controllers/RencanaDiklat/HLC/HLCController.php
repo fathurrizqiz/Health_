@@ -101,23 +101,23 @@ class HLCController extends Controller
         ]);
 
         // Default approved karena admin yang input
-        $validated['status'] = 'approved';
+        $validated['status'] = 'offered';
 
         $tanggalMulai = Carbon::parse($validated['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validated['tanggal_selesai']);
-
         $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
         $validated['jam_diklat'] = $validated['jam_diklat'] * $selisihHari;
 
-        // create HLC
-        $hlc = HLCManajement::create($validated);
+        // 2. Create data
+        HLCManajement::create($validated);
 
         // Panggil rekap
-        $this->updateRekapBulanan(
-            $hlc->nrp,
-            date('Y', strtotime($hlc->tanggal_mulai)),
-            date('n', strtotime($hlc->tanggal_mulai))
-        );
+        // $this->updateRekapBulanan(
+        //     $hlc->nrp,
+        //     date('Y', strtotime($hlc->tanggal_mulai)),
+        //     date('n', strtotime($hlc->tanggal_mulai))
+        // );
+        // PINDAH
 
         return redirect()->route('diklat.hlc.admin');
     }
@@ -190,6 +190,26 @@ class HLCController extends Controller
         $this->updateRekapBulanan($nrp, $tahun, $bulan);
 
         return redirect()->route('diklat.hlc.admin')->with('success', 'Data diklat berhasil dihapus.');
+    }
+
+
+    // SISI USER
+    
+    public function konfirmasiHadir($id)
+    {
+        $hlc = HLCManajement::findOrFail($id);
+
+        // 1. Ubah status menjadi approved (sudah hadir/selesai)
+        $hlc->update(['status' => 'approved']);
+
+        // 2. TRIGGER REKAP DIPANGGIL DI SINI
+        $this->updateRekapBulanan(
+            $hlc->nrp,
+            date('Y', strtotime($hlc->tanggal_mulai)),
+            date('n', strtotime($hlc->tanggal_mulai))
+        );
+
+        return redirect()->back()->with('success', 'Kehadiran berhasil dikonfirmasi. Jam diklat telah ditambahkan!');
     }
 
 }

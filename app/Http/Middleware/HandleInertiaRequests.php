@@ -43,20 +43,25 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
         $countJadwal = 0;
         $countPersetujuan = 0;
+        $countInbox = 0;
 
-        if ($request->user()){
-            $countPersetujuan = DiklatEksternal::where('status', 'pending')->count() + HLCManajement::where('status', 'pending')->count();
-        }
-        if ($request->user()) {
-            $nrp = $request->user()->nrp;
+        if ($user = $request->user()) {
+            $nrp = $user->nrp;
             $today = Carbon::today();
 
-            // Hitung total dari 3 sumber
+            // 1. Hitung Persetujuan (Hanya jika role user punya akses admin biasanya)
+            // Jika semua user bisa melihat ini, biarkan saja. 
+            // Jika hanya admin, bisa ditambah if(in_array('admin_diklat', $user->role))
+            $countPersetujuan = DiklatEksternal::where('status', 'pending')->count() +
+                HLCManajement::where('status', 'pending')->count();
+
+            // 2. Hitung Jadwal
             $internalCount = PeriodeUtama::whereHas('peserta', fn($q) => $q->where('nrp', $nrp))
                 ->where('tanggal', '>=', $today)
                 ->count();
 
             $hlcCount = HLCManajement::where('nrp', $nrp)
+                ->where('status', 'pending') // Pastikan statusnya pending (sudah di-acc user)
                 ->where('tanggal_mulai', '>=', $today)
                 ->count();
 
@@ -65,8 +70,12 @@ class HandleInertiaRequests extends Middleware
                 ->count();
 
             $countJadwal = $internalCount + $hlcCount + $eksternalCount;
-        }
 
+            // 3. Hitung Inbox (Undangan Baru)
+            $countInbox = HLCManajement::where('nrp', $nrp)
+                ->where('status', 'offered')
+                ->count();
+        }
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -78,6 +87,7 @@ class HandleInertiaRequests extends Middleware
             'notifications' => [
                 'jadwal_count' => $countJadwal,
                 'persetujuan_count' => $countPersetujuan,
+                'InboxCount' => $countInbox,
             ],
         ];
     }
