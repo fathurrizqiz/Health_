@@ -21,6 +21,7 @@ use App\Http\Controllers\RencanaDiklat\RPT\pendidikanController;
 use App\Http\Controllers\RencanaDiklat\RPT\PostPreeController;
 use App\Http\Controllers\RencanaDiklat\RPT\PresensiDetailController;
 use App\Http\Controllers\RencanaDiklat\RPT\SertifikatController;
+use App\Http\Controllers\report\GenerateReportController;
 use App\Http\Controllers\report\ReportController;
 use App\Http\Controllers\SettingsMenu\SettingsController;
 use App\Http\Controllers\Silabus\SilabusController;
@@ -115,6 +116,8 @@ Route::get('/Diklat/Evaluasi/detail/{id}',[EvaluasiController::class,'show']);
 
 // Laporan
 Route::get('/Laporan/Diklat', [ReportController::class, 'index'])->name('laporan.diklat');
+// generate laporan excel
+Route::get('/Laporan/Diklat/Export', [GenerateReportController::class, 'generateReport'])->name('laporan.diklat.export');
 
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
@@ -150,12 +153,18 @@ Route::post('/HLC/Home/updateProgram/{id}', [HLCController::class, 'updateProgra
 Route::post('/HLC/Home/updateDetail/{id}', [HLCController::class, 'updateDetail'])->name('diklat.hlc.admin.update-detail');
 Route::post('/HLC/Home/destroyProgram/{id}', [HLCController::class, 'destroyProgram'])->name('diklat.hlc.admin.destroy-program');
 Route::post('/HLC/Home/destroyDetail/{id}', [HLCController::class, 'destroyDetail'])->name('diklat.hlc.admin.destroy-detail');
+
+// konfirmasi hadir
 Route::post('/HLC/Home/konfirmasiHadir/{id}', [HLCController::class, 'konfirmasiHadir'])->name('diklat.hlc.admin.konfirmasi-hadir');
+Route::post('/Eksternal/Home/konfirmasiHadir/{id}', [NonFormalController::class, 'konfirmasiHadir'])->name('diklat.eksternal.admin.konfirmasi-hadir');
 
 // User
-Route::get('/HLC/Home/user', [InboxController::class, 'index'])->name('diklat.hlc.user');
-Route::post('/HLC/Home/konfirmasi/{id}', [InboxController::class, 'setujuRekomendasi'])->name('diklat.hlc.setujuRekomendasi');
-Route::post('/HLC/Home/tolak/{id}', [InboxController::class, 'tolakRekomendasi'])->name('diklat.hlc.tolakRekomendasi');
+// HLC
+Route::get('/HLC/Home/user', [InboxController::class, 'index'])->name('diklat.inbox.user');
+Route::post('/HLC/Home/konfirmasi/{id}', [InboxController::class, 'setujuRekomendasihlc'])->name('diklat.hlc.setujuRekomendasi');
+Route::post('/HLC/Home/tolak/{id}', [InboxController::class, 'tolakRekomendasihlc'])->name('diklat.hlc.tolakRekomendasi');
+Route::post('/Eksternal/Home/konfirmasi/{id}', [InboxController::class, 'setujuRekomendasieksternal'])->name('diklat.eksternal.setujuRekomendasi');
+Route::post('/Eksternal/Home/tolak/{id}', [InboxController::class, 'tolakRekomendasieksternal'])->name('diklat.eksternal.tolakRekomendasi');
 
 // Master Data
 Route::get('/MasterData/home', [MasterDataController::class, 'index'])->name('masterdata.home');

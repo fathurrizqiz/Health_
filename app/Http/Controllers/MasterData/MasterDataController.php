@@ -35,7 +35,7 @@ class MasterDataController extends Controller
                 ]);
 
                 // 2. Data dari HLC
-                $hlc = $karyawan->diklatHlc->where('status', 'sukses')->map(fn($d) => [
+                $hlc = $karyawan->diklatHlc->where('status', 'approved')->map(fn($d) => [
                     'nama_diklat' => $d->nama_diklat,
                     'tanggal_mulai' => $d->tanggal_mulai,
                     'jam' => $d->jam_diklat,
@@ -43,7 +43,7 @@ class MasterDataController extends Controller
                 ]);
 
                 // 3. Data dari Eksternal
-                $eksternal = $karyawan->diklatEksternal->where('status', 'sukses')->map(fn($d) => [
+                $eksternal = $karyawan->diklatEksternal->where('status', 'approved')->map(fn($d) => [
                     'nama_diklat' => $d->nama_diklat, // Dari appends getNamaDiklatAttribute
                     'tanggal_mulai' => $d->tanggal_mulai,
                     'jam' => $d->jam_diklat,

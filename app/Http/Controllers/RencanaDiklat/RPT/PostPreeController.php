@@ -536,7 +536,7 @@ class PostPreeController extends Controller
             'RencanaDiklat/RPT/PendidikanFormal/PrePostTest/evaluasi',
             [
                 'data' => $detail,
-                'token' => $tokenData->token
+                // 'token' => $tokenData->token
             ]
         );
     }
@@ -544,60 +544,21 @@ class PostPreeController extends Controller
 
 
     public function submitEvaluasi(Request $request)
-    {
-        Log::info('Submit evaluasi dipanggil', [
-            'detail_id' => $request->detail_id,
-            'token' => $request->token
-        ]);
+{
+    $request->validate([
+        'detail_id' => 'required|exists:detail_internal,id',
+        'evaluasimateri' => 'required|string',
+        'evaluasipengajar' => 'required|string',
+    ]);
 
-        $request->validate([
-            'detail_id' => 'required|exists:detail_internal,id',
-            'evaluasimateri' => 'required|string',
-            'evaluasipengajar' => 'required|string',
-            'token' => 'required'
-        ]);
+    EvaluasiDetailInternal::create([
+        'detail_id' => $request->detail_id,
+        'evaluasimateri' => $request->evaluasimateri,
+        'evaluasipengajar' => $request->evaluasipengajar
+    ]);
 
-        Log::debug('Validasi request evaluasi berhasil');
-
-        $token = TestToken::where('token', $request->token)
-            ->where('type', 'evaluasi')
-            ->firstOrFail();
-
-        Log::info('Token evaluasi ditemukan', [
-            'token_id' => $token->id,
-            'is_used' => $token->is_used,
-            'expired_at' => $token->expired_at ?? null
-        ]);
-
-        if (!$token->isValid()) {
-            Log::warning('Token evaluasi tidak valid', [
-                'token' => $request->token
-            ]);
-
-            abort(403, 'Token tidak valid');
-        }
-
-        $evaluasi = EvaluasiDetailInternal::create(
-            [
-                'detail_id' => $request->detail_id,
-                'evaluasimateri' => $request->evaluasimateri,
-                'evaluasipengajar' => $request->evaluasipengajar
-            ]
-        );
-
-        Log::info('Evaluasi berhasil disimpan / diperbarui', [
-            'evaluasi_id' => $evaluasi->id,
-            'detail_id' => $evaluasi->detail_id
-        ]);
-
-        $token->update(['is_used' => true]);
-
-        Log::info('Token evaluasi ditandai sebagai digunakan', [
-            'token_id' => $token->id
-        ]);
-
-        return back()->with('success', 'Evaluasi berhasil disimpan');
-    }
+    return back()->with('success', 'Evaluasi berhasil disimpan');
+}
 
 
 

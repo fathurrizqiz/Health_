@@ -27,7 +27,7 @@ class InboxController extends Controller
             'inboxExternalItems' => $undanganexternal
         ]);
     }
-    public function setujuRekomendasi($id)
+    public function setujuRekomendasihlc($id)
     {
         $hlc = HLCManajement::findOrFail($id);
 
@@ -36,9 +36,27 @@ class InboxController extends Controller
 
         return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
     }
-    public function tolakRekomendasi($id)
+    public function tolakRekomendasihlc($id)
     {
-        $hlc = HLCManajement::findOrFail($id);
+        $hlc = DiklatEksternal::findOrFail($id);
+
+        // Ubah status menjadi rejected (artinya ditolak)
+        $hlc->update(['status' => 'rejected']);
+
+        return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
+    }
+    public function setujuRekomendasieksternal($id)
+    {
+        $hlc = DiklatEksternal::findOrFail($id);
+
+        // Ubah status menjadi pending (artinya masuk jadwal tapi belum dilaksanakan)
+        $hlc->update(['status' => 'pending']);
+
+        return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
+    }
+    public function tolakRekomendasieksternal($id)
+    {
+        $hlc = DiklatEksternal::findOrFail($id);
 
         // Ubah status menjadi rejected (artinya ditolak)
         $hlc->update(['status' => 'rejected']);

@@ -110,10 +110,7 @@ class MateriController extends Controller
         $materi->status = 'verified';
         $materi->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Materi berhasil diverifikasi.'
-        ]);
+        return redirect()->back()->with('success', 'Materi berhasil diverifikasi.');
     }
 
     public function reject(Request $request, $id)

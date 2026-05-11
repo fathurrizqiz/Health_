@@ -125,13 +125,13 @@ const openVerifyModal = (item: any) => {
 };
 
 // 🔹 Verifikasi dokumen
-const handleVerify = () => {
+const handleVerify = (id: number) => {
     router.put(
-        `/Materi/verify/${selectedMateri.value.id}`,
+        `/Materi/verify/${id}`,
         {},
         {
             onSuccess: () => {
-                toast.success(' Dokumen diverifikasi.');
+                toast.success('Dokumen diverifikasi.');
                 isVerifyModalOpen.value = false;
                 window.location.reload();
                 location.reload();
@@ -149,12 +149,12 @@ const openRejectModal = (item: any) => {
 };
 
 // 🔹 Submit alasan penolakan
-const submitRejection = () => {
+const submitRejection = (id: number) => {
     if (!rejectionReason.value.trim())
         return alert('Alasan tidak boleh kosong.');
 
     router.put(
-        `/Materi/reject/${selectedMateri.value.id}`,
+        `/Materi/reject/${id}`,
         {
             reason: rejectionReason.value,
         },
@@ -289,8 +289,8 @@ const deleteMateri = (id: number) => {
                         <!-- Action Buttons: Full width for touch targets -->
                         <div class="mt-5 flex flex-col gap-2 border-t border-gray-50 pt-4">
                             <template v-if="(item.status === 'pending' && item.type === 'file') && roles.includes('admin_diklat')">
-                                <button @click="openVerifyModal(item)" class="w-full rounded-lg bg-green-600 py-2 text-[11px] font-bold text-white active:bg-green-700 uppercase">Verifikasi</button>
-                                <button @click="openRejectModal(item)" class="w-full rounded-lg bg-red-600 py-2 text-[11px] font-bold text-white active:bg-red-700 uppercase">Tolak</button>
+                                <button @click="handleVerify(item.id)" class="w-full rounded-lg bg-green-600 py-2 text-[11px] font-bold text-white active:bg-green-700 uppercase">Verifikasi</button>
+                                <button @click="submitRejection(item.id)" class="w-full rounded-lg bg-red-600 py-2 text-[11px] font-bold text-white active:bg-red-700 uppercase">Tolak</button>
                             </template>
 
                             <a

@@ -182,6 +182,18 @@ const toggleRow = (kategori: string) => {
         expandedRows.value.push(kategori);
     }
 };
+
+// generate excel
+function generateExcel() {
+    // Kita buat query string dari filter yang ada (contoh: selectedMonths)
+    // Jika route kamu butuh parameter, masukkan ke dalam URL-nya
+    const url = route('laporan.diklat.export', {
+        months: props.filters.months, // Sesuaikan dengan cara kamu menyimpan state bulan
+    });
+
+    // Panggil langsung via browser, bukan via router Inertia
+    window.location.href = url;
+}
 </script>
 
 <template>
@@ -226,12 +238,21 @@ const toggleRow = (kategori: string) => {
                     class="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center"
                 >
                     <h3 class="font-semibold text-gray-800">Filter Bulan</h3>
-                    <button
-                        @click="applyFilter"
-                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                    >
-                        Terapkan Filter
-                    </button>
+                    <div class="flex gap-3">
+
+                        <button
+                            @click="applyFilter"
+                            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                        >
+                            Terapkan Filter
+                        </button>
+                        <button
+                            @click="generateExcel"
+                            class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                        >
+                            Unduh Excel
+                        </button>
+                    </div>
                 </div>
                 <div
                     class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
@@ -492,17 +513,13 @@ const toggleRow = (kategori: string) => {
                                                     <td
                                                         class="px-4 py-3 text-right"
                                                     >
-                                                        {{
-                                                            karyawan.target
-                                                        }}
+                                                        {{ karyawan.target }}
                                                         Jam
                                                     </td>
                                                     <td
                                                         class="px-4 py-3 text-right font-bold text-blue-600"
                                                     >
-                                                        {{
-                                                            karyawan.aktual
-                                                        }}
+                                                        {{ karyawan.aktual }}
                                                         Jam
                                                     </td>
                                                     <td

@@ -32,6 +32,13 @@ const props = defineProps<{
     jadwalEksternal: any[];
     filters: { search: string };
     templates: any[];
+    auth: {
+        user: {
+            id: number;
+            name: string;
+            role: string | string[]; // <-- allow single or multiple roles
+        } | null;
+    };
 }>();
 
 // --- State ---
@@ -114,7 +121,27 @@ const konfirmasiHLC = (id: number, status: string) => {
             },
         });
     }
-};  
+};
+const konfirmasiEksternal = (id: number, status: string) => {
+    const action = status === 'approved' ? 'setuju' : 'tolak';
+    if (
+        confirm(
+            `Apakah Anda yakin ingin ${action} keikutsertaan Anda dalam Eksternal ini?`,
+        )
+    ) {
+        router.post(route('diklat.eksternal.admin.konfirmasi-hadir', id), {
+            status: status,
+        },{
+            onSuccess: () => {
+                toast.success(`Anda telah ${action} keikutsertaan Anda!`);
+            },
+        });
+    }
+};
+
+// role
+const rawRole = props.auth.user?.role || [];
+const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 </script>
 
 <template>
@@ -261,7 +288,7 @@ const konfirmasiHLC = (id: number, status: string) => {
                                         {{ formatDate(item.tanggal!) }}
                                     </td>
                                     <td class="px-6 py-4 font-mono text-xs">
-                                        <button
+                                        <button v-if="roles.includes('admin_diklat')"
                                             @click="
                                                 kirimNotifikasi(
                                                     item.id,
@@ -457,6 +484,7 @@ const konfirmasiHLC = (id: number, status: string) => {
                                     </th>
                                     <th class="px-6 py-4">Penyelenggara</th>
                                     <th class="px-6 py-4">Mulai</th>
+                                    <th class="px-6 py-4">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody
@@ -481,6 +509,15 @@ const konfirmasiHLC = (id: number, status: string) => {
                                         </td>
                                         <td class="px-6 py-4 font-mono text-xs">
                                             {{ formatDate(eks.tanggal_mulai) }}
+                                        </td>
+                                        <td class="px-6 py-4 font-mono text-xs">
+                                            <button
+                                                @click="konfirmasiEksternal(eks.id, 'approved')"
+                                                class="rounded bg-green-500 px-5 py-3 text-white hover:bg-green-600"
+                                            >
+                                                Hadir
+                                            </button>
+                                            
                                         </td>
                                     </tr>
                                 </template>

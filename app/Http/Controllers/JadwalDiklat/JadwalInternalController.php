@@ -50,13 +50,13 @@ class JadwalInternalController extends Controller
         // 3. Eksternal (Status Offered/Undangan)
         $eksternal = ProgramEksternal::whereHas('eksternal', function ($q) use ($nrp) {
             $q->where('nrp', $nrp)
-                ->where('status', 'offered') // Filter status sebelum pending
+                ->where('status', 'pending') // Filter status sebelum pending
                 ->whereDate('tanggal_mulai', '>=', Carbon::today());
         })
             ->with([
                 'eksternal' => function ($q) use ($nrp) {
                     $q->where('nrp', $nrp)
-                        ->where('status', 'offered') // Pastikan detail yang dimuat juga status offered
+                        ->where('status', 'pending') // Pastikan detail yang dimuat juga status offered
                         ->orderBy('tanggal_mulai', 'asc');
                 }
             ])

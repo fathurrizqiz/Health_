@@ -47,7 +47,7 @@ class NonFormalController extends Controller
         ]);
 
         // Default approved karena admin yang input
-        $validate['status'] = 'approved';
+        $validate['status'] = 'offered';
 
         $tanggalMulai = Carbon::parse($validate['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validate['tanggal_selesai']);
@@ -58,11 +58,11 @@ class NonFormalController extends Controller
         $eksternal = DiklatEksternal::create($validate);
 
         // Panggil rekap
-        $this->updateRekapBulanan(
-            $eksternal->nrp,
-            date('Y', strtotime($eksternal->tanggal_mulai)),
-            date('n', strtotime($eksternal->tanggal_mulai))
-        );
+        // $this->updateRekapBulanan(
+        //     $eksternal->nrp,
+        //     date('Y', strtotime($eksternal->tanggal_mulai)),
+        //     date('n', strtotime($eksternal->tanggal_mulai))
+        // );
         return redirect()->route('Diklat.eksternal');
     }
 
@@ -175,6 +175,25 @@ class NonFormalController extends Controller
         $program = ProgramEksternal::findOrFail($id);
         $program->delete();
         return redirect()->back()->with('success', 'Program diklat eksternal dihapus');
+    }
+
+    // SISI USER
+    
+    public function konfirmasiHadir($id)
+    {
+        $hlc = DiklatEksternal::findOrFail($id);
+
+        // 1. Ubah status menjadi approved (sudah hadir/selesai)
+        $hlc->update(['status' => 'approved']);
+
+        // 2. TRIGGER REKAP DIPANGGIL DI SINI
+        $this->updateRekapBulanan(
+            $hlc->nrp,
+            date('Y', strtotime($hlc->tanggal_mulai)),
+            date('n', strtotime($hlc->tanggal_mulai))
+        );
+
+        return redirect()->back()->with('success', 'Kehadiran berhasil dikonfirmasi. Jam diklat telah ditambahkan!');
     }
 
 }
