@@ -21,7 +21,7 @@ class GenerateReportController extends Controller
         $namaUser = $user ? ($user->nama_karyawan ?? $user->name) : 'Guest';
         $ip = $request->ip();
         
-        Log::info("EXCEL_EXPORT_START: User [$namaUser] memulai proses generate laporan.");
+        // Log::info("EXCEL_EXPORT_START: User [$namaUser] memulai proses generate laporan.");
 
         try {
             // 2. Validasi & Mapping Bulan
@@ -58,31 +58,37 @@ class GenerateReportController extends Controller
                     'nama_diklat' => $d->nama_diklat,
                     'tanggal' => $d->tanggal_mulai,
                     'jam' => $d->jam_diklat,
-                    'jenis' => 'Diklat (Mandiri)'
+                    'jenis' => 'Diklat (Mandiri)',
+                    'tempat' =>$d->penyelenggara,
+                    'pengajar' => $d->pengajar,
                 ]);
 
                 $hlc = $karyawan->diklatHlc->where('status', 'approved')->map(fn($d) => [
                     'nama_diklat' => $d->nama_diklat,
                     'tanggal' => $d->tanggal_mulai,
                     'jam' => $d->jam_diklat,
-                    'jenis' => 'HLC'
+                    'jenis' => 'HLC',
+                    'tempat' => $d->penyelenggara,
                 ]);
 
                 $eksternal = $karyawan->diklatEksternal->where('status', 'approved')->map(fn($d) => [
                     'nama_diklat' => $d->nama_diklat,
                     'tanggal' => $d->tanggal_mulai,
                     'jam' => $d->jam_diklat,
-                    'jenis' => 'Eksternal'
+                    'jenis' => 'Eksternal',
+                    'tempat' => $d->penyelenggara,
                 ]);
 
                 $internalUtama = $karyawan->diklatInternalUtama
-                    ->whereNotNull('sertifikat_generated_at')
+                    ->whereNotNull('post_done_at')
                     ->map(function ($d) {
                         return [
                             'nama_diklat' => $d->periode->detail->nama_diklat ?? 'Diklat Internal',
                             'tanggal' => $d->periode->tanggal ?? null,
                             'jam' => (int) ($d->periode->aksi->first()->jam_diklat ?? 0),
-                            'jenis' => 'Internal'
+                            'jenis' => 'Internal',
+                            'pengajar' => $d->periode->nama_pengajar ?? '-',
+                            'tempat' => $d->periode->tempat ?? '-',
                         ];
                     });
 
@@ -108,7 +114,7 @@ class GenerateReportController extends Controller
 
             // 4. Log Statistik Data
             $count = $data->count();
-            Log::info("EXCEL_EXPORT_PROCESSING: Periode [$namaBulanTerpilih]. Ditemukan $count karyawan.");
+            // Log::info("EXCEL_EXPORT_PROCESSING: Periode [$namaBulanTerpilih]. Ditemukan $count karyawan.");
 
             if ($count === 0) {
                 Log::warning("EXCEL_EXPORT_EMPTY: Laporan kosong untuk user $namaUser pada periode $namaBulanTerpilih.");
@@ -117,7 +123,7 @@ class GenerateReportController extends Controller
             // 5. Eksekusi Download
             $fileName = "Laporan_Diklat_" . str_replace(', ', '_', $namaBulanTerpilih) . ".xlsx";
             
-            Log::info("EXCEL_EXPORT_SUCCESS: File [$fileName] berhasil dikirim ke user.");
+            // Log::info("EXCEL_EXPORT_SUCCESS: File [$fileName] berhasil dikirim ke user.");
 
             return Excel::download(
                 new LaporanDiklatExport($data, $namaBulanTerpilih),
@@ -126,7 +132,7 @@ class GenerateReportController extends Controller
 
         } catch (\Exception $e) {
             // 6. Log jika terjadi error (Penting!)
-            Log::error("EXCEL_EXPORT_FAILED: Terjadi kesalahan teknis. Pesan: " . $e->getMessage());
+            // Log::error("EXCEL_EXPORT_FAILED: Terjadi kesalahan teknis. Pesan: " . $e->getMessage());
             
             return back()->with('error', 'Terjadi kesalahan saat memproses laporan.');
         }
