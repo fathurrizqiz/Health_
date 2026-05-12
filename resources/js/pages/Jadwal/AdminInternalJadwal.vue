@@ -36,7 +36,7 @@ const props = defineProps<{
         user: {
             id: number;
             name: string;
-            role: string | string[]; // <-- allow single or multiple roles
+            roles: string | string[]; // <-- allow single or multiple roles
         } | null;
     };
 }>();
@@ -140,7 +140,7 @@ const konfirmasiEksternal = (id: number, status: string) => {
 };
 
 // role
-const rawRole = props.auth.user?.role || [];
+const rawRole = props.auth.user?.roles || [];
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 </script>
 

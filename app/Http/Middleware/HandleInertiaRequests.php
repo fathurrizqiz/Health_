@@ -81,7 +81,15 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'nrp' => $request->user()->nrp,
+                    'employee_id' => $request->user()->employee_id,
+                    // AMBIL DATA ROLE DARI SPATIE DI SINI
+                    'roles' => $request->user()->getRoleNames(),
+                ] : null,
             ],
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'notifications' => [

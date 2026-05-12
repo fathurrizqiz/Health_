@@ -26,6 +26,7 @@ use App\Http\Controllers\report\ReportController;
 use App\Http\Controllers\SettingsMenu\SettingsController;
 use App\Http\Controllers\Silabus\SilabusController;
 use App\Http\Controllers\RencanaDiklat\HLC\HLCController;
+use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use App\Http\Controllers\Template_WA\TemplateController;
 use App\Http\Controllers\WaLog\WaLogController;
 use Illuminate\Support\Facades\Route;
@@ -174,6 +175,13 @@ Route::put('/MasterData/update', [MasterDataController::class, 'updateTargetJam'
 Route::post('/MasterData/store/karyawan', [MasterDataController::class, 'storekaryawan'])->name('store.masterdata');
 Route::put('/MasterData/update-karyawan/{id}', [MasterDataController::class, 'updatekaryawan']);
 Route::delete('/MasterData/destroy-karyawan/{id}', [MasterDataController::class, 'destroykaryawan']);
+
+// Super Admin
+Route::middleware(['auth'])->group(function () {
+    Route::get('/super-admin', [SuperAdminController::class, 'index'])->name('superadmin.index');
+    Route::post('/super-admin/roles', [SuperAdminController::class, 'storeRole'])->name('superadmin.storeRole');
+    Route::post('/super-admin/assign/{user}', [SuperAdminController::class, 'assignRole'])->name('superadmin.assign');
+});
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

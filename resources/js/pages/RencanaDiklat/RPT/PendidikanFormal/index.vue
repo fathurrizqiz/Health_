@@ -197,12 +197,12 @@ const rawRole = auth.user?.role || [];
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 
 const menuItems = [
-    ...(roles.includes('admin_kesra') || roles.includes('teknis')
-        ? [{ title: 'Data Lembur', href: '/karyawan' }]
-        : []),
-    ...(roles.includes('admin_kesra')
-        ? [{ title: 'Gaji Karyawan', href: '/gaji' }]
-        : []),
+    // ...(roles.includes('admin_kesra') || roles.includes('teknis')
+    //     ? [{ title: 'Data Lembur', href: '/karyawan' }]
+    //     : []),
+    // ...(roles.includes('admin_kesra')
+    //     ? [{ title: 'Gaji Karyawan', href: '/gaji' }]
+    //     : []),
     { title: 'Internal', href: '/RencanaDiklat/RPT/PF' },
     { title: 'Eksternal', href: '/RencanaDiklat/RPT/PN' },
     { title: 'HLC', href: '/HLC/Home/manajemen' },
@@ -220,13 +220,40 @@ function periode(id: number) {
     <Head title="Detail Diklat" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <HeaderMenu :items="menuItems" />
-        <div class="p-6">
-            <!-- Header with Add Program Button -->
-            <div class="mb-6 flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-gray-900">
+        <HeaderMenu class="p-10" :items="menuItems" />
+        <div
+            class="group relative h-10 w-full overflow-hidden rounded-s-lg shadow-lg md:h-32"
+        >
+            <!-- 1. Background Image -->
+            <img
+                src="https://img.magnific.com/free-vector/blue-shiny-ornament-floral-leafs-background_1409-4313.jpg?semt=ais_hybrid&w=740&q=80"
+                alt="Pendidikan"
+                class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+
+            <!-- 2. Overlay (Penting agar teks terbaca di segala jenis gambar) -->
+            <div
+                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+            ></div>
+
+            <!-- 3. Responsive Text Container -->
+            <div class="absolute inset-0 flex flex-col justify-end p-6 md:p-10">
+                <h1
+                    class="text-xl font-bold tracking-tight text-white drop-shadow-lg md:text-3xl"
+                >
                     Pendidikan Formal
                 </h1>
+                <p
+                    class="mt-2 translate-y-4 transform text-sm text-gray-200 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:text-base"
+                >
+                    Kelola data riwayat pendidikan dan sertifikasi resmi Anda di
+                    sini.
+                </p>
+            </div>
+        </div>
+        <div class="p-5">
+            <!-- Header with Add Program Button -->
+            <div class="mb-6 flex items-center justify-between">
                 <button
                     @click="openAddProgramModal"
                     class="flex items-center rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors hover:bg-blue-700"

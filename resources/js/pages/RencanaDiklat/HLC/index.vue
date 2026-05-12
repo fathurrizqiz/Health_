@@ -338,26 +338,45 @@ const destroyDetail = (id: number) => {
     <Head title="HLC" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <HeaderMenu :items="menuItems" />
+        <HeaderMenu class="p-10" :items="menuItems" />
 
+        <div
+            class="group relative h-10 w-full overflow-hidden rounded-s-lg shadow-lg/30 md:h-32"
+        >
+            <!-- 1. Background Image -->
+            <img
+                src="https://png.pngtree.com/thumb_back/fh260/background/20210507/pngtree-indonesian-batik-patterns-gradient-blue-floral-background-image_699358.jpg"
+                class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+
+            <!-- 2. Overlay (Penting agar teks terbaca di segala jenis gambar) -->
+            <div
+                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+            ></div>
+
+            <!-- 3. Responsive Text Container -->
+            <div class="absolute inset-0 flex flex-col justify-end p-6 md:p-10">
+                <h1
+                    class="text-xl font-bold tracking-tight text-white drop-shadow-lg md:text-3xl"
+                >
+                    Human Learning Center (HLC)
+                </h1>
+                <p
+                    class="mt-2 translate-y-4 transform text-sm text-gray-200 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:text-base"
+                >
+                    Kelola data program pelatihan dan detail diklat peserta.
+                </p>
+            </div>
+        </div>
         <div class="p-4 md:p-6 lg:p-8">
             <!-- Header Section -->
             <div
                 class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
             >
-                <div>
-                    <h2
-                        class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white"
-                    >
-                        Human Learning Center (HLC)
-                    </h2>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        Kelola data program pelatihan dan detail diklat peserta.
-                    </p>
-                </div>
+                
                 <button
                     @click="openAddProgram"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
+                    class="inline-flex m-2 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
                 >
                     <svg
                         class="h-5 w-5"

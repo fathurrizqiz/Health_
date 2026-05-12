@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookCopy, BookLock, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, Inbox, LayoutGrid, Library, Settings, Signature } from 'lucide-vue-next';
+import { BookCopy, BookLock, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, Inbox, LayoutGrid, Library, Settings, ShieldAlert, ShieldCheck, Signature, UsersRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -31,7 +31,7 @@ interface MyPageProps {
         user: {
             id: number;
             name: string;
-            role: string | string[]; // <-- allow single or multiple roles
+            roles: string | string[]; // <-- allow single or multiple roles
         } | null;
     };
 }
@@ -41,10 +41,17 @@ const persetujuanCount = computed(() => page.props.notifications?.persetujuan_co
 const jadwalCount = computed(() => page.props.notifications?.jadwal_count || 0);
 const countInboxData = computed(() => page.props.notifications?.InboxCount || 0);
 const { props } = usePage<any>() as { props: MyPageProps };
-const rawRole = props.auth.user?.role || [];
+const rawRole = props.auth.user?.roles || []; 
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 
 const mainNavItems = computed(() => [
+    {
+        title: 'User Management',
+        href: '/super-admin', 
+        icon: ShieldAlert,
+        roles: ['super-admin'],
+    },
+   
     {
         title: 'Dashboard Diklat',
         href: dashboard(),

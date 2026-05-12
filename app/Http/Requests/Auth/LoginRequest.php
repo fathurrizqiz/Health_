@@ -42,7 +42,7 @@ class LoginRequest extends FormRequest
         // Ensure at least one identifier is provided
         if (!$this->filled('nrp') && !$this->filled('employee_id')) {
             throw ValidationException::withMessages([
-                'nrp' => 'Either NRP or Employee ID is required.',
+                'nrp' => 'PERIKSA KEMBALI NRP',
                 'employee_id' => 'Either NRP or Employee ID is required.',
             ]);
         }
@@ -119,7 +119,7 @@ class LoginRequest extends FormRequest
             $userData = [
                 'name' => $karyawan->nama_karyawan ?? $identifier,
                 'password' => Hash::make($password),
-                'role' => ['karyawan'],
+                
             ];
 
             if ($isNrpField) {
@@ -128,7 +128,7 @@ class LoginRequest extends FormRequest
                 $userData['employee_id'] = $identifier;
             }
 
-            $user = User::create($userData);
+            $user->assignRole('karyawan');
         } else {
             // STEP 3: If not found in karyawans, check in tambah_karyawan
             \Log::info("Not found in karyawans, checking tambah_karyawan");
@@ -151,7 +151,7 @@ class LoginRequest extends FormRequest
                 $userData = [
                     'name' => $rekruter->nama ?? $identifier,
                     'password' => Hash::make($password),
-                    'role' => ['user'],
+                    
                 ];
 
                 if ($isNrpField) {
@@ -160,7 +160,7 @@ class LoginRequest extends FormRequest
                     $userData['employee_id'] = $identifier;
                 }
 
-                $user = User::create($userData);
+                $user->assignRole('user');
             } else {
                 // STEP 4: Not found in all tables
                 \Log::warning("Identifier {$identifier} not found in all tables");
