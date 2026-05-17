@@ -10,6 +10,12 @@ use Spatie\Permission\Models\Role;
 
 class SuperAdminController extends Controller
 {
+    public function home()
+    {
+        return Inertia::render('SuperAdmin/Home', [
+            'message' => 'Selamat datang di dashboard Super Admin!',
+        ]);
+    }
     public function index()
     {
         $user =  User::with('roles')->get();

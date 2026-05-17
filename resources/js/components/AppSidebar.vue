@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookCopy, BookLock, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, Inbox, LayoutGrid, Library, Settings, ShieldAlert, ShieldCheck, Signature, UsersRound } from 'lucide-vue-next';
+import { BookCopy, BookLock, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, Inbox, LayoutGrid, Library, Settings, ShieldAlert, ShieldCheck, Signature, TriangleAlert, UsersRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -40,17 +40,27 @@ const page = usePage();
 const persetujuanCount = computed(() => page.props.notifications?.persetujuan_count || 0);
 const jadwalCount = computed(() => page.props.notifications?.jadwal_count || 0);
 const countInboxData = computed(() => page.props.notifications?.InboxCount || 0);
+const isImpersonating = computed(() => page.props.auth?.is_impersonating || false);
 const { props } = usePage<any>() as { props: MyPageProps };
 const rawRole = props.auth.user?.roles || []; 
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 
 const mainNavItems = computed(() => [
+    // ...(isImpersonating.value ? [{
+    //     title: 'Back to admin',
+    //     href: '/super-admin/stop-impersonate', 
+    //     method: 'post', // Kita akan menangani ini di NavMain atau pakai custom click
+    //     as: 'button',
+    //     icon: TriangleAlert,
+    //     roles: ['super-admin', 'admin_diklat', 'user'], // Berikan akses ke semua role saat menyamar agar muncul
+    // }] : []),
     {
         title: 'User Management',
-        href: '/super-admin', 
+        href: '/super-admin/home', 
         icon: ShieldAlert,
         roles: ['super-admin'],
     },
+   
    
     {
         title: 'Dashboard Diklat',

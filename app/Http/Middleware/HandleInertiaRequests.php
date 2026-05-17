@@ -90,6 +90,7 @@ class HandleInertiaRequests extends Middleware
                     // AMBIL DATA ROLE DARI SPATIE DI SINI
                     'roles' => $request->user()->getRoleNames(),
                 ] : null,
+                'is_impersonating' => $request->session()->has('impersonator_id'),
             ],
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'notifications' => [

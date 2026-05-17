@@ -99,4 +99,55 @@ class JadwalInternalController extends Controller
 
         return redirect()->back()->with('success', 'Antrean dimulai');
     }
+
+    public function history(Request $request)
+    {
+        $nrp = Auth::user()->nrp;
+        $search = $request->input('search');
+
+        // 1. Internal
+        $internal = PeriodeUtama::whereHas('peserta', fn($q) => $q->where('nrp', $nrp))
+            ->where('tanggal', '<', Carbon::today())
+            ->when($search, fn($q) => $q->where('nama_kegiatan', 'ILIKE', "%{$search}%"))
+            ->orderBy('tanggal', 'desc')->get();
+
+        // 2. HLC (Status Offered/Undangan)
+        $hlc = ProgramHlc::whereHas('hlc', function ($q) use ($nrp) {
+            $q->where('nrp', $nrp)
+                ->where('status', 'approved') // Filter status sebelum pending
+                ->whereDate('tanggal_mulai', '<', Carbon::today());
+        })
+            ->with([
+                'hlc' => function ($q) use ($nrp) {
+                    $q->where('nrp', $nrp)
+                        ->where('status', 'approved') // Pastikan detail yang dimuat juga status offered
+                        ->orderBy('tanggal_mulai', 'desc');
+                }
+            ])
+            ->when($search, fn($q) => $q->where('nama_program', 'ILIKE', "%{$search}%"))
+            ->get();
+
+        // 3. Eksternal (Status Offered/Undangan)
+        $eksternal = ProgramEksternal::whereHas('eksternal', function ($q) use ($nrp) {
+            $q->where('nrp', $nrp)
+                ->where('status', 'approved') // Filter status sebelum pending
+                ->whereDate('tanggal_mulai', '<', Carbon::today());
+        })
+            ->with([
+                'eksternal' => function ($q) use ($nrp) {
+                    $q->where('nrp', $nrp)
+                        ->where('status', 'approved') // Pastikan detail yang dimuat juga status offered
+                        ->orderBy('tanggal_mulai', 'desc');
+                }
+            ])
+            ->when($search, fn($q) => $q->where('nama_diklat', 'ILIKE', "%{$search}%"))
+            ->get();
+            return Inertia::render('Jadwal/History/Historyjadwal', [
+                'jadwalInternal' => $internal,
+                'jadwalHLC' => $hlc,
+                'jadwalEksternal' => $eksternal,
+                'filters' => ['search' => $search],
+            ]);
+
+    }
 }

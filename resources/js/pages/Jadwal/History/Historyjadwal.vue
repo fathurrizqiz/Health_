@@ -31,7 +31,7 @@ const props = defineProps<{
     jadwalHLC: any[];
     jadwalEksternal: any[];
     filters: { search: string };
-    templates: any[];
+    
     auth: {
         user: {
             id: number;
@@ -79,35 +79,31 @@ function goHP() {
 }
 
 // panggil whattsapp
-const selectedTemplate = ref(
-    props.templates.length > 0 ? props.templates[0].slug : '',
-);
-const kirimNotifikasi = (id: number, tipe: string) => {
-    if (!selectedTemplate.value) {
-        alert('Silakan pilih template terlebih dahulu!');
-        return;
-    }
+// const selectedTemplate = ref(
+//     props.templates.length > 0 ? props.templates[0].slug : '',
+// );
+// const kirimNotifikasi = (id: number, tipe: string) => {
+//     if (!selectedTemplate.value) {
+//         alert('Silakan pilih template terlebih dahulu!');
+//         return;
+//     }
 
-    if (
-        confirm(
-            `Kirim notifikasi menggunakan template "${selectedTemplate.value}"?`,
-        )
-    ) {
-        router.post(
-            route('jadwal.send-wa'),
-            {
-                id: id,
-                tipe: tipe,
-                template_slug: selectedTemplate.value,
-            },
-            {
-                onSuccess: () => {
-                    toast.success('Notifikasi Berhasil dikirim!');
-                },
-            },
-        );
-    }
-};
+//     if (
+//         confirm(
+//             `Kirim notifikasi menggunakan template "${selectedTemplate.value}"?`,
+//         )
+//     ) {
+//         router.post(route('jadwal.send-wa'), {
+//             id: id,
+//             tipe: tipe,
+//             template_slug: selectedTemplate.value,
+//         },{
+//             onSuccess: () => {
+//                 toast.success('Notifikasi Berhasil dikirim!');
+//             },
+//         });
+//     }
+// };
 
 // konfirmasi hadir HLC
 const konfirmasiHLC = (id: number, status: string) => {
@@ -117,17 +113,13 @@ const konfirmasiHLC = (id: number, status: string) => {
             `Apakah Anda yakin ingin ${action} keikutsertaan Anda dalam HLC ini?`,
         )
     ) {
-        router.post(
-            route('diklat.hlc.admin.konfirmasi-hadir', id),
-            {
-                status: status,
+        router.post(route('diklat.hlc.admin.konfirmasi-hadir', id), {
+            status: status,
+        },{
+            onSuccess: () => {
+                toast.success(`Anda telah ${action} keikutsertaan Anda!`);
             },
-            {
-                onSuccess: () => {
-                    toast.success(`Anda telah ${action} keikutsertaan Anda!`);
-                },
-            },
-        );
+        });
     }
 };
 const konfirmasiEksternal = (id: number, status: string) => {
@@ -137,30 +129,27 @@ const konfirmasiEksternal = (id: number, status: string) => {
             `Apakah Anda yakin ingin ${action} keikutsertaan Anda dalam Eksternal ini?`,
         )
     ) {
-        router.post(
-            route('diklat.eksternal.admin.konfirmasi-hadir', id),
-            {
-                status: status,
+        router.post(route('diklat.eksternal.admin.konfirmasi-hadir', id), {
+            status: status,
+        },{
+            onSuccess: () => {
+                toast.success(`Anda telah ${action} keikutsertaan Anda!`);
             },
-            {
-                onSuccess: () => {
-                    toast.success(`Anda telah ${action} keikutsertaan Anda!`);
-                },
-            },
-        );
+        });
     }
 };
 
-function history() {
-    router.get('/JadwalDiklat/Histori');
-}
 // role
 const rawRole = props.auth.user?.roles || [];
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
+
+function back() {
+    window.history.back();
+}
 </script>
 
 <template>
-    <Head title="Jadwal Diklat Saya" />
+    <Head title="Histori Jadwal Diklat" />
 
     <AppLayout>
         <div class="space-y-4 p-4 md:space-y-6 md:p-6 lg:p-8">
@@ -169,7 +158,7 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                 <h1
                     class="text-xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white"
                 >
-                    Jadwal Diklat Saya
+                    Histori Jadwal Diklat
                 </h1>
                 <p
                     class="text-xs text-slate-500 md:text-sm dark:text-slate-400"
@@ -207,7 +196,7 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                         class="h-10 w-full rounded-xl border border-slate-300 bg-slate-50 pr-4 pl-10 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
                     />
                 </div>
-                <div
+                <!-- <div
                     class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row md:items-center"
                 >
                     <label
@@ -231,7 +220,7 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                         *Pilih template terlebih dahulu sebelum klik 'Umumkan
                         WA'
                     </p>
-                </div>
+                </div> -->
                 <!-- Horizontal Tabs: Scrollable on Mobile -->
                 <div
                     class="no-scrollbar flex gap-2 overflow-x-auto border-t border-slate-100 pt-3 pb-1 dark:border-slate-800"
@@ -251,61 +240,11 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                     </button>
                 </div>
             </div>
-            <div class="flex gap-3">
-                <button
-                    @click="goHP"
-                    class="flex gap-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-2"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#ffffff"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-smartphone-icon lucide-smartphone"
-                    >
-                        <rect
-                            width="14"
-                            height="20"
-                            x="5"
-                            y="2"
-                            rx="2"
-                            ry="2"
-                        />
-                        <path d="M12 18h.01" />
-                    </svg>
-                    Tambah Nomor HP
-                </button>
-                <button
-                    class="flex h-10 w-26 rounded bg-green-500 p-2 text-white hover:bg-green-600"
-                    @click="history"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#ffffff"
-                        stroke-width="1"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-clipboard-clock-icon lucide-clipboard-clock"
-                    >
-                        <path d="M16 14v2.2l1.6 1" />
-                        <path d="M16 4h2a2 2 0 0 1 2 2v.832" />
-                        <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2" />
-                        <circle cx="16" cy="16" r="6" />
-                        <rect x="8" y="2" width="8" height="4" rx="1" />
-                    </svg>
-                    History
-                </button>
-            </div>
-
+            
+            <button class="flex gap-2 hover:bg-blue-600 p-3 rounded bg-blue-500 text-white" @click="back()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-undo2-icon lucide-undo-2"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+                Kembali
+            </button>
             <!-- Content Area -->
             <div
                 class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
@@ -351,10 +290,7 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                         {{ formatDate(item.tanggal!) }}
                                     </td>
                                     <td class="px-6 py-4 font-mono text-xs">
-                                        <button
-                                            v-if="
-                                                roles.includes('admin_diklat')
-                                            "
+                                        <!-- <button v-if="roles.includes('admin_diklat')"
                                             @click="
                                                 kirimNotifikasi(
                                                     item.id,
@@ -365,26 +301,20 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
+                                                class="h-4 w-4"
                                                 fill="none"
-                                                stroke="#ffffff"
-                                                stroke-width="1.5"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                class="lucide lucide-megaphone-icon lucide-megaphone"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
                                             >
                                                 <path
-                                                    d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                                                 />
-                                                <path
-                                                    d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14"
-                                                />
-                                                <path d="M8 6v8" />
                                             </svg>
                                             Umumkan WA
-                                        </button>
+                                        </button> -->
                                     </td>
                                 </tr>
                             </tbody>
@@ -488,49 +418,13 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                             {{ formatDate(hlc.tanggal_mulai) }}
                                         </td>
                                         <td class="px-6 py-4 font-mono text-xs">
-                                            <!-- Cek apakah hari ini adalah hari H diklat -->
-                                            <div
-                                                v-if="
-                                                    new Date(
-                                                        hlc.tanggal_mulai,
-                                                    ).toDateString() ===
-                                                    new Date().toDateString()
-                                                "
+                                            HADIR
+                                            <!-- <button 
+                                                class="w-20 h-10 hover:shadow-2xl bg-green-500 text-white rounded-full"
+                                                @click="konfirmasiHLC(hlc.id, 'approved')"
                                             >
-                                                <!-- JIKA BELUM KONFIRMASI (STATUS PENDING) -->
-                                                <button
-                                                    v-if="
-                                                        hlc.status === 'pending'
-                                                    "
-                                                    class="h-10 w-20 rounded-full bg-green-500 text-white transition duration-200 hover:shadow-2xl"
-                                                    @click="
-                                                        konfirmasiHLC(
-                                                            hlc.id,
-                                                            'approved',
-                                                        )
-                                                    "
-                                                >
-                                                    Hadir
-                                                </button>
-
-                                                <!-- JIKA SUDAH KONFIRMASI (STATUS APPROVED) -->
-                                                <span
-                                                    v-else-if="
-                                                        hlc.status ===
-                                                        'approved'
-                                                    "
-                                                    class="rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-700"
-                                                >
-                                                    Hadir
-                                                </span>
-                                            </div>
-
-                                            <div v-else>
-                                                <span
-                                                    class="text-sm text-gray-400"
-                                                    >Belum Waktunya</span
-                                                >
-                                            </div>
+                                                Hadir
+                                            </button> -->
                                         </td>
                                     </tr>
                                 </template>
@@ -620,17 +514,14 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                             {{ formatDate(eks.tanggal_mulai) }}
                                         </td>
                                         <td class="px-6 py-4 font-mono text-xs">
-                                            <button
-                                                @click="
-                                                    konfirmasiEksternal(
-                                                        eks.id,
-                                                        'approved',
-                                                    )
-                                                "
+                                            HADIR
+                                            <!-- <button
+                                                @click="konfirmasiEksternal(eks.id, 'approved')"
                                                 class="rounded bg-green-500 px-5 py-3 text-white hover:bg-green-600"
                                             >
                                                 Hadir
-                                            </button>
+                                            </button> -->
+                                            
                                         </td>
                                     </tr>
                                 </template>

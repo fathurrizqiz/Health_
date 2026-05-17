@@ -27,6 +27,7 @@ use App\Http\Controllers\SettingsMenu\SettingsController;
 use App\Http\Controllers\Silabus\SilabusController;
 use App\Http\Controllers\RencanaDiklat\HLC\HLCController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
+use App\Http\Controllers\SuperAdmin\UserController;
 use App\Http\Controllers\Template_WA\TemplateController;
 use App\Http\Controllers\WaLog\WaLogController;
 use Illuminate\Support\Facades\Route;
@@ -39,7 +40,7 @@ Route::get('/', function () {
 // Route::get('dashboard', function () {
 //     return Inertia::render('Dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
-Route::get('/dashboard',[DashboardController::class,'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/Diklat', [DiklatController::class, 'index'])->name('diklat.home');
 Route::get('/Diklat/create', [DiklatController::class, 'create'])->name('diklat.create');
@@ -50,10 +51,10 @@ Route::put('/Diklat/update/{id}', [DiklatController::class, 'update'])->name('di
 Route::delete('/Diklat/destroy/{id}', [DiklatController::class, 'destroy'])->name('diklat.destroy');
 
 // halaman lihat Internal
-Route::get('/DiklatInternal/user',[InternalController::class,'index'])->name('diklat.internal.index');
+Route::get('/DiklatInternal/user', [InternalController::class, 'index'])->name('diklat.internal.index');
 
 // Appprove HLC dan Eksternal
-Route::get('/Approve/Diklat', [ApprovDiklateController::class,'index'])->name('diklat.approve.index');
+Route::get('/Approve/Diklat', [ApprovDiklateController::class, 'index'])->name('diklat.approve.index');
 Route::put('/diklat/{id}/approve', [ApprovDiklateController::class, 'approve'])->name('diklat.approve');
 Route::put('/diklat/{id}/reject', [ApprovDiklateController::class, 'reject'])->name('diklat.reject');
 
@@ -72,13 +73,13 @@ Route::get('/RencanaDiklat/RPT/PF', [DiklatInternalController::class, 'index'])-
 Route::post('/RencanaDiklat/RPT/PF/store', [DiklatInternalController::class, 'storeProgram'])->name('PF.store');
 Route::delete('/RencanaDiklat/RPT/PF/delete/{id}', [DiklatInternalController::class, 'destroyProgram'])->name('PF.destroy');
 Route::delete('/RencanaDiklat/RPT/PF/detail/delete/{id}', [DiklatInternalController::class, 'destroyDetail'])->name('PF.destroy-detail');
-Route::post('/RencanaDiklat/RPT/PF/DetailStore',[DiklatInternalController::class, 'storeDetail'])->name('diklat.detail-internal');
+Route::post('/RencanaDiklat/RPT/PF/DetailStore', [DiklatInternalController::class, 'storeDetail'])->name('diklat.detail-internal');
 // aksi detail internal
-Route::get('/RencanaDiklat/Internal/detail/aksi/{id}',[DiklatInternalController::class,'aksi'])->name('aksi-internal');
+Route::get('/RencanaDiklat/Internal/detail/aksi/{id}', [DiklatInternalController::class, 'aksi'])->name('aksi-internal');
 // Program Detail Internal
-Route::get('/RencanaDiklat/Internal/detail/periode/{id}',[DiklatInternalController::class,'periode'])->name('periode-internal');
-Route::post('/RencanaDiklat/Internal/detail/periode/store',[DiklatInternalController::class,'storePeriode'])->name('periode-internal.store');
-Route::delete('/RencanaDiklat/Internal/detail/periode/delete/{id}',[DiklatInternalController::class,'destroyPeriod'])->name('periode-internal.delete');
+Route::get('/RencanaDiklat/Internal/detail/periode/{id}', [DiklatInternalController::class, 'periode'])->name('periode-internal');
+Route::post('/RencanaDiklat/Internal/detail/periode/store', [DiklatInternalController::class, 'storePeriode'])->name('periode-internal.store');
+Route::delete('/RencanaDiklat/Internal/detail/periode/delete/{id}', [DiklatInternalController::class, 'destroyPeriod'])->name('periode-internal.delete');
 // PostTest
 Route::get('/DiklatInternal/pree/{detailId}', [PostPreeController::class, 'preTest']);
 Route::get('/DiklatInternal/post/{detailId}', [PostPreeController::class, 'postTest']);
@@ -89,31 +90,31 @@ Route::post('/DiklatInternal/posttest', [PostPreeController::class, 'savePost'])
 Route::get('/DiklatInternal/test/{type}/{detail_id}', [PostPreeController::class, 'showTest']);
 Route::post('/DiklatInternal/test/submit', [PostPreeController::class, 'submitTest']);
 // by token
-    Route::post('/DiklatInternal/periode/start', [PostPreeController::class, 'startPeriode']);
+Route::post('/DiklatInternal/periode/start', [PostPreeController::class, 'startPeriode']);
 Route::post('/DiklatInternal/periode/end', [PostPreeController::class, 'endPeriode']);
 Route::get('/test/token/evaluasi/{token}', [PostPreeController::class, 'openEvaluasiByToken']);
 Route::get('/test/token/{type}/{token}', [PostPreeController::class, 'openByToken']);
 // post evaluasi
-Route::post('/test/evaluasi/post',[PostPreeController::class,'submitEvaluasi']);
+Route::post('/test/evaluasi/post', [PostPreeController::class, 'submitEvaluasi']);
 // Route Detail Periode
-Route::get('/DiklatInternal/detailperiod/list/{detail_id}',[DetailPeriodeController::class,'index'])->name('Detail.periode');
-Route::post('/DiklatInternal/detailperiod/list/store',[DetailPeriodeController::class,'store'])->name('Detail.periode-store');
-Route::delete('/DiklatInternal/detailperiod/list/delete',[DetailPeriodeController::class,'bulkDelete'])->name('Detail.periode-store');
+Route::get('/DiklatInternal/detailperiod/list/{detail_id}', [DetailPeriodeController::class, 'index'])->name('Detail.periode');
+Route::post('/DiklatInternal/detailperiod/list/store', [DetailPeriodeController::class, 'store'])->name('Detail.periode-store');
+Route::delete('/DiklatInternal/detailperiod/list/delete', [DetailPeriodeController::class, 'bulkDelete'])->name('Detail.periode-store');
 // Presensi Detail
-Route::get('/DiklatInternal/detail/presensi/{periode_id}',[PresensiDetailController::class,'index']);
+Route::get('/DiklatInternal/detail/presensi/{periode_id}', [PresensiDetailController::class, 'index']);
 // Template Pembahasan Sertifikat
-Route::get('/DiklatInternal/detail/pembahasan/template/{periode}',[SertifikatController::class,'template']);
-Route::post('/DiklatInternal/detail/pembahasan/template/store',[SertifikatController::class,'storeTemplate']);
+Route::get('/DiklatInternal/detail/pembahasan/template/{periode}', [SertifikatController::class, 'template']);
+Route::post('/DiklatInternal/detail/pembahasan/template/store', [SertifikatController::class, 'storeTemplate']);
 Route::post('/sertifikat/generate/{peserta}', [SertifikatController::class, 'generate']);
 Route::get('/sertifikat/download/{peserta}', [SertifikatController::class, 'download']);
 
 // Dokumentasi
-Route::get('/DetailInternal/Dokumentasi/view/{periode_id}', [DokumentasiController::class,'index']);
-Route::post('/DetailInternal/Dokumentasi/store', [DokumentasiController::class,'storeDokumentasi']);
+Route::get('/DetailInternal/Dokumentasi/view/{periode_id}', [DokumentasiController::class, 'index']);
+Route::post('/DetailInternal/Dokumentasi/store', [DokumentasiController::class, 'storeDokumentasi']);
 
 // Evaluasi
-Route::get('/Diklat/Evaluasi',[EvaluasiController::class,'index']);
-Route::get('/Diklat/Evaluasi/detail/{id}',[EvaluasiController::class,'show']);
+Route::get('/Diklat/Evaluasi', [EvaluasiController::class, 'index']);
+Route::get('/Diklat/Evaluasi/detail/{id}', [EvaluasiController::class, 'show']);
 
 // Laporan
 Route::get('/Laporan/Diklat', [ReportController::class, 'index'])->name('laporan.diklat');
@@ -122,14 +123,15 @@ Route::get('/Laporan/Diklat/Export', [GenerateReportController::class, 'generate
 
 //Pendidikan Non Formal / Eksternal
 Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
-Route::post('/RencanaDiklat/RPT/PN/Program',[NonFormalController::class,'storeProgram'])->name('Diklat.eksternal-program');
-Route::post('/RencanaDiklat/RPT/PN/Detail',[NonFormalController::class,'storeDetail'])->name('Diklat.eksternal-detail');
-Route::put('/RencanaDiklat/RPT/PN/Detail/{id}',[NonFormalController::class,'updateDetail'])->name('Diklat.eksternal-detail-update');
-Route::delete('/RencanaDiklat/RPT/PN/Detail/{id}',[NonFormalController::class,'destroyDetail'])->name('Diklat.eksternal-detail-destroy');
-Route::delete('/RencanaDiklat/RPT/PN/program/{id}',[NonFormalController::class,'destroyProgram'])->name('Diklat.eksternal-program-destroy');
+Route::post('/RencanaDiklat/RPT/PN/Program', [NonFormalController::class, 'storeProgram'])->name('Diklat.eksternal-program');
+Route::post('/RencanaDiklat/RPT/PN/Detail', [NonFormalController::class, 'storeDetail'])->name('Diklat.eksternal-detail');
+Route::put('/RencanaDiklat/RPT/PN/Detail/{id}', [NonFormalController::class, 'updateDetail'])->name('Diklat.eksternal-detail-update');
+Route::delete('/RencanaDiklat/RPT/PN/Detail/{id}', [NonFormalController::class, 'destroyDetail'])->name('Diklat.eksternal-detail-destroy');
+Route::delete('/RencanaDiklat/RPT/PN/program/{id}', [NonFormalController::class, 'destroyProgram'])->name('Diklat.eksternal-program-destroy');
 
 //jadwal diklat
 Route::get('/JadwalDiklat/Internal', [JadwalInternalController::class, 'index'])->name('jadwal.internal');
+Route::get('/JadwalDiklat/Histori', [JadwalInternalController::class, 'history'])->name('jadwal.history');
 Route::post('/jadwal-internal/send-wa', [JadwalInternalController::class, 'sendWhatsappNotification'])->name('jadwal.send-wa');
 
 // Nomor HP Karyawan
@@ -179,8 +181,20 @@ Route::delete('/MasterData/destroy-karyawan/{id}', [MasterDataController::class,
 // Super Admin
 Route::middleware(['auth'])->group(function () {
     Route::get('/super-admin', [SuperAdminController::class, 'index'])->name('superadmin.index');
+    Route::get('/super-admin/home', [SuperAdminController::class, 'home'])->name('superadmin.home');
     Route::post('/super-admin/roles', [SuperAdminController::class, 'storeRole'])->name('superadmin.storeRole');
     Route::post('/super-admin/assign/{user}', [SuperAdminController::class, 'assignRole'])->name('superadmin.assign');
+
+    Route::get('/super-admin/users', [UserController::class, 'index'])->name('superadmin.users.index');
+    Route::post('/super-admin/users/store', [UserController::class, 'store'])->name('superadmin.users.store');
+    Route::put('/super-admin/users/reset-password/{id}', [UserController::class, 'resetPassword'])->name('superadmin.users.reset-password');
+    Route::delete('/super-admin/users/destroy/{id}', [UserController::class, 'destroy'])->name('superadmin.users.destroy');
+
+    // login as
+    Route::post('/super-admin/login-as/{id}', [UserController::class, 'impersonate'])->name('superadmin.login-as');
+    Route::post('/impersonation/leave', [UserController::class, 'stopImpersonate'])
+        ->name('impersonation.leave');
+    
 });
 
 require __DIR__ . '/settings.php';
