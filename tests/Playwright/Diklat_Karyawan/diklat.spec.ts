@@ -12,8 +12,6 @@ test('test_Diklat_Karyawan', async ({ page }) => {
   await page.getByRole('link', { name: 'Diklat', description: 'Diklat', exact: true }).click();
   await page.getByRole('button', { name: 'Tambah' }).click();
   await page.getByRole('textbox', { name: 'Tanggal Mulai Tanggal Selesai' }).fill('2026-05-13');
-  await page.locator('#tanggal').nth(1).fill('2026-05-13');
-  await page.getByRole('textbox', { name: 'Nama Diklat' }).click();
   await page.getByRole('textbox', { name: 'Nama Diklat' }).fill('Diklat Kebakaran');
   await page.locator('select[name="diklat"]').selectOption('HLC');
   await page.getByRole('combobox', { name: 'Pengajar' }).click();

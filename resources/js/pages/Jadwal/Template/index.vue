@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 
@@ -31,6 +32,12 @@ const generateSlug = () => {
         .toLowerCase()
         .replace(/ /g, '-')
         .replace(/[^\w-]+/g, '');
+};
+
+const deleteTemplate = (id: number) => {
+    if (confirm('Apakah Anda yakin ingin menghapus template ini?')) {
+        form.delete(route('template.destroy', id));
+    }
 };
 </script>
 
@@ -65,13 +72,22 @@ const generateSlug = () => {
                         >
                             {{ temp.pesan }}
                         </p>
+                        <button
+                            @click="deleteTemplate(temp.id)"
+                            class="bg-red-500 text-white flex mt-3 text-sm hover:bg-red-600 p-2 rounded"
+                        >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            Hapus
+                        </button>
                     </div>
+                    
                     <div
                         v-if="templates.length === 0"
                         class="py-10 text-center text-gray-400 italic"
                     >
                         Belum ada template yang dibuat.
                     </div>
+                    
                 </div>
 
                 <!-- FORM TAMBAH TEMPLATE -->
@@ -87,7 +103,7 @@ const generateSlug = () => {
                                 class="mb-1 block text-xs font-bold tracking-widest text-gray-400 uppercase"
                                 >Nama Template</label
                             >
-                            <input
+                            <Input
                                 v-model="form.nama_template"
                                 @input="generateSlug"
                                 type="text"
@@ -101,7 +117,7 @@ const generateSlug = () => {
                                 class="mb-1 block text-xs font-bold tracking-widest text-gray-400 uppercase"
                                 >Slug (ID Sistem)</label
                             >
-                            <input
+                            <Input
                                 v-model="form.slug"
                                 type="text"
                                 readonly

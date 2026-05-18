@@ -141,6 +141,7 @@ Route::post('/NoHP/store', [NohpController::class, 'store'])->name('nohp.store')
 // template WA
 Route::get('/Template/WA', [TemplateController::class, 'index'])->name('template.index');
 Route::post('/Template/WA/store', [TemplateController::class, 'store'])->name('template.store');
+Route::delete('/Template/WA/delete/{id}', [TemplateController::class, 'destroy'])->name('template.destroy');
 
 // Settings UI
 Route::get('/Settings', [SettingsController::class, 'index'])->name('settings.index');

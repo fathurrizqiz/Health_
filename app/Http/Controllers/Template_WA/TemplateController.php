@@ -29,4 +29,12 @@ class TemplateController extends Controller
 
         return redirect()->back()->with('success', 'Template berhasil disimpan.');
     }
+
+    public function destroy($id)
+    {
+        $template = WaTemplate::findOrFail($id);
+        $template->delete();
+
+        return redirect()->back()->with('success', 'Template berhasil dihapus.');
+    }
 }
