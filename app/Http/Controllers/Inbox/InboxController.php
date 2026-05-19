@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Inbox;
 use App\Http\Controllers\Controller;
 use App\Models\DiklatEksternal;
 use App\Models\HLCManajement;
+use App\Models\ImpersonateRequestModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class InboxController extends Controller
@@ -22,9 +24,15 @@ class InboxController extends Controller
             ->where('status', 'offered') // Hanya tampilkan yang statusnya ditawarkan
             ->orderBy('created_at', 'desc')
             ->get();
+        $impersonateRequests = ImpersonateRequestModel::where('target_nrp', $user->nrp)
+        ->where('status', 'pending')
+        ->where('expires_at', '>', now())
+        ->with('admin')
+        ->get();
         return Inertia::render('Inbox/index', [
             'inboxItems' => $undangan,
-            'inboxExternalItems' => $undanganexternal
+            'inboxExternalItems' => $undanganexternal,
+            'impersonateRequests' => $impersonateRequests,
         ]);
     }
     public function setujuRekomendasihlc($id)
@@ -62,6 +70,27 @@ class InboxController extends Controller
         $hlc->update(['status' => 'rejected']);
 
         return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
+    }
+
+    public function respondImpersonate(Request $request, $requestId)
+    {
+        $impersonateRequest = ImpersonateRequestModel::findOrFail($requestId);
+
+        // Pastikan hanya target yang bisa respond
+        if ($impersonateRequest->target_nrp !== Auth::user()->nrp) {
+            abort(403);
+        }
+
+        // Cek expired
+        if ($impersonateRequest->isExpired()) {
+            $impersonateRequest->update(['status' => 'expired']);
+            return back()->with('error', 'Request sudah kadaluarsa.');
+        }
+
+        $action = $request->input('action'); // 'approved' atau 'rejected'
+        $impersonateRequest->update(['status' => $action]);
+
+        return back()->with('success', $action === 'approved' ? 'Akses diberikan.' : 'Akses ditolak.');
     }
 
 }

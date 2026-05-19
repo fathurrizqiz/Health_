@@ -413,6 +413,11 @@ const hapusDetail = (detailId: number) => {
                                             Penyelenggara
                                         </th>
                                         <th
+                                            class="px-4 py-3 font-semibold tracking-wider uppercase"
+                                        >
+                                            Status
+                                        </th>
+                                        <th
                                             class="px-4 py-3 text-center font-semibold tracking-wider uppercase"
                                         >
                                             Aksi
@@ -473,6 +478,11 @@ const hapusDetail = (detailId: number) => {
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
                                             {{ detail.penyelenggara }}
+                                        </td>
+                                        <td
+                                            class="px-4 py-3 text-slate-600 dark:text-slate-300"
+                                        >
+                                            {{ detail.status }}
                                         </td>
                                         <td
                                             class="flex justify-center gap-1 px-4 py-3 text-center"

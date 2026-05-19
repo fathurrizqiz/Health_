@@ -72,7 +72,7 @@ declare module '@inertiajs/core' {
                 id: number;
                 name: string;
                 nrp: string;
-                role: string | string[];
+                roles: string | string[];
             } | null;
         };
         // Tambahkan sebagai opsional

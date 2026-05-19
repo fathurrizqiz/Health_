@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ImpersonateRequestModel;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -62,39 +64,77 @@ class UserController extends Controller
 
     // 1. Masuk sebagai User
     public function impersonate($id)
-    {
-        $adminId = Auth::id(); // Simpan ID Admin
-        $userToImpersonate = User::findOrFail($id);
+{
+    $admin = Auth::user();
+    $userToImpersonate = User::findOrFail($id);
 
-        // Simpan ID Admin di session agar bisa kembali nanti
-        Session::put('impersonator_id', $adminId);
+    // Hapus request lama yang masih pending untuk target yang sama
+    ImpersonateRequestModel::where('target_nrp', $userToImpersonate->nrp)
+        ->where('status', 'pending')
+        ->delete();
 
-        // Login sebagai user target
-        Auth::login($userToImpersonate);
+    // Buat request baru
+    $request = ImpersonateRequestModel::create([
+        'admin_nrp'  => $admin->nrp,
+        'target_nrp' => $userToImpersonate->nrp,
+        'status'     => 'pending',
+        'expires_at' => Carbon::now()->addMinutes(5),
+    ]);
 
-        return redirect()->route('dashboard')->with('success', 'Sekarang Anda masuk sebagai ' . $userToImpersonate->name);
+    return response()->json([
+        'request_id'   => $request->id,
+        'expires_at'   => $request->expires_at,
+        'target_name'  => $userToImpersonate->name,
+    ]);
+}
+
+// function untuk cek status impersonate
+public function checkImpersonateStatus($requestId)
+{
+    $impersonateRequest = ImpersonateRequestModel::findOrFail($requestId);
+
+    // Auto-expire jika sudah lewat waktu
+    if ($impersonateRequest->status === 'pending' && $impersonateRequest->isExpired()) {
+        $impersonateRequest->update(['status' => 'expired']);
     }
+
+    if ($impersonateRequest->status === 'approved') {
+        // Lakukan login sekarang
+        $userToImpersonate = User::where('nrp', $impersonateRequest->target_nrp)->firstOrFail();
+
+        Session::put('impersonator_id', Auth::user()->nrp);
+        Auth::guard('web')->login($userToImpersonate, false);
+        Session::save();
+
+        $impersonateRequest->delete();
+
+        return response()->json(['status' => 'approved', 'redirect' => route('dashboard')]);
+    }
+
+    return response()->json(['status' => $impersonateRequest->status]);
+}
 
     // 2. Kembali ke Admin
     public function stopImpersonate()
     {
-        // dd([
-        //     'auth_user' => Auth::user(),
-        //     'session_all' => Session::all(),
-        //     'impersonator_id' => Session::get('impersonator_id'),
-        // ]);
+        $adminId = Session::get('impersonator_id');
 
-        $adminId = Session::pull('impersonator_id');
-
-        if ($adminId) {
-
-            $admin = User::findOrFail($adminId);
-
-            Auth::login($admin);
-
-            return 'BERHASIL BALIK KE ADMIN';
+        if (!$adminId) {
+            return redirect('/');
         }
 
-        return redirect('/');
+        // cari berdasarkan NRP atau ID, tergantung apa yang disimpan di session
+        $admin = User::where('nrp', $adminId)
+            ->orWhere('id', $adminId)
+            ->firstOrFail();
+
+        Session::forget('impersonator_id');
+        Auth::guard('web')->login($admin, false);
+        Session::save();
+
+        // \Log::info('stopImpersonate - selesai', ['now_user' => Auth::id()]);
+
+        return redirect('/super-admin/users')
+            ->with('success', 'Kembali sebagai ' . $admin->name);
     }
 }

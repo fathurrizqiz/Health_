@@ -33,7 +33,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const page = usePage();
 const auth = page.props.auth;
-const rawRole = auth.user?.role || [];
+const rawRole = auth.user?.roles || [];
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 // const menuItems = [
 //     { title: 'Perpustakaan Diklat', href: '/MateriDiklat/approve' },
@@ -150,8 +150,8 @@ const openRejectModal = (item: any) => {
 
 // 🔹 Submit alasan penolakan
 const submitRejection = (id: number) => {
-    if (!rejectionReason.value.trim())
-        return alert('Alasan tidak boleh kosong.');
+    // if (!rejectionReason.value.trim())
+    //     return alert('Alasan tidak boleh kosong.');
 
     router.put(
         `/Materi/reject/${id}`,

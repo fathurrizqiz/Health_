@@ -169,6 +169,8 @@ Route::post('/HLC/Home/konfirmasi/{id}', [InboxController::class, 'setujuRekomen
 Route::post('/HLC/Home/tolak/{id}', [InboxController::class, 'tolakRekomendasihlc'])->name('diklat.hlc.tolakRekomendasi');
 Route::post('/Eksternal/Home/konfirmasi/{id}', [InboxController::class, 'setujuRekomendasieksternal'])->name('diklat.eksternal.setujuRekomendasi');
 Route::post('/Eksternal/Home/tolak/{id}', [InboxController::class, 'tolakRekomendasieksternal'])->name('diklat.eksternal.tolakRekomendasi');
+// impersonate response user
+Route::post('/impersonation/respond/{requestId}', [InboxController::class, 'respondImpersonate'])->name('impersonation.respond');
 
 // Master Data
 Route::get('/MasterData/home', [MasterDataController::class, 'index'])->name('masterdata.home');
@@ -193,8 +195,8 @@ Route::middleware(['auth'])->group(function () {
 
     // login as
     Route::post('/super-admin/login-as/{id}', [UserController::class, 'impersonate'])->name('superadmin.login-as');
-    Route::post('/impersonation/leave', [UserController::class, 'stopImpersonate'])
-        ->name('impersonation.leave');
+    Route::get('/super-admin/impersonate-status/{requestId}', [UserController::class, 'checkImpersonateStatus'])->name('superadmin.impersonate-status');
+    Route::post('/impersonation/leave', [UserController::class, 'stopImpersonate'])->name('impersonation.leave');
     
 });
 

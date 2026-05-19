@@ -4,6 +4,7 @@ import { router, useForm } from '@inertiajs/vue3';
 import { UserPlus, X } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { toast } from 'vue3-toastify';
+import axios from 'axios';
 
 interface Role {
     id: number;
@@ -34,6 +35,11 @@ const userForm = useForm({
 
 // State UI
 const showUserModal = ref(false);
+// State untuk impersonate
+const loadingImpersonate = ref(null); // menyimpan requestId
+const targetName = ref('');
+const pollInterval = ref();
+const countdown = ref(300); // 5 menit
 
 const openCreateModal = () => {
     showUserModal.value = true;
@@ -86,11 +92,37 @@ const closeModal = () => {
     userForm.reset();
 };
 
-const impersonateUser = (id: number) => {
-    if (confirm('Masuk sebagai user ini?')) {
-        router.post(route('superadmin.login-as', id));
-    }
+const loginAs = async (userId, userName) => {
+    const res = await axios.post(route('superadmin.login-as', userId));
+    loadingImpersonate.value = res.data.request_id;
+    targetName.value = res.data.target_name;
+    countdown.value = 300;
+
+    // Mulai countdown
+    const countdownTimer = setInterval(() => { countdown.value-- }, 1000);
+
+    // Polling tiap 3 detik
+    pollInterval.value = setInterval(async () => {
+        const poll = await axios.get(route('superadmin.impersonate-status', loadingImpersonate.value));
+        
+        if (poll.data.status === 'approved') {
+            clearInterval(pollInterval.value);
+            clearInterval(countdownTimer);
+            window.location.href = poll.data.redirect;
+        } else if (['rejected', 'expired'].includes(poll.data.status)) {
+            clearInterval(pollInterval.value);
+            clearInterval(countdownTimer);
+            loadingImpersonate.value = null;
+            toast.error(poll.data.status === 'rejected' ? 'Akses ditolak oleh pengguna.' : 'Request kadaluarsa.');
+        }
+    }, 3000);
 };
+
+const cancelImpersonate = () => {
+    clearInterval(pollInterval.value);
+    loadingImpersonate.value = null;
+};
+const formatCountdown = (s) => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
 </script>
 
 <template>
@@ -221,7 +253,7 @@ const impersonateUser = (id: number) => {
                                         </svg>
                                     </button>
                                     <button
-                                        @click="impersonateUser(user.id)"
+                                        @click="loginAs(user.id, user.name)"
                                         class="rounded-lg bg-emerald-600 p-2 text-white transition-all hover:bg-emerald-500"
                                         title="Login Sebagai User Ini"
                                     >
@@ -342,5 +374,36 @@ const impersonateUser = (id: number) => {
                 </div>
             </div>
         </div>
+        <!-- Loading Overlay -->
+    <Teleport to="body">
+        <div v-if="loadingImpersonate"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div class="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-2xl dark:bg-slate-900">
+                
+                <!-- Spinner -->
+                <div class="relative mx-auto mb-6 h-20 w-20">
+                    <svg class="h-20 w-20 -rotate-90 animate-spin text-blue-600" viewBox="0 0 80 80">
+                        <circle cx="40" cy="40" r="34" fill="none" stroke="currentColor" 
+                            stroke-width="6" stroke-linecap="round"
+                            stroke-dasharray="213" stroke-dashoffset="53" />
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center text-lg font-bold text-blue-600">
+                        {{ formatCountdown(countdown) }}
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Menunggu Persetujuan</h3>
+                <p class="mt-2 text-sm text-slate-500">
+                    Permintaan akses ke akun <span class="font-semibold text-slate-700 dark:text-slate-300">{{ targetName }}</span> telah dikirim.
+                </p>
+                <p class="mt-1 text-xs text-slate-400">Pengguna perlu membuka Inbox untuk menyetujui.</p>
+
+                <button @click="cancelImpersonate"
+                    class="mt-6 w-full rounded-2xl border border-slate-200 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400">
+                    Batalkan
+                </button>
+            </div>
+        </div>
+    </Teleport>
     </AppLayout>
 </template>
