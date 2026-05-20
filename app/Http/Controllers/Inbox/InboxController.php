@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DiklatEksternal;
 use App\Models\HLCManajement;
 use App\Models\ImpersonateRequestModel;
+use App\Models\NoHpKaryawan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -25,10 +26,28 @@ class InboxController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         $impersonateRequests = ImpersonateRequestModel::where('target_nrp', $user->nrp)
-        ->where('status', 'pending')
-        ->where('expires_at', '>', now())
-        ->with('admin')
-        ->get();
+            ->where('status', 'pending')
+            ->where('expires_at', '>', now())
+            ->with('admin')
+            ->get();
+
+        $belumTerdaftar = !NoHpKaryawan::where('nama', $user->name)->exists();
+
+        if ($belumTerdaftar) {
+            // Buat item tiruan yang formatnya mirip dengan item HLCManajement / Inbox Anda
+            // Sesuaikan key-nya (seperti 'tipe', 'pesan', 'judul') dengan properti yang biasa dibaca di Vue/React front-end Anda
+            $pesanPeringatan = (object) [
+                'id' => 'warning-nohp', // ID unik buatan agar tidak bentrok
+                'tipe' => 'system_warning',
+                'judul' => 'Penting: Lengkapi Nomor WhatsApp',
+                'pesan' => 'Anda belum mendaftarkan nomor HP/WhatsApp. Silakan isi terlebih dahulu untuk menerima notifikasi.',
+                'url_action' => route('nohp.userrequest'), // Arahkan ke method userrequest() Anda
+                'created_at' => now()->toISOString(),
+            ];
+
+            // Masukkan pesan peringatan ini ke urutan paling atas di dalam koleksi $undangan
+            $undangan->prepend($pesanPeringatan);
+        }
         return Inertia::render('Inbox/index', [
             'inboxItems' => $undangan,
             'inboxExternalItems' => $undanganexternal,

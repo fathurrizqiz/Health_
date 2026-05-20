@@ -14,12 +14,23 @@ const isLoading = ref<number | null>(null);
 const loadingAction = ref<'setuju' | 'tolak' | null>(null);
 
 // HELPERS
-const formatDate = (date: string) => {
+// HELPERS
+const formatDate = (date: string | null | undefined) => {
+    // Cek jika date kosong, null, atau undefined
+    if (!date) return '-';
+
+    const parsedDate = new Date(date);
+
+    // Cek jika date tidak valid (NaN)
+    if (isNaN(parsedDate.getTime())) {
+        return '-';
+    }
+
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
-    }).format(new Date(date));
+    }).format(parsedDate);
 };
 
 // ACTIONS
@@ -220,6 +231,64 @@ const respondImpersonate = (
                     </div>
 
                     <div class="space-y-5">
+                        <div v-for="item in inboxItems" :key="'hlc-' + item.id">
+                            <!-- 1. TAMPILAN JIKA MERUPAKAN PESAN PERINGATAN SISTEM (BELUM ISI NO HP) -->
+                            <div
+                                v-if="item.tipe === 'system_warning'"
+                                class="rounded-3xl animate-pulse border-2 shadow-xl border-red-300 bg-amber-50 p-6  transition-all duration-300 dark:border-amber-900/50 dark:bg-amber-950/20"
+                            >
+                                <div
+                                    class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+                                >
+                                    <div class="flex items-center gap-4">
+                                        <div
+                                            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-900/30"
+                                        >
+                                            <!-- Icon WhatsApp / Warning -->
+                                            <svg
+                                                class="h-7 w-7"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p
+                                                class="text-xs font-bold tracking-wider text-amber-600 uppercase dark:text-amber-400"
+                                            >
+                                                Peringatan Sistem
+                                            </p>
+                                            <p
+                                                class="mt-1 text-base font-bold text-slate-900 dark:text-white"
+                                            >
+                                                {{ item.judul }}
+                                            </p>
+                                            <p
+                                                class="mt-1 text-sm text-slate-600 dark:text-slate-400"
+                                            >
+                                                {{ item.pesan }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <!-- Menggunakan tag a biasa atau Link dari inertia untuk mengarah ke url_action -->
+                                        <a
+                                            :href="item.url_action"
+                                            class="inline-flex items-center gap-2 rounded-2xl bg-amber-600 px-5 py-3 text-sm font-semibold whitespace-nowrap text-white shadow-sm hover:bg-amber-700"
+                                        >
+                                            Isi Nomor HP ->
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div
                             v-for="item in inboxItems"
                             :key="'hlc-' + item.id"

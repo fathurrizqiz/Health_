@@ -34,4 +34,35 @@ class NohpController extends Controller
 
         return redirect()->route('nohp.index')->with('success', 'Data nomor WA berhasil disimpan.');
     }
+
+    public function userrequest()
+    {
+        // Ambil data user yang sedang login
+        $user = auth()->user();
+
+        return Inertia::render('Jadwal/NoHP/userinput', [
+            'auth_user' => [
+                'nama' => $user->name, 
+                'bagian' => $user->role ?? 'karyawan', 
+            ]
+        ]); 
+    }
+
+    public function storeuser(Request $request)
+    {
+        // Validasi input nomor WA
+        $request->validate([
+            'nomor_wa' => 'required|numeric|min:9',
+        ]);
+
+   
+        NoHpKaryawan::create([
+            'nama' => $request->nama,
+            'nomor_wa' => $request->nomor_wa,
+            'bagian' => $request->bagian,
+        ]);
+
+        
+        return redirect()->back()->with('message', 'Nomor HP berhasil disimpan!');
+    }
 }

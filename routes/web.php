@@ -137,6 +137,8 @@ Route::post('/jadwal-internal/send-wa', [JadwalInternalController::class, 'sendW
 // Nomor HP Karyawan
 Route::get('/NoHP', [NohpController::class, 'index'])->name('nohp.index');
 Route::post('/NoHP/store', [NohpController::class, 'store'])->name('nohp.store');
+Route::get('/NoHP/user', [NohpController::class, 'userrequest'])->name('nohp.userrequest');
+Route::post('/NoHP/user/store', [NohpController::class, 'storeuser'])->name('nohp.store.user');
 
 // template WA
 Route::get('/Template/WA', [TemplateController::class, 'index'])->name('template.index');
