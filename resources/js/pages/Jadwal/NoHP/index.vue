@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { useForm, Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { toast } from 'vue3-toastify';
 
 // Definisi Interface untuk Type Safety
 interface KaryawanAutocomplete {
@@ -59,13 +60,18 @@ const submit = (): void => {
 
 const hapusData = (id: number): void => {
     if (confirm('Hapus nomor ini?')) {
-        router.delete(route('nohp.destroy', id));
+        router.delete(route('nohp.destroy', id),{
+            onSuccess: () => {
+                toast.success('Nomor berhasil dihapus');
+            }
+        });
     }
 };
 
 function goTemplate() {
     router.get(route('template.index'));
 }
+
 </script>
 
 <template>

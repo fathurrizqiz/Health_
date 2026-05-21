@@ -2,6 +2,7 @@
 import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import { toast } from 'vue3-toastify';
 
 interface Template {
     id: number;
@@ -22,7 +23,10 @@ const form = useForm({
 
 const submit = () => {
     form.post(route('template.store'), {
-        onSuccess: () => form.reset(),
+        onSuccess: () => {
+            form.reset();
+            toast.success('Template berhasil ditambahkan');
+        }
     });
 };
 
@@ -36,7 +40,11 @@ const generateSlug = () => {
 
 const deleteTemplate = (id: number) => {
     if (confirm('Apakah Anda yakin ingin menghapus template ini?')) {
-        form.delete(route('template.destroy', id));
+        form.delete(route('template.destroy', id),{
+            onSuccess: () => {
+                toast.success('Template berhasil dihapus');
+            },
+        });
     }
 };
 </script>

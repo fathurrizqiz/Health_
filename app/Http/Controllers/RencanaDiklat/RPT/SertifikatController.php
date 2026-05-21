@@ -39,6 +39,11 @@ class SertifikatController extends Controller
             'materi.*' => 'required|string'
         ]);
 
+        $detailInternal = PeriodeBagianDetailInternal::where('periode_id', $request->periode_id)->first();
+
+        // Jika tidak ketemu di tabel tersebut, coba cari di tabel relasi tempat detail_program_id berada
+        $detailProgramId = $detailInternal ? $detailInternal->detail_program_id : null;
+
         TemplatePembahasanSertifikat::where('periode_id', $request->periode_id)->delete();
 
         foreach ($request->materi as $item) {
@@ -48,7 +53,14 @@ class SertifikatController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Pembahasan disimpan');
+       
+        if ($detailProgramId) {
+            return redirect()->route('aksi-internal', ['id' => $detailProgramId])
+                ->with('success', 'Materi Berhasil Disimpan');
+        }
+
+        // Fallback jika tidak ketemu
+        return redirect()->back()->with('success', 'Materi Berhasil Disimpan');
     }
 
     public function generate(PeriodeBagianDetailInternal $peserta)

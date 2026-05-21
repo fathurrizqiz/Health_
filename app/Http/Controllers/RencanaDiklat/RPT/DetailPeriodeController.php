@@ -140,7 +140,8 @@ class DetailPeriodeController extends Controller
 
         // Log::info('STORE selesai');
 
-        return back()->with('success', 'Data berhasil disimpan');
+        return redirect()->route('aksi-internal', ['id' => $validated['detail_program_id']])
+                 ->with('success', 'Data berhasil disimpan');
     }
 
     public function bulkDelete(Request $request)

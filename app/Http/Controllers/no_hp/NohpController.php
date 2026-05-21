@@ -35,6 +35,14 @@ class NohpController extends Controller
         return redirect()->route('nohp.index')->with('success', 'Data nomor WA berhasil disimpan.');
     }
 
+    public function destroy($id)
+    {
+        $noHpKaryawan = NoHpKaryawan::findOrFail($id);
+        $noHpKaryawan->delete();
+
+        return redirect()->route('nohp.index')->with('success', 'Data nomor WA berhasil dihapus.');
+    }
+
     public function userrequest()
     {
         // Ambil data user yang sedang login
