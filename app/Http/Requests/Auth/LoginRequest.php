@@ -53,6 +53,136 @@ class LoginRequest extends FormRequest
      *
      * @throws \Illuminate\Validation\ValidationException
      */
+    // public function authenticate(): void
+    // {
+    //     $this->ensureIsNotRateLimited();
+
+    //     $nrp = $this->input('nrp');
+    //     $employee_id = $this->input('employee_id');
+    //     $password = $this->input('password');
+
+    //     // Determine which identifier was actually provided
+    //     $isNrpField = $this->filled('nrp');
+    //     $isEmployeeIdField = $this->filled('employee_id');
+
+    //     // Use the appropriate identifier
+    //     $identifier = $isNrpField ? $nrp : $employee_id;
+
+    //     \Log::info("Login attempt with identifier: {$identifier}, from field: " . ($isNrpField ? 'nrp' : 'employee_id'));
+
+    //     // STEP 1: Check in users table first
+    //     if ($isNrpField) {
+    //         $user = User::where('nrp', $identifier)->first();
+    //     } else {
+    //         $user = User::where('employee_id', $identifier)->first();
+    //     }
+
+    //     if ($user) {
+    //         \Log::info("User found in users table, checking password");
+
+    //         // Verify password
+    //         if (Hash::check($password, $user->password)) {
+    //             \Log::info("Password correct, logging in existing user");
+    //             Auth::login($user, $this->boolean('remember'));
+    //             RateLimiter::clear($this->throttleKey());
+    //             return;
+    //         } else {
+    //             RateLimiter::hit($this->throttleKey());
+    //             throw ValidationException::withMessages([
+    //                 $isNrpField ? 'nrp' : 'employee_id' => 'Password yang Anda masukkan salah. Silakan coba lagi.',
+    //             ]);
+    //         }
+    //     }
+
+    //     // STEP 2: User doesn't exist, check in karyawans table
+    //     \Log::info("User not found in users table, checking source tables");
+
+    //     $karyawan = null;
+    //     if ($isNrpField) {
+    //         $karyawan = DB::table('karyawans')->where('nrp', $identifier)->first();
+    //     } else {
+    //         // If using employee_id, check if there's a mapping to nrp in karyawans
+    //         $karyawan = DB::table('karyawans')->where('employee_id', $identifier)->first();
+
+    //         // If not found with employee_id, try with nrp field (in case employee_id is actually a nrp)
+    //         if (!$karyawan) {
+    //             $karyawan = DB::table('karyawans')->where('nrp', $identifier)->first();
+    //         }
+    //     }
+
+    //     if ($karyawan) {
+    //         \Log::info("Found in karyawans table, creating new user");
+
+    //         // Create user with appropriate identifier field
+    //         $userData = [
+    //             'name' => $karyawan->nama_karyawan ?? $identifier,
+    //             'password' => Hash::make($password),
+
+    //         ];
+
+    //         if ($isNrpField) {
+    //             $userData['nrp'] = $identifier;
+    //         } else {
+    //             $userData['employee_id'] = $identifier;
+    //         }
+
+    //         $user->assignRole('karyawan');
+    //     } else {
+    //         // STEP 3: If not found in karyawans, check in tambah_karyawan
+    //         \Log::info("Not found in karyawans, checking tambah_karyawan");
+
+    //         $rekruter = null;
+    //         $possibleFields = ['employee_id', 'emp_id', 'id_karyawan', 'karyawan_id', 'nrp'];
+
+    //         foreach ($possibleFields as $field) {
+    //             $rekruter = DB::table('tambah_karyawan')->where($field, $identifier)->first();
+    //             if ($rekruter) {
+    //                 \Log::info("Found in tambah_karyawan table using field: {$field}");
+    //                 break;
+    //             }
+    //         }
+
+    //         if ($rekruter) {
+    //             \Log::info("Found in tambah_karyawan table, creating new user");
+
+    //             // Create user with appropriate identifier field
+    //             $userData = [
+    //                 'name' => $rekruter->nama ?? $identifier,
+    //                 'password' => Hash::make($password),
+
+    //             ];
+
+    //             if ($isNrpField) {
+    //                 $userData['nrp'] = $identifier;
+    //             } else {
+    //                 $userData['employee_id'] = $identifier;
+    //             }
+
+    //             $user->assignRole('user');
+    //         } else {
+    //             // STEP 4: Not found in all tables
+    //             \Log::warning("Identifier {$identifier} not found in all tables");
+
+    //             RateLimiter::hit($this->throttleKey());
+
+    //             throw ValidationException::withMessages([
+    //                 $isNrpField ? 'nrp' : 'employee_id' => 'Identifier not found in database. Please check your NRP or Employee ID.',
+    //             ]);
+    //         }
+    //     }
+
+    //     // Login new user
+    //     Auth::login($user, $this->boolean('remember'));
+
+    //     \Log::info("New user {$identifier} created and logged in successfully");
+
+    //     RateLimiter::clear($this->throttleKey());
+    // }
+    /**
+     * Attempt to authenticate the request's credentials.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
@@ -63,7 +193,6 @@ class LoginRequest extends FormRequest
 
         // Determine which identifier was actually provided
         $isNrpField = $this->filled('nrp');
-        $isEmployeeIdField = $this->filled('employee_id');
 
         // Use the appropriate identifier
         $identifier = $isNrpField ? $nrp : $employee_id;
@@ -87,26 +216,23 @@ class LoginRequest extends FormRequest
                 RateLimiter::clear($this->throttleKey());
                 return;
             } else {
-                // For security, don't automatically update password
-                // Instead, increment failed attempts and show error
                 RateLimiter::hit($this->throttleKey());
                 throw ValidationException::withMessages([
-                    $isNrpField ? 'nrp' : 'employee_id' => 'The provided credentials are incorrect.',
+                    $isNrpField ? 'nrp' : 'employee_id' => 'Password yang Anda masukkan salah.',
                 ]);
             }
         }
 
-        // STEP 2: User doesn't exist, check in karyawans table
+        // STEP 2: User doesn't exist, check in karyawans table (Divisi Kamu)
         \Log::info("User not found in users table, checking source tables");
 
         $karyawan = null;
         if ($isNrpField) {
             $karyawan = DB::table('karyawans')->where('nrp', $identifier)->first();
         } else {
-            // If using employee_id, check if there's a mapping to nrp in karyawans
             $karyawan = DB::table('karyawans')->where('employee_id', $identifier)->first();
 
-            // If not found with employee_id, try with nrp field (in case employee_id is actually a nrp)
+            // If not found with employee_id, try with nrp field
             if (!$karyawan) {
                 $karyawan = DB::table('karyawans')->where('nrp', $identifier)->first();
             }
@@ -115,11 +241,10 @@ class LoginRequest extends FormRequest
         if ($karyawan) {
             \Log::info("Found in karyawans table, creating new user");
 
-            // Create user with appropriate identifier field
+            // Menyiapkan data untuk user baru
             $userData = [
                 'name' => $karyawan->nama_karyawan ?? $identifier,
                 'password' => Hash::make($password),
-                
             ];
 
             if ($isNrpField) {
@@ -128,52 +253,24 @@ class LoginRequest extends FormRequest
                 $userData['employee_id'] = $identifier;
             }
 
+            // Perbaikan: Eksekusi create user ke database agar objek $user tercipta
+            $user = User::create($userData);
+
+            // Berikan role sesuai sistem kamu
             $user->assignRole('karyawan');
+            
         } else {
-            // STEP 3: If not found in karyawans, check in tambah_karyawan
-            \Log::info("Not found in karyawans, checking tambah_karyawan");
+            // STEP 3: Data tidak ditemukan di semua tabel divisi kamu
+            \Log::warning("Identifier {$identifier} not found in all allowed tables");
 
-            $rekruter = null;
-            $possibleFields = ['employee_id', 'emp_id', 'id_karyawan', 'karyawan_id', 'nrp'];
+            RateLimiter::hit($this->throttleKey());
 
-            foreach ($possibleFields as $field) {
-                $rekruter = DB::table('tambah_karyawan')->where($field, $identifier)->first();
-                if ($rekruter) {
-                    \Log::info("Found in tambah_karyawan table using field: {$field}");
-                    break;
-                }
-            }
-
-            if ($rekruter) {
-                \Log::info("Found in tambah_karyawan table, creating new user");
-
-                // Create user with appropriate identifier field
-                $userData = [
-                    'name' => $rekruter->nama ?? $identifier,
-                    'password' => Hash::make($password),
-                    
-                ];
-
-                if ($isNrpField) {
-                    $userData['nrp'] = $identifier;
-                } else {
-                    $userData['employee_id'] = $identifier;
-                }
-
-                $user->assignRole('user');
-            } else {
-                // STEP 4: Not found in all tables
-                \Log::warning("Identifier {$identifier} not found in all tables");
-
-                RateLimiter::hit($this->throttleKey());
-
-                throw ValidationException::withMessages([
-                    $isNrpField ? 'nrp' : 'employee_id' => 'Identifier not found in database. Please check your NRP or Employee ID.',
-                ]);
-            }
+            throw ValidationException::withMessages([
+                $isNrpField ? 'nrp' : 'employee_id' => 'NRP atau Employee ID tidak terdaftar di sistem.',
+            ]);
         }
 
-        // Login new user
+        // Login new user yang baru saja dibuat dari tabel karyawan
         Auth::login($user, $this->boolean('remember'));
 
         \Log::info("New user {$identifier} created and logged in successfully");

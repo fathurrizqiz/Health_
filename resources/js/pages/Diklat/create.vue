@@ -36,8 +36,8 @@ function submit() {
         onSuccess:()=>{
             toast.success('Data Berhasil Disimpan!')
         },
-        onError:()=>{
-            toast.error('Data Gagal Disimpan!, Pastikan semua kolom terisi dengan benar.')
+        onError:(errors)=>{
+            toast.error('Data Gagal Disimpan!, Pastikan semua kolom terisi dengan benar.',errors)
         }
     });
 }
@@ -58,7 +58,7 @@ function submit() {
                     type="date"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     v-model="form.tanggal_mulai"
-                    required
+                    
                 />
             </div>
             <div>
@@ -68,7 +68,7 @@ function submit() {
                     type="date"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     v-model="form.tanggal_selesai"
-                    required
+                    
                 />
             </div>
 
@@ -101,7 +101,7 @@ function submit() {
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     v-model="form.pengajar"
                     placeholder="Ketik nama pengajar..."
-                    required
+                    
                 />
                 <datalist id="karyawan-list">
                     <option v-for="k in karyawan" :key="k.id" :value="k.nama_karyawan"></option>
@@ -117,7 +117,7 @@ function submit() {
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     v-model="form.penyelenggara"
                     placeholder="Contoh: PT. Safety Indonesia"
-                    required
+                    
                 />
             </div>
 

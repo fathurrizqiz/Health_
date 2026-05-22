@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\DiklatEksternal;
 use App\Models\HLCManajement;
 use App\Models\PeriodeUtama;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -90,8 +91,11 @@ class HandleInertiaRequests extends Middleware
                     // AMBIL DATA ROLE DARI SPATIE DI SINI
                     'roles' => $request->user()->getRoleNames(),
                 ] : null,
+                ],
                 'is_impersonating' => $request->session()->has('impersonator_id'),
-            ],
+                'impersonatorName' => $request->session()->has('impersonator_id')
+                    ? optional(User::where('nrp', $request->session()->get('impersonator_id'))->first())->name
+                    : null,
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'notifications' => [
                 'jadwal_count' => $countJadwal,

@@ -1,0 +1,31 @@
+import { test, expect } from '@playwright/test';
+
+test('test', async ({ page }) => {
+  await page.goto('http://localhost:8000/');
+  await page.getByText('Klik di mana saja untuk').click();
+  await page.locator('input[name="nrp"]').click();
+  await page.locator('input[name="nrp"]').fill('005100439');
+  await page.locator('input[name="password"]').click();
+  await page.locator('input[name="password"]').fill('005100439');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await page.getByRole('link', { name: 'Diklat', description: 'Diklat', exact: true }).click();
+  await page.getByRole('button', { name: 'Tambah' }).click();
+  await page.getByRole('textbox', { name: 'Nama Diklat' }).click();
+  await page.getByRole('textbox', { name: 'Nama Diklat' }).fill('Diklat Karyawan');
+  await page.locator('select[name="diklat"]').selectOption('HLC');
+  await page.getByRole('combobox', { name: 'Pengajar' }).click();
+  await page.getByRole('combobox', { name: 'Pengajar' }).fill('dr Minar Mitutuluhur');
+  await page.getByRole('textbox', { name: 'Penyelenggara' }).click();
+  await page.getByRole('textbox', { name: 'Penyelenggara' }).click();
+  await page.getByRole('textbox', { name: 'Penyelenggara' }).fill('RSMDH');
+  await page.getByRole('spinbutton', { name: 'Jam Diklat' }).click();
+  await page.getByRole('spinbutton', { name: 'Jam Diklat' }).fill('0');
+  await page.locator('#keterangan').nth(1).click();
+  await page.locator('#keterangan').nth(1).fill('sangat bagus');
+  await page.locator('#keterangan').nth(2).click();
+  await page.locator('#keterangan').nth(2).fill('cocok');
+  await page.getByRole('button', { name: 'Upload Sertifikat' }).click();
+  await page.getByRole('button', { name: 'Upload Sertifikat' }).setInputFiles('hasil_turnitin_1767684375748_Revisi.pdf');
+  await page.goto('http://localhost:8000/Diklat/create');
+  await page.getByRole('button', { name: 'Simpan Data' }).click();
+});

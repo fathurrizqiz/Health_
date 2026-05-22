@@ -109,7 +109,7 @@ class DiklatController extends Controller
         $validated = $request->validate([
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'nama_diklat' => 'nullable|string|max:255',
+            'nama_diklat' => 'required|string|max:255',
             'evaluasimateri' => 'nullable|string|max:255',
             'evaluasipengajar' => 'nullable|string|max:255',
             'pengajar' => 'required|string|max:255',
@@ -202,7 +202,7 @@ class DiklatController extends Controller
         $validated = $request->validate([
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'nama_diklat' => 'nullable|string|max:255',
+            'nama_diklat' => 'required|string|max:255',
             'pengajar' => 'required|string|max:255',
             'diklat' => 'required|string|max:255',
             'penyelenggara' => 'required|string|max:255',

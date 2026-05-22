@@ -54,6 +54,9 @@ const submit = (): void => {
         onSuccess: () => {
             form.reset();
             searchQuery.value = '';
+        },
+        onError: () => {
+            toast.error('Gagal menambahkan nomor. Pastikan data valid.');
         }
     });
 };

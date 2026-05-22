@@ -26,6 +26,9 @@ const submit = () => {
         onSuccess: () => {
             form.reset();
             toast.success('Template berhasil ditambahkan');
+        },
+        onError: () => {
+            toast.error('Gagal menambahkan template. Pastikan semua field diisi dengan benar.');
         }
     });
 };
