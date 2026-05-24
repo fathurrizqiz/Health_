@@ -101,7 +101,7 @@ class HLCController extends Controller
         ]);
 
         // Default approved karena admin yang input
-        $validated['status'] = 'offered';
+        $validated['status'] = 'pending';
 
         $tanggalMulai = Carbon::parse($validated['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validated['tanggal_selesai']);

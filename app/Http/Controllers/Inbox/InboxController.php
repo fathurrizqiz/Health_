@@ -18,11 +18,11 @@ class InboxController extends Controller
     {
         $user = auth()->user();
         $undangan = HLCManajement::where('nrp', $user->nrp)
-            ->where('status', 'offered') // Hanya tampilkan yang statusnya ditawarkan
+            ->where('status', 'pending') // Hanya tampilkan yang statusnya ditawarkan
             ->orderBy('created_at', 'desc')
             ->get();
         $undanganexternal = DiklatEksternal::where('nrp', $user->nrp)
-            ->where('status', 'offered') // Hanya tampilkan yang statusnya ditawarkan
+            ->where('status', 'pending') // Hanya tampilkan yang statusnya ditawarkan
             ->orderBy('created_at', 'desc')
             ->get();
         $impersonateRequests = ImpersonateRequestModel::where('target_nrp', $user->nrp)
@@ -65,7 +65,7 @@ class InboxController extends Controller
     }
     public function tolakRekomendasihlc($id)
     {
-        $hlc = DiklatEksternal::findOrFail($id);
+        $hlc = HLCManajement::findOrFail($id);
 
         // Ubah status menjadi rejected (artinya ditolak)
         $hlc->update(['status' => 'rejected']);

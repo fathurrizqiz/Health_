@@ -26,8 +26,8 @@ test('test', async ({ page }) => {
   await page.getByRole('textbox').nth(3).click();
   await page.getByRole('textbox').nth(3).fill('RSMDH');
 //   sesuaikan jika ingin di test
-  await page.getByRole('textbox').nth(4).fill('2026-05-19');
-  await page.getByRole('textbox').nth(5).fill('2026-05-19');
+  await page.getByRole('textbox').nth(4).fill('2026-05-24');
+  await page.getByRole('textbox').nth(5).fill('2026-05-24');
 //   
   await page.getByRole('textbox', { name: 'Ketik nama atau NRP karyawan' }).click();
   await page.getByRole('textbox', { name: 'Ketik nama atau NRP karyawan' }).fill('eva');

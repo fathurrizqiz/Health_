@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\DiklatEksternal;
+use App\Models\DiklatKaryawan;
 use App\Models\HLCManajement;
 use App\Models\PeriodeUtama;
 use App\Models\User;
@@ -53,8 +54,14 @@ class HandleInertiaRequests extends Middleware
             // 1. Hitung Persetujuan (Hanya jika role user punya akses admin biasanya)
             // Jika semua user bisa melihat ini, biarkan saja. 
             // Jika hanya admin, bisa ditambah if(in_array('admin_diklat', $user->role))
-            $countPersetujuan = DiklatEksternal::where('status', 'pending')->count() +
-                HLCManajement::where('status', 'pending')->count();
+            if ($user->hasRole('admin_diklat')) {
+                $countPersetujuan = DiklatKaryawan::where('status', 'pending')->count();
+            } else {
+                $countPersetujuan = 0;
+            }
+
+           
+
 
             // 2. Hitung Jadwal
             $internalCount = PeriodeUtama::whereHas('peserta', fn($q) => $q->where('nrp', $nrp))
@@ -73,9 +80,12 @@ class HandleInertiaRequests extends Middleware
             $countJadwal = $internalCount + $hlcCount + $eksternalCount;
 
             // 3. Hitung Inbox (Undangan Baru)
-            $countInbox = HLCManajement::where('nrp', $nrp)
-                ->where('status', 'offered')
-                ->count();
+             $countInbox = DiklatEksternal::where('nrp', $nrp)
+                ->where('status', 'pending') // Menghitung diklat eksternal milik SAYA yang sedang pending
+                ->count() +
+                HLCManajement::where('nrp', $nrp)
+                    ->where('status', 'pending') // Menghitung tawaran HLC milik SAYA yang belum di-acc
+                    ->count();
         }
         return [
             ...parent::share($request),
@@ -91,11 +101,11 @@ class HandleInertiaRequests extends Middleware
                     // AMBIL DATA ROLE DARI SPATIE DI SINI
                     'roles' => $request->user()->getRoleNames(),
                 ] : null,
-                ],
-                'is_impersonating' => $request->session()->has('impersonator_id'),
-                'impersonatorName' => $request->session()->has('impersonator_id')
-                    ? optional(User::where('nrp', $request->session()->get('impersonator_id'))->first())->name
-                    : null,
+            ],
+            'is_impersonating' => $request->session()->has('impersonator_id'),
+            'impersonatorName' => $request->session()->has('impersonator_id')
+                ? optional(User::where('nrp', $request->session()->get('impersonator_id'))->first())->name
+                : null,
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'notifications' => [
                 'jadwal_count' => $countJadwal,

@@ -32,8 +32,8 @@ const props = defineProps<{
     diklat: DiklatItem[];
     filters: {
         search?: string;
+        status?: string;
     };
-    status?: string | string[];
 }>();
 
 const showRejectModal = ref(false);
@@ -97,7 +97,7 @@ const submitReject = () => {
 };
 
 const search = ref(props.filters?.search || '');
-const statusFilter = ref(props.status || '');
+const statusFilter = ref(props.filters?.status || '');
 
 // Debounce helper
 function debounce(func: (...args: any[]) => void, wait: number) {

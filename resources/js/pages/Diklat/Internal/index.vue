@@ -117,6 +117,7 @@ watch(search, (newVal)=>{
                                 <th class="px-6 py-4 font-semibold uppercase text-[10px]">No</th>
                                 <th class="px-6 py-4 font-semibold uppercase text-[10px]">Nama Diklat</th>
                                 <th class="px-6 py-4 font-semibold uppercase text-[10px]">Pengajar</th>
+                                <th class="px-6 py-4 font-semibold uppercase text-[10px]">Jam Diklat</th>
                                 <th class="px-6 py-4 font-semibold uppercase text-[10px]">Status Sertifikat</th>
                                 <th class="px-6 py-4 text-center font-semibold uppercase text-[10px]">Aksi</th>
                             </tr>
@@ -126,6 +127,7 @@ watch(search, (newVal)=>{
                                 <td class="px-6 py-4 text-slate-500">{{ index + 1 }}</td>
                                 <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-200">{{ item.nama_diklat }}</td>
                                 <td class="px-6 py-4 text-slate-700 dark:text-slate-300">{{ item.nama_pengajar }}</td>
+                                <td class="px-6 py-4 text-slate-700 dark:text-slate-300">{{ item.jam_diklat }}</td>
                                 <td class="px-6 py-4">
                                     <span v-if="item.sertifikat_path" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Tersedia

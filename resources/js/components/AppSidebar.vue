@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookCopy, BookLock, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, Folder, GraduationCap, Inbox, LayoutGrid, Library, Settings, ShieldAlert, ShieldCheck, Signature, TriangleAlert, UsersRound } from 'lucide-vue-next';
+import { BookCopy, BookLock, BookMarked, BookOpen, CalendarCheck, CalendarCheck2, ChartLine, FileBadge, Folder, GraduationCap, Inbox, LayoutGrid, Library, Settings, ShieldAlert, ShieldCheck, Signature, TriangleAlert, UsersRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -74,9 +74,9 @@ const mainNavItems = computed(() => [
         icon: BookMarked,
     },
     {
-        title: 'Diklat Internal',
+        title: 'Sertifikat Internal',
         href: '/DiklatInternal/user',
-        icon: BookMarked,
+        icon: FileBadge,
     },
     {
         title: 'Persetujuan',

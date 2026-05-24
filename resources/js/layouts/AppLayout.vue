@@ -16,7 +16,7 @@ withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 const isImpersonating = computed(() => (page.props as any).is_impersonating);
-const impersonatorName = computed(() => (page.props as any).impersonatorName);
+// const impersonatorName = computed(() => (page.props as any).impersonatorName);
 // Sementara tambahkan ini
 console.log('ALL PROPS:', JSON.stringify(page.props));
 </script>

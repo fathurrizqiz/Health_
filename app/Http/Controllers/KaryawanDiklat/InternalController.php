@@ -48,7 +48,7 @@ class InternalController extends Controller
         $pesertaList = $query->get()->map(function ($peserta) {
             return [
                 'id' => $peserta->id,
-                'jam_diklat' => $peserta->aksi?->jam_diklat ?? 0,
+                'jam_diklat' => $peserta->periode?->detail?->aksi?->jam_diklat ?? 'Pelatihan belum dimulai',
                 'nama_diklat' => $peserta->periode?->detail?->nama_diklat,
                 'nama_pengajar' => $peserta->periode?->nama_pengajar ?? '-',
                 'pree_done_at' => $peserta->pree_done_at,

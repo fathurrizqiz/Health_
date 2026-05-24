@@ -47,7 +47,7 @@ class NonFormalController extends Controller
         ]);
 
         // Default approved karena admin yang input
-        $validate['status'] = 'offered';
+        $validate['status'] = 'pending';
 
         $tanggalMulai = Carbon::parse($validate['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validate['tanggal_selesai']);

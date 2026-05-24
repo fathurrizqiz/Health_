@@ -34,6 +34,9 @@ class ApprovDiklateController extends Controller
                         });
                 });
             })
+            ->when($status, function ($query, $status) {
+            $query->where('status', $status);
+        })
             ->latest()
             ->get()
             ->map(function ($item) {

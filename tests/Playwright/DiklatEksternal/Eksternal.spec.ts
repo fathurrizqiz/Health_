@@ -23,8 +23,8 @@ test('test rencana diklat eksternal', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Ketik NRP/Nama...' }).fill('eva');
   await page.getByText('- EVA EFFENDI').click();
 
-  await page.getByRole('textbox').nth(2).fill('2026-05-19');
-  await page.getByRole('textbox').nth(3).fill('2026-05-19');
+  await page.getByRole('textbox').nth(2).fill('2026-05-24');
+  await page.getByRole('textbox').nth(3).fill('2026-05-24');
   await page.getByRole('spinbutton').fill('01');
   await page.getByRole('textbox').nth(4).fill('RSMDH');
   
