@@ -170,6 +170,10 @@ const hapusDetail = (detailId: number) => {
         });
     }
 };
+
+const lihatDokumen = (dokumen: string) => {
+    window.open(`/storage/${dokumen}`, '_blank')
+}
 </script>
 
 <template>
@@ -395,6 +399,11 @@ const hapusDetail = (detailId: number) => {
                                         <th
                                             class="px-4 py-3 font-semibold tracking-wider uppercase"
                                         >
+                                            Diklat
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 font-semibold tracking-wider uppercase"
+                                        >
                                             Tanggal Mulai
                                         </th>
                                         <th
@@ -407,11 +416,7 @@ const hapusDetail = (detailId: number) => {
                                         >
                                             Jam Diklat
                                         </th>
-                                        <th
-                                            class="px-4 py-3 font-semibold tracking-wider uppercase"
-                                        >
-                                            Penyelenggara
-                                        </th>
+                                        
                                         <th
                                             class="px-4 py-3 font-semibold tracking-wider uppercase"
                                         >
@@ -438,9 +443,12 @@ const hapusDetail = (detailId: number) => {
                                             <div
                                                 class="flex items-center gap-2"
                                             >
+                                            
+
                                                 <div
                                                     class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                                                 >
+                                                
                                                     {{
                                                         detail.nama_karyawan?.charAt(
                                                             0,
@@ -448,12 +456,24 @@ const hapusDetail = (detailId: number) => {
                                                     }}
                                                 </div>
                                                 {{ detail.nama_karyawan }}
+                                           
+                                            
                                             </div>
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
                                             {{ detail.nrp }}
+                                        </td>
+                                        <td
+                                            class="px-4 py-3 text-slate-600 dark:text-slate-300"
+                                        >
+                                        <button
+                                            @click="lihatDokumen(detail.dokumen)"
+                                            class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                        >
+                                            Lihat Dokumen
+                                        </button>
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
@@ -474,11 +494,7 @@ const hapusDetail = (detailId: number) => {
                                                 {{ detail.jam_diklat }} Jam
                                             </span>
                                         </td>
-                                        <td
-                                            class="px-4 py-3 text-slate-600 dark:text-slate-300"
-                                        >
-                                            {{ detail.penyelenggara }}
-                                        </td>
+                                        
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >

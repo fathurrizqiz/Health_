@@ -24,6 +24,15 @@ interface Jadwal {
     peserta?: Peserta[];
     hlc?: any[];
     eksternal?: any[];
+    kehadiranHariIni?: Kehadiran | null;
+}
+
+interface Kehadiran {
+    id: number;
+    tanggal?: string;
+    status?: string;
+    jam_masuk?: string;
+    jam_keluar?: string;
 }
 
 const props = defineProps<{
@@ -109,9 +118,27 @@ const kirimNotifikasi = (id: number, tipe: string) => {
     }
 };
 
+const parseLocalDate = (dateStr: string) => {
+    return new Date(dateStr + 'T00:00:00');
+};
+
+// helper waktu
+const isPelatihanAktif = (tanggalMulai: string, tanggalSelesai: string) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const mulai = parseLocalDate(tanggalMulai);
+    mulai.setHours(0, 0, 0, 0);
+
+    const selesai = parseLocalDate(tanggalSelesai);
+    selesai.setHours(23, 59, 59, 999);
+
+    return today >= mulai && today <= selesai;
+};
+
 // konfirmasi hadir HLC
 const konfirmasiHLC = (id: number, status: string) => {
-    const action = status === 'approved' ? 'setuju' : 'tolak';
+    const action = status === 'Hadir' ? 'Hadir' : 'tolak';
     if (
         confirm(
             `Apakah Anda yakin ingin ${action} keikutsertaan Anda dalam HLC ini?`,
@@ -131,7 +158,7 @@ const konfirmasiHLC = (id: number, status: string) => {
     }
 };
 const konfirmasiEksternal = (id: number, status: string) => {
-    const action = status === 'approved' ? 'setuju' : 'tolak';
+    const action = status === 'Hadir' ? 'Hadir' : 'tolak';
     if (
         confirm(
             `Apakah Anda yakin ingin ${action} keikutsertaan Anda dalam Eksternal ini?`,
@@ -157,6 +184,147 @@ function history() {
 // role
 const rawRole = props.auth.user?.roles || [];
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
+
+const lihatDokumen = (dokumen: string) => {
+    window.open(`/storage/${dokumen}`, '_blank');
+};
+
+// helper hari terakhir
+const isHariTerakhir = (tanggalSelesai: string) => {
+    const today = new Date();
+
+    const selesai = new Date(tanggalSelesai);
+
+    return (
+        today.getFullYear() === selesai.getFullYear() &&
+        today.getMonth() === selesai.getMonth() &&
+        today.getDate() === selesai.getDate()
+    );
+};
+
+// function open modal upload bukti
+
+const showUploadModal = ref(false);
+
+const selectedPelatihan = ref<any>(null);
+
+const formUpload = ref({
+    dokumen: null as File | null,
+});
+
+const jenisUpload = ref<'hlc' | 'eksternal'>('eksternal');
+// buka modal
+function openModalUpload(data: any, type: 'hlc' | 'eksternal') {
+    selectedPelatihan.value = data;
+    jenisUpload.value = type;
+    showUploadModal.value = true;
+}
+
+// tutup modal
+function closeUploadModal() {
+    showUploadModal.value = false;
+
+    formUpload.value.dokumen = null;
+
+    selectedPelatihan.value = null;
+}
+
+// ambil file
+function handleFileUpload(event: Event) {
+    const target = event.target as HTMLInputElement;
+
+    if (target.files && target.files[0]) {
+        formUpload.value.dokumen = target.files[0];
+    }
+}
+
+// submit upload
+// Eksternal
+function submitUpload() {
+    if (!formUpload.value.dokumen) {
+        toast.error('Silakan upload dokumen terlebih dahulu!');
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append('dokumen', formUpload.value.dokumen);
+
+    router.post(
+        route('diklat.eksternal.upload-bukti', selectedPelatihan.value.id),
+        formData,
+        {
+            forceFormData: true,
+
+            onSuccess: () => {
+                toast.success('Bukti kehadiran berhasil dikirim!');
+
+                closeUploadModal();
+            },
+        },
+    );
+}
+
+// HLC
+function submitUploadHLC() {
+    if (!formUpload.value.dokumen) {
+        toast.error('Silakan upload dokumen terlebih dahulu!');
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append('dokumen', formUpload.value.dokumen);
+
+    router.post(
+        route('diklat.hlc.upload-bukti', selectedPelatihan.value.id),
+        formData,
+        {
+            forceFormData: true,
+
+            onSuccess: () => {
+                toast.success('Bukti kehadiran berhasil dikirim!');
+
+                closeUploadModal();
+            },
+        },
+    );
+}
+
+// cek absen hari ini eksternal
+const sudahAbsenHariIni = (eks: any) => {
+    return !!eks.kehadiran_hari_ini;
+};
+// cek absen hari ini hlc
+const sudahAbsenHariIniHLC = (hlc: any) => {
+    return !!hlc.kehadiran_hari_ini;
+};
+
+// Eksternal absen hari ini
+const absenHariIni = (eks: any) => {
+    router.post(
+        route('diklat.eksternal.absen', eks.id),
+        {},
+        {
+            onSuccess: () => {
+                toast.success('Absen berhasil!');
+            },
+        },
+    );
+};
+
+// HLC absen hari ini
+const absenHariIniHLC = (hlc: any) => {
+    router.post(
+        route('diklat.hlc.absen', hlc.id),
+        {},
+        {
+            onSuccess: () => {
+                toast.success('Absen berhasil!');
+            },
+        },
+    );
+};
 </script>
 
 <template>
@@ -207,10 +375,10 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                         class="h-10 w-full rounded-xl border border-slate-300 bg-slate-50 pr-4 pl-10 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
                     />
                 </div>
-                <div
+                <div v-if="roles.includes('admin_diklat')" for="template-select"
                     class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row md:items-center"
                 >
-                    <label
+                    <label 
                         class="text-xs font-bold tracking-widest text-slate-500 uppercase"
                         >Pilih Template Pesan:</label
                     >
@@ -477,7 +645,14 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                         <td
                                             class="px-6 py-4 font-bold text-emerald-600"
                                         >
-                                            {{ hlc.nama_diklat }}
+                                            <button
+                                                @click="
+                                                    lihatDokumen(hlc.dokumen)
+                                                "
+                                                class="underline"
+                                            >
+                                                Lihat Dokumen
+                                            </button>
                                         </td>
                                         <td
                                             class="px-6 py-4 text-slate-500 italic"
@@ -488,48 +663,121 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                             {{ formatDate(hlc.tanggal_mulai) }}
                                         </td>
                                         <td class="px-6 py-4 font-mono text-xs">
-                                            <!-- Cek apakah hari ini adalah hari H diklat -->
+                                            <!-- Pelatihan sedang berlangsung -->
                                             <div
                                                 v-if="
-                                                    new Date(
+                                                    isPelatihanAktif(
                                                         hlc.tanggal_mulai,
-                                                    ).toDateString() ===
-                                                    new Date().toDateString()
+                                                        hlc.tanggal_selesai,
+                                                    )
                                                 "
                                             >
-                                                <!-- JIKA BELUM KONFIRMASI (STATUS PENDING) -->
+                                                <!-- Hari terakhir → upload bukti -->
                                                 <button
                                                     v-if="
-                                                        hlc.status === 'pending'
-                                                    "
-                                                    class="h-10 w-20 rounded-full bg-green-500 text-white transition duration-200 hover:shadow-2xl"
-                                                    @click="
-                                                        konfirmasiHLC(
-                                                            hlc.id,
-                                                            'approved',
+                                                        hlc.status ===
+                                                            'Setuju' &&
+                                                        isHariTerakhir(
+                                                            hlc.tanggal_selesai,
                                                         )
                                                     "
+                                                    @click="
+                                                        openModalUpload(
+                                                            hlc,
+                                                            'hlc',
+                                                        )
+                                                    "
+                                                    class="rounded-lg bg-emerald-600 px-4 py-2 text-white transition hover:bg-emerald-700"
                                                 >
-                                                    Hadir
+                                                    Upload Bukti
                                                 </button>
 
-                                                <!-- JIKA SUDAH KONFIRMASI (STATUS APPROVED) -->
+                                                <!-- Masih mengikuti pelatihan -->
+                                                <button
+                                                    v-else-if="
+                                                        hlc.status ===
+                                                            'Setuju' &&
+                                                        !sudahAbsenHariIniHLC(
+                                                            hlc,
+                                                        )
+                                                    "
+                                                    @click="
+                                                        absenHariIniHLC(hlc)
+                                                    "
+                                                    class="rounded-lg bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-600"
+                                                >
+                                                    Absen Hari Ini
+                                                </button>
+
+                                                <span
+                                                    v-else-if="
+                                                        hlc.status ===
+                                                            'Setuju' &&
+                                                        sudahAbsenHariIniHLC(
+                                                            hlc,
+                                                        )
+                                                    "
+                                                    class="rounded-full bg-green-100 px-3 py-1.5 text-sm font-medium text-green-700"
+                                                >
+                                                    Sudah Absen Hari Ini
+                                                </span>
+                                                <!-- Sudah upload bukti -->
+                                                <span
+                                                    v-else-if="
+                                                        hlc.status === 'Hadir'
+                                                    "
+                                                    class="rounded-full bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-700"
+                                                >
+                                                    Menunggu Verifikasi
+                                                </span>
+
+                                                <!-- Sudah diverifikasi -->
                                                 <span
                                                     v-else-if="
                                                         hlc.status ===
                                                         'approved'
                                                     "
-                                                    class="rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-700"
+                                                    class="rounded-full bg-green-100 px-3 py-1.5 text-sm font-medium text-green-700"
                                                 >
-                                                    Hadir
+                                                    Terverifikasi
+                                                </span>
+
+                                                <!-- Ditolak -->
+                                                <span
+                                                    v-else-if="
+                                                        hlc.status ===
+                                                        'rejected'
+                                                    "
+                                                    class="rounded-full bg-red-100 px-3 py-1.5 text-sm font-medium text-red-700"
+                                                >
+                                                    Ditolak
                                                 </span>
                                             </div>
 
+                                            <!-- Belum mulai -->
+                                            <div
+                                                v-else-if="
+                                                    new Date() <
+                                                    new Date(
+                                                        eks.tanggal_mulai +
+                                                            'T00:00:00',
+                                                    )
+                                                "
+                                            >
+                                                <span
+                                                    class="rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-500"
+                                                >
+                                                    Belum Waktunya
+                                                </span>
+                                            </div>
+
+                                            <!-- Pelatihan selesai -->
                                             <div v-else>
                                                 <span
-                                                    class="text-sm text-gray-400"
-                                                    >Belum Waktunya</span
+                                                    class="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600"
                                                 >
+                                                    Pelatihan Selesai
+                                                </span>
                                             </div>
                                         </td>
                                     </tr>
@@ -591,7 +839,7 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                     <th class="px-6 py-4 text-purple-600">
                                         Nama Diklat
                                     </th>
-                                    <th class="px-6 py-4">Penyelenggara</th>
+                                    <th class="px-6 py-4">Program</th>
                                     <th class="px-6 py-4">Mulai</th>
                                     <th class="px-6 py-4">Aksi</th>
                                 </tr>
@@ -611,26 +859,134 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                                         <td
                                             class="px-6 py-4 font-bold text-purple-600"
                                         >
-                                            {{ eks.nama_diklat }}
+                                            <button
+                                                @click="
+                                                    lihatDokumen(eks.dokumen)
+                                                "
+                                                class="underline"
+                                            >
+                                                Lihat Dokumen
+                                            </button>
                                         </td>
                                         <td class="px-6 py-4 text-slate-500">
-                                            {{ eks.penyelenggara }}
+                                            {{ eks.nama_diklat }}
                                         </td>
                                         <td class="px-6 py-4 font-mono text-xs">
                                             {{ formatDate(eks.tanggal_mulai) }}
                                         </td>
                                         <td class="px-6 py-4 font-mono text-xs">
-                                            <button
-                                                @click="
-                                                    konfirmasiEksternal(
-                                                        eks.id,
-                                                        'approved',
+                                            <!-- Pelatihan sedang berlangsung -->
+                                            <div
+                                                v-if="
+                                                    isPelatihanAktif(
+                                                        eks.tanggal_mulai,
+                                                        eks.tanggal_selesai,
                                                     )
                                                 "
-                                                class="rounded bg-green-500 px-5 py-3 text-white hover:bg-green-600"
                                             >
-                                                Hadir
-                                            </button>
+                                                <!-- Hari terakhir -->
+                                                <button
+                                                    v-if="
+                                                        eks.status ===
+                                                            'Setuju' &&
+                                                        isHariTerakhir(
+                                                            eks.tanggal_selesai,
+                                                        )
+                                                    "
+                                                    @click="
+                                                        openModalUpload(
+                                                            eks,
+                                                            'eksternal',
+                                                        )
+                                                    "
+                                                    class="rounded-lg bg-green-500 px-4 py-2 text-white transition hover:bg-green-600"
+                                                >
+                                                    Upload Bukti
+                                                </button>
+
+                                                <!-- Belum absen hari ini -->
+                                                <button
+                                                    v-else-if="
+                                                        eks.status ===
+                                                            'Setuju' &&
+                                                        !sudahAbsenHariIni(eks)
+                                                    "
+                                                    @click="absenHariIni(eks)"
+                                                    class="rounded-lg bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-600"
+                                                >
+                                                    Absen Hari Ini
+                                                </button>
+
+                                                <!-- Sudah absen hari ini -->
+                                                <span
+                                                    v-else-if="
+                                                        eks.status ===
+                                                            'Setuju' &&
+                                                        sudahAbsenHariIni(eks)
+                                                    "
+                                                    class="rounded-full bg-green-100 px-3 py-1.5 text-sm font-medium text-green-700"
+                                                >
+                                                    Sudah Absen Hari Ini
+                                                </span>
+
+                                                <!-- Sudah upload bukti -->
+                                                <span
+                                                    v-else-if="
+                                                        eks.status === 'Hadir'
+                                                    "
+                                                    class="rounded-full bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-700"
+                                                >
+                                                    Menunggu Verifikasi
+                                                </span>
+
+                                                <!-- Sudah diverifikasi -->
+                                                <span
+                                                    v-else-if="
+                                                        eks.status ===
+                                                        'approved'
+                                                    "
+                                                    class="rounded-full bg-green-100 px-3 py-1.5 text-sm font-medium text-green-700"
+                                                >
+                                                    Terverifikasi
+                                                </span>
+
+                                                <!-- Ditolak -->
+                                                <span
+                                                    v-else-if="
+                                                        eks.status ===
+                                                        'rejected'
+                                                    "
+                                                    class="rounded-full bg-red-100 px-3 py-1.5 text-sm font-medium text-red-700"
+                                                >
+                                                    Ditolak
+                                                </span>
+                                            </div>
+
+                                            <!-- Belum mulai -->
+                                            <div
+                                                v-else-if="
+                                                    new Date() <
+                                                    new Date(
+                                                        eks.tanggal_mulai +
+                                                            'T00:00:00',
+                                                    )
+                                                "
+                                            >
+                                                <span
+                                                    class="rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-500"
+                                                >
+                                                    Belum Waktunya
+                                                </span>
+                                            </div>
+
+                                            <!-- Pelatihan selesai -->
+                                            <div v-else>
+                                                <span
+                                                    class="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600"
+                                                >
+                                                    Pelatihan Selesai
+                                                </span>
+                                            </div>
                                         </td>
                                     </tr>
                                 </template>
@@ -673,6 +1029,82 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
                         </template>
                     </div>
                     <EmptyState v-if="!jadwalEksternal.length" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Upload Bukti -->
+        <div
+            v-if="showUploadModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        >
+            <div
+                class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900"
+            >
+                <!-- Header -->
+                <div class="mb-5">
+                    <h2
+                        class="text-lg font-bold text-slate-900 dark:text-white"
+                    >
+                        Upload Bukti Kehadiran
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        Upload file PDF/JPG sebagai bukti mengikuti pelatihan.
+                    </p>
+                </div>
+
+                <!-- Nama Pelatihan -->
+                <div class="mb-4 rounded-xl bg-slate-100 p-3 dark:bg-slate-800">
+                    <p
+                        class="text-sm font-semibold text-slate-700 dark:text-slate-200"
+                    >
+                        {{
+                            selectedPelatihan?.nama_diklat ||
+                            selectedPelatihan?.nama_program
+                        }}
+                    </p>
+                </div>
+
+                <!-- Upload -->
+                <div class="mb-6">
+                    <label
+                        class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300"
+                    >
+                        File Bukti
+                    </label>
+
+                    <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        @change="handleFileUpload"
+                        class="block w-full rounded-lg border border-slate-300 bg-white text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-white hover:file:bg-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    />
+
+                    <p class="mt-2 text-xs text-slate-400">
+                        Format: PDF, JPG, JPEG, PNG • Maks 2MB
+                    </p>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-3">
+                    <button
+                        @click="closeUploadModal"
+                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                        Batal
+                    </button>
+
+                    <button
+                        @click="
+                            jenisUpload === 'hlc'
+                                ? submitUploadHLC()
+                                : submitUpload()
+                        "
+                        class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
+                    >
+                        Upload Bukti
+                    </button>
                 </div>
             </div>
         </div>

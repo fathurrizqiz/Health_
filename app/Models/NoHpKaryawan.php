@@ -11,7 +11,8 @@ class NoHpKaryawan extends Model
     protected $fillable = [
         'nama',
         'nomor_wa',
-        'bagian'
+        'bagian',
+        'nrp'
     ];
 
     /**

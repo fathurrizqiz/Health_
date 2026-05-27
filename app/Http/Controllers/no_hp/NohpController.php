@@ -12,7 +12,7 @@ class NohpController extends Controller
 {
     public function index()
     {
-        $karyawan = Karyawans::select('id', 'nama_karyawan', 'bagian')->get();
+        $karyawan = Karyawans::select('id', 'nama_karyawan', 'bagian','nrp')->get();
         $noHpKaryawan = NoHpKaryawan::latest()->get();
         return Inertia::render(
             'Jadwal/NoHP/index',
@@ -28,6 +28,7 @@ class NohpController extends Controller
             'nama' => 'required|string|max:255',
             'nomor_wa' => 'required|string|max:20|unique:no_hp_karyawan,nomor_wa',
             'jabatan' => 'nullable|string|max:255',
+            'nrp' => 'nullable|string|max:255',
         ]);
 
         NoHpKaryawan::create($validatedData);

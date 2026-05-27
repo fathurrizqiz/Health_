@@ -173,7 +173,6 @@ function bukaDokumentasi() {
             <h1 class="mb-6 text-2xl font-semibold text-gray-800">
                 Aksi Diklat
             </h1>
-            
 
             <!-- Pilih Periode -->
             <div
@@ -222,7 +221,8 @@ function bukaDokumentasi() {
                     Durasi Diklat (Jam)
                 </h2>
                 <Input
-                    type="number"
+                    @input="jam = $event.target.value.replace(/\D/g, '')"
+                    inputmode="numeric"
                     min="1"
                     v-model="jam"
                     class="w-32 rounded-md border border-gray-300 p-2.5 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
@@ -231,9 +231,8 @@ function bukaDokumentasi() {
             </div>
 
             <div class="mb-8 flex justify-end">
-                
                 <button
-                    v-if="!props.isRunning "
+                    v-if="!props.isRunning"
                     type="button"
                     class="cursor-pointer rounded bg-blue-600 px-5 py-3 text-white hover:bg-blue-800"
                     :disabled="!selectedPeriode"
@@ -245,7 +244,7 @@ function bukaDokumentasi() {
                 </button>
 
                 <button
-                   v-else
+                    v-else
                     type="button"
                     class="cursor-pointer rounded bg-red-600 px-5 py-3 text-white hover:bg-red-800"
                     @click="endPeriode"
@@ -253,10 +252,7 @@ function bukaDokumentasi() {
                     Akhiri Periode
                 </button>
 
-                <div>
-
-                </div>
-                
+                <div></div>
             </div>
             <div
                 v-if="($page.props.flash as any)?.token_link_pree"
@@ -321,8 +317,6 @@ function bukaDokumentasi() {
                     Manajemen Test
                 </h2>
                 <div class="flex flex-col gap-3 sm:flex-row">
-                    
-
                     <button
                         @click="
                             router.get(

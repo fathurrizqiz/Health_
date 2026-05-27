@@ -87,6 +87,9 @@ function deletePeriode(id:number){
         }
     })
 }
+
+// fungsi untuk sett tanggal hari ini
+const today = new Date().toISOString().split("T")[0]
 </script>
 
 <template>
@@ -101,7 +104,7 @@ function deletePeriode(id:number){
             <div class="mb-8 grid grid-cols-3 gap-5">
                 <div>
                     <h4>Tanggal Periode</h4>
-                    <Input type="date" v-model="form.tanggal" />
+                    <Input type="date" v-model="form.tanggal" :min="today" @keydown.prevent />
                 </div>
                 <div class="relative">
                     <h4>Nama Pengajar</h4>

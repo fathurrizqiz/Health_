@@ -9,6 +9,7 @@ interface KaryawanAutocomplete {
     id: number;
     nama_karyawan: string;
     bagian: string;
+    nrp?: string | null;
 }
 
 interface NoHpKaryawan {
@@ -16,6 +17,7 @@ interface NoHpKaryawan {
     nama: string;
     nomor_wa: string;
     bagian?: string | null;
+    nrp?: string | null;
 }
 
 const props = defineProps<{
@@ -31,6 +33,7 @@ const form = useForm({
     nama: '' as string,
     nomor_wa: '' as string,
     bagian: '' as string,
+    nrp: '' as string | null,
 });
 
 // Logic Autocomplete
@@ -38,13 +41,15 @@ const filteredKaryawan = computed(() => {
     if (searchQuery.value === '') return [];
     return props.karyawan.filter((user) => 
         user.nama_karyawan.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        user.bagian.toLowerCase().includes(searchQuery.value.toLowerCase())
+        user.bagian.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
+        user.nrp?.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
 });
 
 const selectKaryawan = (user: KaryawanAutocomplete): void => {
     form.nama = user.nama_karyawan;
     form.bagian = user.bagian;
+    form.nrp = user.nrp;
     searchQuery.value = user.nama_karyawan;
     showDropdown.value = false;
 };
@@ -196,6 +201,16 @@ function goTemplate() {
                                 v-model="form.bagian" 
                                 type="text" 
                                 placeholder="Contoh: Frontend Developer"
+                                class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition border-gray-200 text-sm"
+                            />
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-widest">NRP</label>
+                            <input 
+                                v-model="form.nrp" 
+                                type="text" 
+                                placeholder="Contoh: 123456789"
                                 class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition border-gray-200 text-sm"
                             />
                         </div>

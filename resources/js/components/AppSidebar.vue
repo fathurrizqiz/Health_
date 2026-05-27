@@ -80,7 +80,7 @@ const mainNavItems = computed(() => [
     },
     {
         title: 'Persetujuan',
-        href: '/Approve/Diklat',
+        href: '/Persetujuan',
         icon: Signature,
         roles: ['admin_diklat'],
         badge: persetujuanCount.value > 0 ? persetujuanCount.value : null,
@@ -128,7 +128,7 @@ const mainNavItems = computed(() => [
         roles: ['admin_diklat'],
     },
     {
-        title: 'Indbox',
+        title: 'Inbox',
         href: '/HLC/Home/user',
         icon: Inbox,
         badge: countInboxData.value > 0 ? countInboxData.value : null,

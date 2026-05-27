@@ -5,6 +5,7 @@ namespace App\Http\Controllers\RencanaDiklat\HLC;
 use App\Http\Controllers\Controller;
 use App\Models\DiklatEksternal;
 use App\Models\DiklatKaryawan;
+use App\Models\HLCAbsenModel;
 use App\Models\HLCManajement;
 use App\Models\Karyawans;
 use App\Models\ProgramHlc;
@@ -91,22 +92,36 @@ class HLCController extends Controller
     {
         $validated = $request->validate([
             'program_id' => 'required|exists:program_diklat_hlc,id',
-            'nama_diklat' => 'required|string',
+            'nama_diklat' => 'nullable|string',
             'pengajar' => 'nullable|string',
             'penyelenggara' => 'nullable|string',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date',
             'nrp' => 'nullable|string|max:255',
-            'jam_diklat' => 'nullable|integer'
+            'jam_diklat' => 'nullable|integer',
+            'dokumen' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg|max:2048'
         ]);
 
         // Default approved karena admin yang input
-        $validated['status'] = 'pending';
+        $validated['status'] = 'menunggu_persetujuan';
 
         $tanggalMulai = Carbon::parse($validated['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validated['tanggal_selesai']);
         $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
         $validated['jam_diklat'] = $validated['jam_diklat'] * $selisihHari;
+
+        if ($request->hasFile('dokumen')) {
+            $file = $request->file('dokumen');
+
+            // Membuat nama file unik: nrp_timestamp.ekstensi (contoh: 005191201_168456789.pdf)
+            $namaFile = ($validated['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+            // Simpan file ke dalam folder 'public/dokumen_diklat'
+            $path = $file->storeAs('dokumen_diklat', $namaFile, 'public');
+
+            // Simpan path/nama file ke array validate untuk dimasukkan ke database
+            $validated['dokumen'] = $path;
+        }
 
         // 2. Create data
         HLCManajement::create($validated);
@@ -145,13 +160,14 @@ class HLCController extends Controller
     {
         $validated = $request->validate([
             'program_id' => 'required|exists:program_diklat_hlc,id',
-            'nama_diklat' => 'required|string',
+            'nama_diklat' => 'nullable|string',
             'pengajar' => 'nullable|string',
             'penyelenggara' => 'nullable|string',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date',
             'nrp' => 'nullable|string|max:255',
-            'jam_diklat' => 'nullable|integer' // Ini adalah jam per hari dari input
+            'jam_diklat' => 'nullable|integer', // Ini adalah jam per hari dari input
+            'dokumen' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg|max:2048'
         ]);
 
         $hlc = HLCManajement::findOrFail($id);
@@ -166,13 +182,7 @@ class HLCController extends Controller
         $validated['jam_diklat'] = ($validated['jam_diklat'] ?? 0) * $selisihHari;
 
         $hlc->update($validated);
-
-        // Update rekap bulanan untuk peserta tersebut
-        $this->updateRekapBulanan(
-            $hlc->nrp,
-            $tanggalMulai->format('Y'),
-            $tanggalMulai->format('n')
-        );
+       
 
         return redirect()->route('diklat.hlc.admin')->with('success', 'Detail diklat berhasil diperbarui.');
     }
@@ -193,14 +203,13 @@ class HLCController extends Controller
     }
 
 
-    // SISI USER
-    
+    // SISI USER INBOX
     public function konfirmasiHadir($id)
     {
         $hlc = HLCManajement::findOrFail($id);
 
         // 1. Ubah status menjadi approved (sudah hadir/selesai)
-        $hlc->update(['status' => 'approved']);
+        $hlc->update(['status' => 'setuju']);
 
         // 2. TRIGGER REKAP DIPANGGIL DI SINI
         $this->updateRekapBulanan(
@@ -210,6 +219,115 @@ class HLCController extends Controller
         );
 
         return redirect()->back()->with('success', 'Kehadiran berhasil dikonfirmasi. Jam diklat telah ditambahkan!');
+    }
+
+    public function hadirHLC($id)
+    {
+        $nrp = auth()->user()->nrp;
+
+        // ambil data pelatihan
+        $diklat = HLCManajement::where('id', $id)
+            ->where('nrp', $nrp)
+            ->firstOrFail();
+
+        // cek apakah hari ini sudah absen
+        $sudahAbsen = HLCAbsenModel::where(
+            'diklat_hlc_id',
+            $diklat->id
+        )
+            ->whereDate('tanggal', Carbon::today())
+            ->exists();
+
+        if ($sudahAbsen) {
+            return back()->with('error', 'Anda sudah absen hari ini.');
+        }
+
+        // simpan absensi
+        HLCAbsenModel::create([
+            'diklat_hlc_id' => $diklat->id,
+            'tanggal' => Carbon::today(),
+            'status' => 'hadir',
+        ]);
+
+        return back()->with('success', 'Absensi berhasil disimpan.');
+    }
+
+    public function uploadBukti(Request $request, $id)
+    {
+
+
+        $request->validate([
+            'dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ]);
+
+        $diklat = HLCManajement::findOrFail($id);
+
+        // hanya peserta aktif yang boleh upload
+        if ($diklat->status !== 'Setuju') {
+            return back()->with(
+                'error',
+                'Peserta tidak dapat upload bukti.'
+            );
+        }
+
+        // validasi hanya boleh upload di hari terakhir
+        if (
+            now()->toDateString() !==
+            Carbon::parse($diklat->tanggal_selesai)->toDateString()
+        ) {
+            return back()->with(
+                'error',
+                'Upload bukti hanya bisa dilakukan di hari terakhir.'
+            );
+        }
+
+        if ($request->hasFile('dokumen')) {
+
+            $file = $request->file('dokumen');
+
+            $namaFile =
+                $diklat->nrp . '_' . time() . '.' .
+                $file->getClientOriginalExtension();
+
+            $path = $file->storeAs(
+                'bukti_kehadiran',
+                $namaFile,
+                'public'
+            );
+
+            $diklat->update([
+                'bukti_hadir' => $path,
+                'status' => 'Hadir',
+            ]);
+        }
+
+        return back()->with(
+            'success',
+            'Bukti berhasil dikirim dan menunggu verifikasi admin.'
+        );
+    }
+
+    // konfirmasi admin
+
+    public function approveKehadiran($id)
+    {
+        $hlc = HLCManajement::findOrFail($id);
+
+        $hlc->update([
+            'status' => 'approved'
+        ]);
+
+        // BARU REKAP DIPANGGIL
+        $this->updateRekapBulanan(
+            $hlc->nrp,
+            date('Y', strtotime($hlc->tanggal_mulai)),
+            date('n', strtotime($hlc->tanggal_mulai))
+        );
+
+        return back()->with(
+            'success',
+            'Kehadiran berhasil diverifikasi.'
+        );
     }
 
 }

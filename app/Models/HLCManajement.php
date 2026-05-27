@@ -17,9 +17,23 @@ class HLCManajement extends Model
         'tanggal_selesai',
         'nrp',
         'jam_diklat',
-        'status'
+        'status',
+        'dokumen',
+        'bukti_hadir',
+        'status_verifikasi',
+        'uploaded_at',
+        'catatan_verifikasi'
     ];
 
+    public function kehadiran()
+    {
+        return $this->hasMany(HLCAbsenModel::class, 'diklat_hlc_id');
+    }
+
+    public function kehadiranHariIni()
+    {
+        return $this->hasOne(HLCAbsenModel::class,'diklat_hlc_id')->whereDate('tanggal', now());
+    }
     public function hlc()
     {
         return $this->belongsTo(ProgramHlc::class, 'program_id');

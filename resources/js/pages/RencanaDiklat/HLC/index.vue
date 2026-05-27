@@ -95,6 +95,7 @@ const newDetail = ref({
     tanggal_mulai: '',
     tanggal_selesai: '',
     jam_diklat: '',
+    dokumen: null as File | null,
 });
 
 // --- Computed Properties ---
@@ -231,10 +232,7 @@ const tambahProgram = () => {
 };
 
 const tambahDetail = () => {
-    if (!newDetail.value.nama_diklat?.trim()) {
-        toast.error('Nama diklat tidak boleh kosong!');
-        return;
-    }
+    
 
     isLoading.value = true;
     router.post('/HLC/Home/storeDetail', newDetail.value, {
@@ -332,6 +330,20 @@ const destroyDetail = (id: number) => {
         );
     }
 };
+
+const handleFileUpload = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+        newDetail.value.dokumen = target.files[0];
+    }
+};
+
+const lihatDokumen = (dokumen: string) => {
+    window.open(`/storage/${dokumen}`, '_blank')
+}
+
+// fungsi untuk sett tanggal hari ini
+const today = new Date().toISOString().split("T")[0]
 </script>
 
 <template>
@@ -373,10 +385,9 @@ const destroyDetail = (id: number) => {
             <div
                 class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
             >
-                
                 <button
                     @click="openAddProgram"
-                    class="inline-flex m-2 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
+                    class="m-2 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
                 >
                     <svg
                         class="h-5 w-5"
@@ -591,12 +602,12 @@ const destroyDetail = (id: number) => {
                                         <th
                                             class="px-4 py-3 font-semibold tracking-wider uppercase"
                                         >
-                                            Pengajar
+                                            Tanggal Mulai
                                         </th>
                                         <th
                                             class="px-4 py-3 font-semibold tracking-wider uppercase"
                                         >
-                                            Penyelenggara
+                                            Tanggal Selesai
                                         </th>
                                         <th
                                             class="px-4 py-3 font-semibold tracking-wider uppercase"
@@ -616,17 +627,24 @@ const destroyDetail = (id: number) => {
                                         <td
                                             class="px-4 py-3 font-medium text-slate-900 dark:text-slate-200"
                                         >
+                                        <span v-if="row.nama_diklat">
                                             {{ row.nama_diklat }}
+                                        </span>
+                                        <button v-else
+                                        @click="lihatDokumen(row.dokumen)"
+        class="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"> Lihat undangan
+
+                                        </button>
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
-                                            {{ row.pengajar }}
+                                            {{ row.tanggal_mulai }}
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
-                                            {{ row.penyelenggara }}
+                                            {{ row.tanggal_selesai }}
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
@@ -896,8 +914,21 @@ const destroyDetail = (id: number) => {
                         </div>
                         <div class="px-6 py-5">
                             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                <div class="col-span-2">
+                                    <label
+                                        class="mb-1 block text-sm font-medium"
+                                        >Upload Undangan (PDF / JPG)</label
+                                    >
+                                    <input
+                                        type="file"
+                                        accept=".pdf,.jpg,.jpeg"
+                                        @change="handleFileUpload"
+                                        class="w-full rounded-lg border border-slate-300 p-1.5 text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-700 hover:file:bg-emerald-100"
+                                    />
+                                    <!-- <p v-if="form.errors.dokumen" class="text-red-500 text-xs mt-1">{{ form.errors.dokumen }}</p> -->
+                                </div>
                                 <!-- Nama Diklat -->
-                                <div class="sm:col-span-2">
+                                <!-- <div class="sm:col-span-2">
                                     <label
                                         class="mb-1 block text-sm font-medium text-slate-700"
                                         >Nama Diklat</label
@@ -910,7 +941,7 @@ const destroyDetail = (id: number) => {
                                     />
                                 </div>
 
-                                <!-- Pengajar -->
+                                
                                 <div>
                                     <label
                                         class="mb-1 block text-sm font-medium text-slate-700"
@@ -921,7 +952,7 @@ const destroyDetail = (id: number) => {
                                         type="text"
                                         class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm placeholder-slate-400 transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                     />
-                                </div>
+                                </div> -->
 
                                 <!-- Jam Diklat -->
                                 <div>
@@ -931,13 +962,20 @@ const destroyDetail = (id: number) => {
                                     >
                                     <input
                                         v-model="newDetail.jam_diklat"
-                                        type="number"
+                                        @input="
+                                            newDetail.jam_diklat =
+                                                $event.target.value.replace(
+                                                    /\D/g,
+                                                    '',
+                                                )
+                                        "
+                                        inputmode="numeric"
                                         class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm placeholder-slate-400 transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                     />
                                 </div>
 
                                 <!-- Penyelenggara -->
-                                <div class="sm:col-span-2">
+                                <!-- <div class="sm:col-span-2">
                                     <label
                                         class="mb-1 block text-sm font-medium text-slate-700"
                                         >Penyelenggara</label
@@ -947,7 +985,7 @@ const destroyDetail = (id: number) => {
                                         v-model="newDetail.penyelenggara"
                                         class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm placeholder-slate-400 transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                     />
-                                </div>
+                                </div> -->
 
                                 <!-- Tanggal Mulai & Selesai -->
                                 <div>
@@ -958,6 +996,8 @@ const destroyDetail = (id: number) => {
                                     <input
                                         v-model="newDetail.tanggal_mulai"
                                         type="date"
+                                        :min="today"
+                                        @keydown.prevent
                                         class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                     />
                                 </div>
@@ -969,6 +1009,8 @@ const destroyDetail = (id: number) => {
                                     <input
                                         v-model="newDetail.tanggal_selesai"
                                         type="date"
+                                        :min="newDetail.tanggal_mulai || today"
+                                        @keydown.prevent
                                         class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                     />
                                 </div>

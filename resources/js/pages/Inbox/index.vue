@@ -48,7 +48,6 @@ const handleAction = (
         action === 'setuju'
             ? `${baseRoute}/konfirmasi/${id}`
             : `${baseRoute}/tolak/${id}`;
-        
 
     router.post(
         routeName,
@@ -91,6 +90,10 @@ const respondImpersonate = (
             },
         },
     );
+};
+
+const lihatDokumen = (dokumen: string) => {
+    window.open(`/storage/${dokumen}`, '_blank');
 };
 </script>
 
@@ -236,63 +239,50 @@ const respondImpersonate = (
                             <!-- 1. TAMPILAN JIKA MERUPAKAN PESAN PERINGATAN SISTEM (BELUM ISI NO HP) -->
                             <div
                                 v-if="item.tipe === 'system_warning'"
-                                class="rounded-3xl animate-pulse border-2 shadow-xl border-red-300 bg-amber-50 p-6  transition-all duration-300 dark:border-amber-900/50 dark:bg-amber-950/20"
+                                class="animate-pulse rounded-3xl border-2 border-red-300 bg-amber-50 p-6 shadow-xl"
                             >
                                 <div
                                     class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
                                 >
                                     <div class="flex items-center gap-4">
                                         <div
-                                            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-900/30"
+                                            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600"
                                         >
-                                            <!-- Icon WhatsApp / Warning -->
-                                            <svg
-                                                class="h-7 w-7"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                                                />
-                                            </svg>
+                                            ⚠
                                         </div>
+
                                         <div>
                                             <p
-                                                class="text-xs font-bold tracking-wider text-amber-600 uppercase dark:text-amber-400"
+                                                class="text-xs font-bold tracking-wider text-amber-600 uppercase"
                                             >
                                                 Peringatan Sistem
                                             </p>
-                                            <p
-                                                class="mt-1 text-base font-bold text-slate-900 dark:text-white"
-                                            >
+
+                                            <p class="mt-1 text-base font-bold">
                                                 {{ item.judul }}
                                             </p>
+
                                             <p
-                                                class="mt-1 text-sm text-slate-600 dark:text-slate-400"
+                                                class="mt-1 text-sm text-slate-600"
                                             >
                                                 {{ item.pesan }}
                                             </p>
                                         </div>
                                     </div>
-                                    <div>
-                                        <!-- Menggunakan tag a biasa atau Link dari inertia untuk mengarah ke url_action -->
-                                        <a
-                                            :href="item.url_action"
-                                            class="inline-flex items-center gap-2 rounded-2xl bg-amber-600 px-5 py-3 text-sm font-semibold whitespace-nowrap text-white shadow-sm hover:bg-amber-700"
-                                        >
-                                            Isi Nomor HP ->
-                                        </a>
-                                    </div>
+
+                                    <a
+                                        :href="item.url_action"
+                                        class="inline-flex items-center gap-2 rounded-2xl bg-amber-600 px-5 py-3 text-sm font-semibold text-white"
+                                    >
+                                        Isi Nomor HP
+                                    </a>
                                 </div>
                             </div>
-                        </div>
+                        
                         <div
-                            v-for="item in inboxItems"
-                            :key="'hlc-' + item.id"
+                        v-else
+                            
+                            
                             class="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900"
                         >
                             <div
@@ -328,7 +318,18 @@ const respondImpersonate = (
                                         <h2
                                             class="text-xl font-bold text-slate-900 dark:text-white"
                                         >
-                                            {{ item.nama_diklat }}
+                                            <span v-if="item.nama_diklat">
+                                                {{ item.nama_diklat }}
+                                            </span>
+                                            <button
+                                                v-else
+                                                @click="
+                                                    lihatDokumen(item.dokumen)
+                                                "
+                                                class="cursor-pointer rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+                                            >
+                                                Lihat undangan
+                                            </button>
                                         </h2>
                                         <p
                                             class="mt-1 text-sm text-slate-600 dark:text-slate-400"
@@ -434,6 +435,7 @@ const respondImpersonate = (
                                 </div>
                             </div>
                         </div>
+                        </div>
                     </div>
                 </section>
 
@@ -492,11 +494,19 @@ const respondImpersonate = (
                                         <p
                                             class="mt-1 text-sm text-slate-600 dark:text-slate-400"
                                         >
-                                            Penyelenggara:
-                                            <span class="font-semibold">{{
-                                                item.penyelenggara
-                                            }}</span>
+                                            <button
+                                                @click="
+                                                    lihatDokumen(item.dokumen)
+                                                "
+                                                class="cursor-pointer rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+                                            >
+                                                Lihat undangan
+                                            </button>
                                         </p>
+                                        Penyelenggara:
+                                        <span class="font-semibold">{{
+                                            item.penyelenggara
+                                        }}</span>
 
                                         <div
                                             class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3"

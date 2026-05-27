@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('nama');
             $table->string('nomor_wa')->unique(); // Unique agar tidak ada duplikasi nomor
             $table->string('bagian')->nullable();
+            $table->string('nrp')->nullable();
             $table->timestamps();
         });
     }

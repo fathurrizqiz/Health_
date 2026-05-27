@@ -13,6 +13,7 @@ use App\Http\Controllers\KaryawanDiklat\InternalController;
 use App\Http\Controllers\MasterData\MasterDataController;
 use App\Http\Controllers\Materi\MateriController;
 use App\Http\Controllers\no_hp\NohpController;
+use App\Http\Controllers\Persetujuan\EksternalAdminController;
 use App\Http\Controllers\RencanaDiklat\RPT\DetailPeriodeController;
 use App\Http\Controllers\RencanaDiklat\RPT\DiklatInternalController;
 use App\Http\Controllers\RencanaDiklat\RPT\DokumentasiController;
@@ -49,6 +50,11 @@ Route::get('/Diklat/pdf/preview/{id}', [DiklatController::class, 'preview'])->na
 Route::get('/Diklat/edit/{id}', [DiklatController::class, 'edit'])->name('diklat.edit');
 Route::put('/Diklat/update/{id}', [DiklatController::class, 'update'])->name('diklat.update');
 Route::delete('/Diklat/destroy/{id}', [DiklatController::class, 'destroy'])->name('diklat.destroy');
+
+// Persetujuan
+Route::get('/Persetujuan', [EksternalAdminController::class, 'Persetujuan'])->name('persetujuan.index');
+Route::get('/Persetujuan/Eksternal', [EksternalAdminController::class, 'EksternalAdmin'])->name('persetujuan.eksternal');
+Route::put('/Persetujuan/Eksternal/konfirmasi/{id}', [NonFormalController::class, 'approveKehadiran'])->name('konfirmasi.persetujuan.eksternal');
 
 // halaman lihat Internal
 Route::get('/DiklatInternal/user', [InternalController::class, 'index'])->name('diklat.internal.index');
@@ -128,11 +134,16 @@ Route::post('/RencanaDiklat/RPT/PN/Detail', [NonFormalController::class, 'storeD
 Route::put('/RencanaDiklat/RPT/PN/Detail/{id}', [NonFormalController::class, 'updateDetail'])->name('Diklat.eksternal-detail-update');
 Route::delete('/RencanaDiklat/RPT/PN/Detail/{id}', [NonFormalController::class, 'destroyDetail'])->name('Diklat.eksternal-detail-destroy');
 Route::delete('/RencanaDiklat/RPT/PN/program/{id}', [NonFormalController::class, 'destroyProgram'])->name('Diklat.eksternal-program-destroy');
+Route::post('/diklat-eksternal/upload-bukti/{id}', [NonFormalController::class, 'uploadBukti'])->name('diklat.eksternal.upload-bukti');
 
 //jadwal diklat
 Route::get('/JadwalDiklat/Internal', [JadwalInternalController::class, 'index'])->name('jadwal.internal');
 Route::get('/JadwalDiklat/Histori', [JadwalInternalController::class, 'history'])->name('jadwal.history');
 Route::post('/jadwal-internal/send-wa', [JadwalInternalController::class, 'sendWhatsappNotification'])->name('jadwal.send-wa');
+
+// ABSEN
+Route::post('/diklat-eksternal/{id}/hadir',[NonFormalController::class, 'hadir'])->name('diklat.eksternal.absen');
+Route::post('/diklat-hlc/{id}/hadir',[HLCController::class, 'hadirHLC'])->name('diklat.hlc.absen');
 
 // Nomor HP Karyawan
 Route::get('/NoHP', [NohpController::class, 'index'])->name('nohp.index');
@@ -160,10 +171,8 @@ Route::post('/HLC/Home/updateProgram/{id}', [HLCController::class, 'updateProgra
 Route::post('/HLC/Home/updateDetail/{id}', [HLCController::class, 'updateDetail'])->name('diklat.hlc.admin.update-detail');
 Route::post('/HLC/Home/destroyProgram/{id}', [HLCController::class, 'destroyProgram'])->name('diklat.hlc.admin.destroy-program');
 Route::post('/HLC/Home/destroyDetail/{id}', [HLCController::class, 'destroyDetail'])->name('diklat.hlc.admin.destroy-detail');
+Route::post('/diklat-hlc/upload-bukti/{id}', [NonFormalController::class, 'uploadBukti'])->name('diklat.hlc.upload-bukti');
 
-// konfirmasi hadir
-Route::post('/HLC/Home/konfirmasiHadir/{id}', [HLCController::class, 'konfirmasiHadir'])->name('diklat.hlc.admin.konfirmasi-hadir');
-Route::post('/Eksternal/Home/konfirmasiHadir/{id}', [NonFormalController::class, 'konfirmasiHadir'])->name('diklat.eksternal.admin.konfirmasi-hadir');
 
 // User
 // HLC

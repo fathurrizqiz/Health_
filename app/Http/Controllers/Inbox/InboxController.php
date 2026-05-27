@@ -18,11 +18,13 @@ class InboxController extends Controller
     {
         $user = auth()->user();
         $undangan = HLCManajement::where('nrp', $user->nrp)
-            ->where('status', 'pending') // Hanya tampilkan yang statusnya ditawarkan
+            ->where('status', 'menunggu_persetujuan') 
+            ->whereDate('tanggal_selesai', '>=', now()) 
             ->orderBy('created_at', 'desc')
             ->get();
         $undanganexternal = DiklatEksternal::where('nrp', $user->nrp)
-            ->where('status', 'pending') // Hanya tampilkan yang statusnya ditawarkan
+            ->where('status', 'menunggu_persetujuan') 
+            ->whereDate('tanggal_selesai', '>=', now()) 
             ->orderBy('created_at', 'desc')
             ->get();
         $impersonateRequests = ImpersonateRequestModel::where('target_nrp', $user->nrp)
@@ -59,7 +61,7 @@ class InboxController extends Controller
         $hlc = HLCManajement::findOrFail($id);
 
         // Ubah status menjadi pending (artinya masuk jadwal tapi belum dilaksanakan)
-        $hlc->update(['status' => 'pending']);
+        $hlc->update(['status' => 'Setuju']);
 
         return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
     }
@@ -68,7 +70,7 @@ class InboxController extends Controller
         $hlc = HLCManajement::findOrFail($id);
 
         // Ubah status menjadi rejected (artinya ditolak)
-        $hlc->update(['status' => 'rejected']);
+        $hlc->update(['status' => 'Tolak']);
 
         return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
     }
@@ -77,7 +79,7 @@ class InboxController extends Controller
         $hlc = DiklatEksternal::findOrFail($id);
 
         // Ubah status menjadi pending (artinya masuk jadwal tapi belum dilaksanakan)
-        $hlc->update(['status' => 'pending']);
+        $hlc->update(['status' => 'Setuju']);
 
         return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
     }
@@ -86,7 +88,7 @@ class InboxController extends Controller
         $hlc = DiklatEksternal::findOrFail($id);
 
         // Ubah status menjadi rejected (artinya ditolak)
-        $hlc->update(['status' => 'rejected']);
+        $hlc->update(['status' => 'Tolak']);
 
         return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
     }

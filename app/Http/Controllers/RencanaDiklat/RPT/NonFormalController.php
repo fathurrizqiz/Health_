@@ -5,6 +5,7 @@ namespace App\Http\Controllers\RencanaDiklat\RPT;
 use App\Http\Controllers\Controller;
 use App\Models\DiklatEksternal;
 use App\Models\DiklatKaryawan;
+use App\Models\EksternalAbsenModel;
 use App\Models\HLCManajement;
 use App\Models\Karyawans;
 use App\Models\ProgramEksternal;
@@ -12,6 +13,7 @@ use App\Models\RekapJamDiklat;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class NonFormalController extends Controller
@@ -39,21 +41,36 @@ class NonFormalController extends Controller
         $validate = $request->validate([
             'program_id' => 'required|exists:program_diklat_eksternal,id',
             'nama_karyawan' => 'required|string|max:255',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date',
+            'tanggal_mulai' => 'nullable|date|after_or_equal:today',
+            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
             'jam_diklat' => 'required|integer',
-            'penyelenggara' => 'required|string|max:255',
+            'penyelenggara' => 'nullable|string|max:255',
             'nrp' => 'nullable|string|max:255',
+            'dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg|max:2048',
         ]);
 
         // Default approved karena admin yang input
-        $validate['status'] = 'pending';
+        $validate['status'] = 'menunggu_persetujuan';
 
         $tanggalMulai = Carbon::parse($validate['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validate['tanggal_selesai']);
 
         $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
         $validate['jam_diklat'] = $validate['jam_diklat'] * $selisihHari;
+
+        // Proses Upload Dokumen jika file valid
+        if ($request->hasFile('dokumen')) {
+            $file = $request->file('dokumen');
+
+            // Membuat nama file unik: nrp_timestamp.ekstensi (contoh: 005191201_168456789.pdf)
+            $namaFile = ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+            // Simpan file ke dalam folder 'public/dokumen_diklat'
+            $path = $file->storeAs('dokumen_diklat', $namaFile, 'public');
+
+            // Simpan path/nama file ke array validate untuk dimasukkan ke database
+            $validate['dokumen'] = $path;
+        }
 
         $eksternal = DiklatEksternal::create($validate);
 
@@ -126,34 +143,61 @@ class NonFormalController extends Controller
 
     public function updateDetail(Request $request, $id)
     {
+        $diklat = DiklatEksternal::findOrFail($id);
+
         $validate = $request->validate([
             'program_id' => 'required|exists:program_diklat_eksternal,id',
             'nama_karyawan' => 'required|string|max:255',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date',
+            'tanggal_mulai' => 'nullable|date|after_or_equal:today',
+            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
             'jam_diklat' => 'required|integer',
             'penyelenggara' => 'required|string|max:255',
             'nrp' => 'nullable|string|max:255',
+            'dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg|max:2048',
         ]);
 
+        // status default
+        $validate['status'] = 'menunggu_persetujuan';
+
+        // Hitung total jam
         $tanggalMulai = Carbon::parse($validate['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validate['tanggal_selesai']);
+
         $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
 
-        // Recalculate total jam
-        $validate['jam_diklat'] = $validate['jam_diklat'] * $selisihHari;
+        $validate['jam_diklat'] =
+            $validate['jam_diklat'] * $selisihHari;
 
-        $eksternal = DiklatEksternal::findOrFail($id);
-        $eksternal->update($validate);
+        // Upload dokumen baru
+        if ($request->hasFile('dokumen')) {
 
-        // Update rekap
-        $this->updateRekapBulanan(
-            $eksternal->nrp,
-            $tanggalMulai->year,
-            $tanggalMulai->month
-        );
+            // Hapus file lama jika ada
+            if ($diklat->dokumen && Storage::disk('public')->exists($diklat->dokumen)) {
+                Storage::disk('public')->delete($diklat->dokumen);
+            }
 
-        return redirect()->back();
+            $file = $request->file('dokumen');
+
+            $namaFile =
+                ($validate['nrp'] ?? 'karyawan')
+                . '_' . time()
+                . '.' . $file->getClientOriginalExtension();
+
+            $path = $file->storeAs(
+                'dokumen_diklat',
+                $namaFile,
+                'public'
+            );
+
+            $validate['dokumen'] = $path;
+        }
+
+        // Update data
+        $diklat->update($validate);
+
+        return redirect()->back()->with([
+            'success' => 'Data berhasil diperbarui'
+        ]);
     }
 
     public function destroyDetail($id)
@@ -178,22 +222,115 @@ class NonFormalController extends Controller
     }
 
     // SISI USER
-    
-    public function konfirmasiHadir($id)
+
+    // ABSEN
+    public function hadir($id)
+    {
+        $nrp = auth()->user()->nrp;
+
+        // ambil data pelatihan
+        $diklat = DiklatEksternal::where('id', $id)
+            ->where('nrp', $nrp)
+            ->firstOrFail();
+
+        // cek apakah hari ini sudah absen
+        $sudahAbsen = EksternalAbsenModel::where(
+            'diklat_eksternal_id',
+            $diklat->id
+        )
+            ->whereDate('tanggal', Carbon::today())
+            ->exists();
+
+        if ($sudahAbsen) {
+            return back()->with('error', 'Anda sudah absen hari ini.');
+        }
+
+        // simpan absensi
+        EksternalAbsenModel::create([
+            'diklat_eksternal_id' => $diklat->id,
+            'tanggal' => Carbon::today(),
+            'status' => 'hadir',
+        ]);
+
+        return back()->with('success', 'Absensi berhasil disimpan.');
+    }
+
+
+    public function uploadBukti(Request $request, $id)
+    {
+
+
+        $request->validate([
+            'dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ]);
+
+        $diklat = DiklatEksternal::findOrFail($id);
+
+        // hanya peserta aktif yang boleh upload
+        if ($diklat->status !== 'Setuju') {
+            return back()->with(
+                'error',
+                'Peserta tidak dapat upload bukti.'
+            );
+        }
+
+        // validasi hanya boleh upload di hari terakhir
+        if (
+            now()->toDateString() !==
+            Carbon::parse($diklat->tanggal_selesai)->toDateString()
+        ) {
+            return back()->with(
+                'error',
+                'Upload bukti hanya bisa dilakukan di hari terakhir.'
+            );
+        }
+
+        if ($request->hasFile('dokumen')) {
+
+            $file = $request->file('dokumen');
+
+            $namaFile =
+                $diklat->nrp . '_' . time() . '.' .
+                $file->getClientOriginalExtension();
+
+            $path = $file->storeAs(
+                'bukti_kehadiran',
+                $namaFile,
+                'public'
+            );
+
+            $diklat->update([
+                'bukti_hadir' => $path,
+                'status' => 'Hadir',
+            ]);
+        }
+
+        return back()->with(
+            'success',
+            'Bukti berhasil dikirim dan menunggu verifikasi admin.'
+        );
+    }
+    // konfirmasi admin
+
+    public function approveKehadiran($id)
     {
         $hlc = DiklatEksternal::findOrFail($id);
 
-        // 1. Ubah status menjadi approved (sudah hadir/selesai)
-        $hlc->update(['status' => 'approved']);
+        $hlc->update([
+            'status' => 'approved'
+        ]);
 
-        // 2. TRIGGER REKAP DIPANGGIL DI SINI
+        // BARU REKAP DIPANGGIL
         $this->updateRekapBulanan(
             $hlc->nrp,
             date('Y', strtotime($hlc->tanggal_mulai)),
             date('n', strtotime($hlc->tanggal_mulai))
         );
 
-        return redirect()->back()->with('success', 'Kehadiran berhasil dikonfirmasi. Jam diklat telah ditambahkan!');
+        return back()->with(
+            'success',
+            'Kehadiran berhasil diverifikasi.'
+        );
     }
 
 }

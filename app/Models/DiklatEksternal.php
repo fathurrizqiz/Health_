@@ -15,9 +15,22 @@ class DiklatEksternal extends Model
         'tanggal_selesai',
         'jam_diklat',
         'penyelenggara',
-        'status'
+        'status',
+        'dokumen',
+        'bukti_hadir',
+        'status_verifikasi',
+        'uploaded_at',
+        'catatan_verifikasi'
     ];
 
+    public function kehadiran()
+    {
+        return $this->hasMany(EksternalAbsenModel::class, 'diklat_eksternal_id');
+    }
+    public function kehadiranHariIni()
+    {
+        return $this->hasOne(EksternalAbsenModel::class,'diklat_eksternal_id')->whereDate('tanggal', now());
+    }
     public function program()
     {
         return $this->belongsTo(ProgramEksternal::class, 'program_id');
