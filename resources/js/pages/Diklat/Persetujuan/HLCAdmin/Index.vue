@@ -11,10 +11,10 @@ interface Kehadiran {
     status: string;
 }
 
-interface Eksternal {
+interface HLC {
     id: number;
     nrp: string;
-    status:string;
+    status: string;
     nama_karyawan: string;
     nama_diklat: string;
     tanggal_mulai: string;
@@ -28,40 +28,40 @@ interface Eksternal {
     total_hadir: number;
     total_tidak_hadir: number;
     is_today_absent: string | null;
-    karyawan: { bagian: string } | null;
+    karyawan: { bagian: string, nama_karyawan: string } | null;
     kehadiran: Kehadiran[];
 }
 
 const props = defineProps<{
-    eksternal: Eksternal[];
+    hlc: HLC[];
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Diklat', href: route('persetujuan.index') },
-    { title: 'Persetujuan Eksternal', href: route('persetujuan.eksternal') },
+    { title: 'Persetujuan HLC', href: route('persetujuan.hlc') },
 ];
 
 const search = ref('');
 
-const filteredData = ref(props.eksternal);
+const filteredData = ref(props.hlc);
 
 const handleSearch = () => {
     if (!search.value) {
-        filteredData.value = props.eksternal;
+        filteredData.value = props.hlc;
         return;
     }
     const q = search.value.toLowerCase();
-    filteredData.value = props.eksternal.filter(item =>
+    filteredData.value = props.hlc.filter(item =>
         item.nama_karyawan.toLowerCase().includes(q) ||
         item.nrp.toLowerCase().includes(q) ||
         (item.nama_diklat && item.nama_diklat.toLowerCase().includes(q))
     );
 };
 
-const selectedData = ref<Eksternal | null>(null);
+const selectedData = ref<HLC | null>(null);
 const isModalOpen = ref(false);
 
-const openModal = (data: Eksternal) => {
+const openModal = (data: HLC) => {
     selectedData.value = data;
     isModalOpen.value = true;
 };
@@ -74,14 +74,15 @@ const closeModal = () => {
 const form = useForm({
     id: null as number | null,
     status_verifikasi: '',
-    catatan_verifikasi: ''
+    catatan_verifikasi: '',
+   
 });
 
 const submitVerification = () => {
     if (!selectedData.value) return;
 
     form.id = selectedData.value.id;
-    form.put(route('konfirmasi.persetujuan.eksternal', form.id), {
+    form.put(route('konfirmasi.persetujuan.hlc', form.id), {
         onSuccess: () => {
             toast.success('Verifikasi berhasil disimpan');
             closeModal();
@@ -111,13 +112,13 @@ const formatDate = (date: string) => {
 </script>
 
 <template>
-    <Head title="Persetujuan Diklat Eksternal" />
+    <Head title="Persetujuan Diklat HLC" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">
             
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Verifikasi Diklat Eksternal</h1>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Verifikasi Diklat HLC</h1>
                 
                 <div class="relative w-full sm:w-80">
                     <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
@@ -142,9 +143,9 @@ const formatDate = (date: string) => {
                                 <th class="px-6 py-3.5">Karyawan</th>
                                 <th class="px-6 py-3.5">Program Diklat</th>
                                 <th class="px-6 py-3.5 text-center">Rekap Absen</th>
-                                <th class="px-6 py-3.5 text-center">Jam Diklat</th>
+                                <th class="px-6 py-3.5 text-center">Jam Terlaksana</th>
                                 <th class="px-6 py-3.5 text-center">Bukti</th>
-                                <!-- <th class="px-6 py-3.5 text-center">Status Verifikasi</th> -->
+                                <th class="px-6 py-3.5 text-center">Status Verifikasi</th>
                                 <th class="px-6 py-3.5 text-center">Aksi</th>
                             </tr>
                         </thead>
@@ -152,12 +153,16 @@ const formatDate = (date: string) => {
                             <tr v-for="item in filteredData" :key="item.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/25">
                                 <td class="px-6 py-4">
                                     <div>
-                                        <p class="font-semibold text-slate-900 dark:text-white">{{ item.nama_karyawan }}</p>
+                                        <p class="font-semibold text-slate-900 dark:text-white">{{ item.karyawan?.nama_karyawan }}</p>
                                         <p class="text-xs text-slate-400">{{ item.nrp }} &bull; {{ item.karyawan?.bagian }}</p>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <p class="font-medium text-slate-900 dark:text-slate-200">{{ item.nama_diklat }}</p>
+                                    <p class="font-medium text-slate-900 dark:text-slate-200">
+                                        <span v-if="item.nama_diklat" class="inline-block max-w-[70%] truncate">
+                                                {{ item.nama_diklat }}
+                                        </span> 
+                                        <a v-else :href="`/storage/${item.dokumen}`" target="_blank" class="text-blue-600 hover:text-blue-800 dark:text-blue-400">Lihat Undangan</a></p>
                                     <p class="text-xs text-slate-400">{{ item.penyelenggara }}</p>
                                 </td>
                                 <td class="px-6 py-4 text-center">
@@ -167,10 +172,8 @@ const formatDate = (date: string) => {
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold" :class="getAbsenStatusClass(item.is_today_absent)">
-                                        {{ item.jam_diklat }}
-                                    </span>
                                     
+                                    <span class="text-xs text-slate-400">{{ item.jam_diklat }}</span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <a v-if="item.bukti_hadir" :href="`/storage/${item.bukti_hadir}`" target="_blank" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 dark:text-blue-400">
@@ -179,11 +182,11 @@ const formatDate = (date: string) => {
                                     </a>
                                     <span v-else class="text-xs text-slate-400">Belum ada</span>
                                 </td>
-                                <!-- <td class="px-6 py-4 text-center">
+                                <td class="px-6 py-4 text-center">
                                     <span class="inline-block rounded-full px-3 py-1 text-xs font-semibold" :class="getStatusVerifClass(item.status_verifikasi)">
-                                        {{ item.status_verifikasi || 'Menunggu' }}
+                                        {{ item.status || 'Menunggu' }}
                                     </span>
-                                </td> -->
+                                </td>
                                 <td class="px-6 py-4 text-center">
                                     <button @click="openModal(item)" class="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
                                         Detail & Verifikasi
@@ -221,7 +224,7 @@ const formatDate = (date: string) => {
                                     <div class="space-y-4">
                                         <h3 class="text-sm font-semibold text-slate-500 uppercase dark:text-slate-400">Data Karyawan</h3>
                                         <div class="space-y-2 text-sm">
-                                            <div class="flex justify-between"><span class="text-slate-400">Nama</span><span class="font-medium text-slate-900 dark:text-white">{{ selectedData.nama_karyawan }}</span></div>
+                                            <div class="flex justify-between"><span class="text-slate-400">Nama</span><span class="font-medium text-slate-900 dark:text-white">{{ selectedData.karyawan?.nama_karyawan }}</span></div>
                                             <div class="flex justify-between"><span class="text-slate-400">NRP</span><span class="font-medium text-slate-900 dark:text-white">{{ selectedData.nrp }}</span></div>
                                             <div class="flex justify-between"><span class="text-slate-400">Bagian</span><span class="font-medium text-slate-900 dark:text-white">{{ selectedData.karyawan?.bagian || '-' }}</span></div>
                                         </div>

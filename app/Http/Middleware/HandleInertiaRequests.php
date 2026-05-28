@@ -10,83 +10,97 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that's loaded on the first page visit.
-     *
-     * @see https://inertiajs.com/server-side-setup#root-template
-     *
-     * @var string
-     */
     protected $rootView = 'app';
 
-    /**
-     * Determines the current asset version.
-     *
-     * @see https://inertiajs.com/asset-versioning
-     */
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    /**
-     * Define the props that are shared by default.
-     *
-     * @see https://inertiajs.com/shared-data
-     *
-     * @return array<string, mixed>
-     */
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        
+        // Inisialisasi default
         $countJadwal = 0;
         $countPersetujuan = 0;
         $countInbox = 0;
 
         if ($user = $request->user()) {
             $nrp = $user->nrp;
-            $today = Carbon::today();
+            $today = Carbon::today()->toDateString(); // Optimasi string date untuk where
 
-            // 1. Hitung Persetujuan (Hanya jika role user punya akses admin biasanya)
-            // Jika semua user bisa melihat ini, biarkan saja. 
-            // Jika hanya admin, bisa ditambah if(in_array('admin_diklat', $user->role))
+            // ==========================================
+            // 1. PERSERTUJUAN (Hanya Admin Diklat)
+            // ==========================================
+            // Menggunakan cache session jika ada, agar tidak query db terus menerus untuk angka yang jarang berubah
             if ($user->hasRole('admin_diklat')) {
-                $countPersetujuan = DiklatKaryawan::where('status', 'pending')->count();
-            } else {
-                $countPersetujuan = 0;
+                // Gunakan query sederhana
+                $countPersetujuan = DiklatKaryawan::where('status', 'Disetujui')->count(); 
+                // Catatan: Sesuaikan status 'pending'/'menunggu_persetujuan' sesuai kebutuhan bisnis Anda.
+                // Biasanya admin melihat yang 'pending'.
+                $countPersetujuan = DiklatKaryawan::where('status', 'Menunggu Persetujuan')->count();
             }
 
-           
+            // ==========================================
+            // 2. JADWAL MENDATANG (OPTIMASI SINGLE QUERY)
+            // ==========================================
+            // Kita menggabungkan query Internal, HLC, dan Eksternal menjadi 1 query menggunakan DB::raw UNION
+            // Ini mengurangi beban database drastis dibanding 3 query terpisah.
+            $countJadwal = DB::table(DB::raw("(
+                SELECT id FROM periode_bagian_detail_internal 
+                WHERE nrp = '$nrp' 
+                AND EXISTS (SELECT 1 FROM periode_detail_internal pdi WHERE pdi.id = periode_bagian_detail_internal.periode_id AND pdi.tanggal >= '$today')
+                
+                UNION ALL
+                
+                SELECT id FROM diklat_hlc 
+                WHERE nrp = '$nrp' 
+                AND status != 'Ditolak' 
+                AND tanggal_mulai >= '$today'
+                
+                UNION ALL
+                
+                SELECT id FROM diklat_eksternal 
+                WHERE nrp = '$nrp' 
+                AND status != 'Ditolak' 
+                AND tanggal_mulai >= '$today'
+            ) as combined_jadwal"))->count();
 
-
-            // 2. Hitung Jadwal
-            $internalCount = PeriodeUtama::whereHas('peserta', fn($q) => $q->where('nrp', $nrp))
-                ->where('tanggal', '>=', $today)
-                ->count();
-
-            $hlcCount = HLCManajement::where('nrp', $nrp)
-                ->where('status', 'pending') // Pastikan statusnya pending (sudah di-acc user)
-                ->where('tanggal_mulai', '>=', $today)
-                ->count();
-
-            $eksternalCount = DiklatEksternal::where('nrp', $nrp)
-                ->where('tanggal_mulai', '>=', $today)
-                ->count();
-
-            $countJadwal = $internalCount + $hlcCount + $eksternalCount;
-
-            // 3. Hitung Inbox (Undangan Baru)
-             $countInbox = DiklatEksternal::where('nrp', $nrp)
-                ->where('status', 'pending') // Menghitung diklat eksternal milik SAYA yang sedang pending
-                ->count() +
-                HLCManajement::where('nrp', $nrp)
-                    ->where('status', 'pending') // Menghitung tawaran HLC milik SAYA yang belum di-acc
-                    ->count();
+            // ==========================================
+            // 3. INBOX / UNDANGAN (Perbaikan Logika)
+            // ==========================================
+            // Inbox biasanya berisi HAL yang butuh tindakan user (Undangan Baru / Tawaran).
+            // Diasumsikan status 'Menunggu Persetujuan' di HLC/Eksternal adalah undangan yang perlu diterima user.
+            
+            // Gunakan query gabungan untuk Inbox juga agar efisien
+            $countInbox = DB::table(DB::raw("(
+                SELECT id FROM diklat_hlc 
+                WHERE nrp = '$nrp' 
+                AND status = 'Menunggu Persetujuan'
+                
+                UNION ALL
+                
+                SELECT id FROM diklat_eksternal 
+                WHERE nrp = '$nrp' 
+                AND status = 'Menunggu Persetujuan'
+            ) as combined_inbox"))->count();
         }
+
+        // ==========================================
+        // 4. IMPOSTOR DATA (Optimasi)
+        // ==========================================
+        $impersonatorName = null;
+        if ($request->session()->has('impersonator_id')) {
+            // Hanya query jika session ada
+            $impersonatorName = optional(User::where('nrp', $request->session()->get('impersonator_id'))->first())->name;
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -98,19 +112,16 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     'nrp' => $request->user()->nrp,
                     'employee_id' => $request->user()->employee_id,
-                    // AMBIL DATA ROLE DARI SPATIE DI SINI
                     'roles' => $request->user()->getRoleNames(),
                 ] : null,
             ],
             'is_impersonating' => $request->session()->has('impersonator_id'),
-            'impersonatorName' => $request->session()->has('impersonator_id')
-                ? optional(User::where('nrp', $request->session()->get('impersonator_id'))->first())->name
-                : null,
+            'impersonatorName' => $impersonatorName,
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'notifications' => [
                 'jadwal_count' => $countJadwal,
                 'persetujuan_count' => $countPersetujuan,
-                'InboxCount' => $countInbox,
+                'inbox_count' => $countInbox, // DIUBAH KE SNAKE CASE
             ],
         ];
     }

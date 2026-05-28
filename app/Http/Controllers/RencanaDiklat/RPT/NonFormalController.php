@@ -47,7 +47,11 @@ class NonFormalController extends Controller
             'penyelenggara' => 'nullable|string|max:255',
             'nrp' => 'nullable|string|max:255',
             'dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg|max:2048',
-        ]);
+        ],[
+        // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
+        'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
+        'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+    ]);
 
         // Default approved karena admin yang input
         $validate['status'] = 'menunggu_persetujuan';
@@ -154,6 +158,10 @@ class NonFormalController extends Controller
             'penyelenggara' => 'required|string|max:255',
             'nrp' => 'nullable|string|max:255',
             'dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg|max:2048',
+        ], [
+            // pesan error
+            'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
+            'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
         ]);
 
         // status default
@@ -258,7 +266,6 @@ class NonFormalController extends Controller
 
     public function uploadBukti(Request $request, $id)
     {
-
 
         $request->validate([
             'dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',

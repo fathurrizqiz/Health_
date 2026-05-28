@@ -107,7 +107,7 @@ class DiklatController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'tanggal_mulai' => 'required|date',
+            'tanggal_mulai' => 'required|date|after_or_equal:today',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'nama_diklat' => 'required|string|max:255',
             'evaluasimateri' => 'nullable|string|max:255',
@@ -117,7 +117,11 @@ class DiklatController extends Controller
             'penyelenggara' => 'required|string|max:255',
             'jam_diklat' => 'required|integer|min:1',
             'file' => 'required|file|mimes:pdf|max:2048',
-        ]);
+        ], [
+        // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
+        'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
+        'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+    ]);
 
         $tanggalMulai = Carbon::parse($validated['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validated['tanggal_selesai']);
@@ -200,7 +204,7 @@ class DiklatController extends Controller
     {
         // Validasi input
         $validated = $request->validate([
-            'tanggal_mulai' => 'required|date',
+            'tanggal_mulai' => 'required|date|after_or_equal:today',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'nama_diklat' => 'required|string|max:255',
             'pengajar' => 'required|string|max:255',
@@ -208,7 +212,11 @@ class DiklatController extends Controller
             'penyelenggara' => 'required|string|max:255',
             'jam_diklat' => 'required|integer|min:1',
             'file' => 'nullable|file|mimes:pdf|max:2048',
-        ]);
+        ],[
+        // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
+        'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
+        'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+    ]);
 
         $tanggalMulai = Carbon::parse($validated['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validated['tanggal_selesai']);

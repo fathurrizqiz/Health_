@@ -14,6 +14,7 @@ use App\Http\Controllers\MasterData\MasterDataController;
 use App\Http\Controllers\Materi\MateriController;
 use App\Http\Controllers\no_hp\NohpController;
 use App\Http\Controllers\Persetujuan\EksternalAdminController;
+use App\Http\Controllers\Persetujuan\HLCAdminController;
 use App\Http\Controllers\RencanaDiklat\RPT\DetailPeriodeController;
 use App\Http\Controllers\RencanaDiklat\RPT\DiklatInternalController;
 use App\Http\Controllers\RencanaDiklat\RPT\DokumentasiController;
@@ -42,6 +43,7 @@ Route::get('/', function () {
 //     return Inertia::render('Dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard/user', [DashboardController::class, 'dashboardUser'])->middleware(['auth', 'verified'])->name('dashboard.user');
 
 Route::get('/Diklat', [DiklatController::class, 'index'])->name('diklat.home');
 Route::get('/Diklat/create', [DiklatController::class, 'create'])->name('diklat.create');
@@ -52,9 +54,13 @@ Route::put('/Diklat/update/{id}', [DiklatController::class, 'update'])->name('di
 Route::delete('/Diklat/destroy/{id}', [DiklatController::class, 'destroy'])->name('diklat.destroy');
 
 // Persetujuan
+// Eksternal
 Route::get('/Persetujuan', [EksternalAdminController::class, 'Persetujuan'])->name('persetujuan.index');
 Route::get('/Persetujuan/Eksternal', [EksternalAdminController::class, 'EksternalAdmin'])->name('persetujuan.eksternal');
 Route::put('/Persetujuan/Eksternal/konfirmasi/{id}', [NonFormalController::class, 'approveKehadiran'])->name('konfirmasi.persetujuan.eksternal');
+// HLC
+Route::get('/Persetujuan/HLC', [HLCAdminController::class, 'index'])->name('persetujuan.hlc');
+Route::put('/Persetujuan/HLC/konfirmasi/{id}', [HLCController::class, 'approveKehadiran'])->name('konfirmasi.persetujuan.hlc');
 
 // halaman lihat Internal
 Route::get('/DiklatInternal/user', [InternalController::class, 'index'])->name('diklat.internal.index');
@@ -171,7 +177,7 @@ Route::post('/HLC/Home/updateProgram/{id}', [HLCController::class, 'updateProgra
 Route::post('/HLC/Home/updateDetail/{id}', [HLCController::class, 'updateDetail'])->name('diklat.hlc.admin.update-detail');
 Route::post('/HLC/Home/destroyProgram/{id}', [HLCController::class, 'destroyProgram'])->name('diklat.hlc.admin.destroy-program');
 Route::post('/HLC/Home/destroyDetail/{id}', [HLCController::class, 'destroyDetail'])->name('diklat.hlc.admin.destroy-detail');
-Route::post('/diklat-hlc/upload-bukti/{id}', [NonFormalController::class, 'uploadBukti'])->name('diklat.hlc.upload-bukti');
+Route::post('/diklat-hlc/upload-bukti/{id}', [HLCController::class, 'uploadBuktiHLC'])->name('diklat.hlc.upload-bukti');
 
 
 // User

@@ -17,7 +17,7 @@ interface Jadwal {
     tanggal?: string;
     tanggal_mulai?: string;
     nama_kegiatan?: string;
-    nama_diklat?: string;
+    detail: { nama_diklat: string } | null;
     nama_pengajar?: string;
     penyelenggara?: string;
     tempat?: string;
@@ -375,10 +375,12 @@ const absenHariIniHLC = (hlc: any) => {
                         class="h-10 w-full rounded-xl border border-slate-300 bg-slate-50 pr-4 pl-10 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
                     />
                 </div>
-                <div v-if="roles.includes('admin_diklat')" for="template-select"
+                <div
+                    v-if="roles.includes('admin_diklat')"
+                    for="template-select"
                     class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row md:items-center"
                 >
-                    <label 
+                    <label
                         class="text-xs font-bold tracking-widest text-slate-500 uppercase"
                         >Pilih Template Pesan:</label
                     >
@@ -507,7 +509,7 @@ const absenHariIniHLC = (hlc: any) => {
                                     <td
                                         class="px-6 py-4 font-bold text-blue-600"
                                     >
-                                        {{ item.nama_kegiatan }}
+                                        {{ item.detail?.nama_diklat }}
                                     </td>
                                     <td class="px-6 py-4 font-medium">
                                         {{ item.nama_pengajar }}
@@ -672,13 +674,16 @@ const absenHariIniHLC = (hlc: any) => {
                                                     )
                                                 "
                                             >
-                                                <!-- Hari terakhir → upload bukti -->
+                                                <!-- Hari terakhir dan sudah absen -->
                                                 <button
                                                     v-if="
                                                         hlc.status ===
                                                             'Setuju' &&
                                                         isHariTerakhir(
                                                             hlc.tanggal_selesai,
+                                                        ) &&
+                                                        sudahAbsenHariIniHLC(
+                                                            hlc,
                                                         )
                                                     "
                                                     @click="
@@ -759,7 +764,7 @@ const absenHariIniHLC = (hlc: any) => {
                                                 v-else-if="
                                                     new Date() <
                                                     new Date(
-                                                        eks.tanggal_mulai +
+                                                        hlc.tanggal_mulai +
                                                             'T00:00:00',
                                                     )
                                                 "

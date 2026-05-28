@@ -26,10 +26,18 @@ class JadwalInternalController extends Controller
         $search = $request->input('search');
 
         // 1. Internal
-        $internal = PeriodeUtama::whereHas('peserta', fn($q) => $q->where('nrp', $nrp))
+        $internal = PeriodeUtama::with('detail') // Ganti detailProgram menjadi detail
+            ->whereHas('peserta', fn($q) => $q->where('nrp', $nrp))
             ->where('tanggal', '>=', Carbon::today())
-            ->when($search, fn($q) => $q->where('nama_kegiatan', 'ILIKE', "%{$search}%"))
-            ->orderBy('tanggal', 'asc')->get();
+            ->when(
+                $search,
+                fn($q) =>
+                // Karena nama_diklat ada di tabel detail_internal, 
+                // pencarian 'where' harus diarahkan ke tabel relasinya
+                $q->whereHas('detail', fn($det) => $det->where('nama_diklat', 'ILIKE', "%{$search}%"))
+            )
+            ->orderBy('tanggal', 'asc')
+            ->get();
 
         // 2. HLC (Status Offered/Undangan)
         $hlc = ProgramHlc::whereHas('hlc', function ($q) use ($nrp) {

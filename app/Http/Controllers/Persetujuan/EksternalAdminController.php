@@ -17,13 +17,36 @@ class EksternalAdminController extends Controller
     public function EksternalAdmin()
     {
         $eksternal = DiklatEksternal::with(['karyawan', 'kehadiran'])
-            ->where('status', 'Hadir')
+            ->whereIn('status', ['Hadir', 'approved'])
             ->latest()
             ->get()
             ->map(function ($item) {
-                $item->total_hadir = $item->kehadiran->where('status', 'Hadir')->count();
-                $item->total_tidak_hadir = $item->kehadiran->where('status', '!=', 'Hadir')->count();
-                $item->is_today_absent = $item->kehadiranHariIni ? $item->kehadiranHariIni->status : null;
+                 // total hari pelatihan
+                $totalHadir = 0;
+                $totalTidakHadir = 0;
+
+                foreach ($item->kehadiran as $absen) {
+
+                    $status = strtolower(trim($absen->status));
+
+                    if ($status === 'hadir') {
+                        $totalHadir++;
+                    } else {
+                        $totalTidakHadir++;
+                    }
+                }
+
+                $item->total_hadir = $totalHadir;
+                $item->total_tidak_hadir = $totalTidakHadir;
+
+                $today = now()->toDateString();
+
+                $todayAttendance = $item->kehadiran
+                    ->where('tanggal', $today)
+                    ->first();
+
+                $item->is_today_absent = $todayAttendance?->status;
+
                 return $item;
             });
 

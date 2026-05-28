@@ -63,10 +63,16 @@ const mainNavItems = computed(() => [
    
    
     {
-        title: 'Dashboard Diklat',
+        title: 'Dashboard Diklat (admin)',
         href: dashboard(),
         icon: LayoutGrid,
         roles: ['admin_diklat'],
+    },
+    {
+        title: 'Dashboard Diklat (user)',
+        href: route('dashboard.user'),
+        icon: LayoutGrid,
+        
     },
     {
         title: 'Diklat',

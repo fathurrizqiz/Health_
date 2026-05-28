@@ -95,11 +95,15 @@ class HLCController extends Controller
             'nama_diklat' => 'nullable|string',
             'pengajar' => 'nullable|string',
             'penyelenggara' => 'nullable|string',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date',
+            'tanggal_mulai' => 'required|date|after_or_equal:today',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'nrp' => 'nullable|string|max:255',
             'jam_diklat' => 'nullable|integer',
             'dokumen' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg|max:2048'
+        ], [
+            // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
+            'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
+            'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
         ]);
 
         // Default approved karena admin yang input
@@ -163,18 +167,22 @@ class HLCController extends Controller
             'nama_diklat' => 'nullable|string',
             'pengajar' => 'nullable|string',
             'penyelenggara' => 'nullable|string',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date',
+            'tanggal_mulai' => 'required|date|after_or_equal:today',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'nrp' => 'nullable|string|max:255',
             'jam_diklat' => 'nullable|integer', // Ini adalah jam per hari dari input
             'dokumen' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg|max:2048'
+        ], [
+            // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
+            'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
+            'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
         ]);
 
         $hlc = HLCManajement::findOrFail($id);
 
         // Hitung ulang total jam diklat (Jam per hari * Selisih hari)
-        $tanggalMulai = \Carbon\Carbon::parse($validated['tanggal_mulai']);
-        $tanggalSelesai = \Carbon\Carbon::parse($validated['tanggal_selesai']);
+        $tanggalMulai = Carbon::parse($validated['tanggal_mulai']);
+        $tanggalSelesai = Carbon::parse($validated['tanggal_selesai']);
 
         $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
 
@@ -182,7 +190,7 @@ class HLCController extends Controller
         $validated['jam_diklat'] = ($validated['jam_diklat'] ?? 0) * $selisihHari;
 
         $hlc->update($validated);
-       
+
 
         return redirect()->route('diklat.hlc.admin')->with('success', 'Detail diklat berhasil diperbarui.');
     }
@@ -197,29 +205,13 @@ class HLCController extends Controller
         $hlc->delete();
 
         // Jalankan rekap ulang setelah hapus agar total jam di rekap berkurang
-        $this->updateRekapBulanan($nrp, $tahun, $bulan);
+        // $this->updateRekapBulanan($nrp, $tahun, $bulan);
 
         return redirect()->route('diklat.hlc.admin')->with('success', 'Data diklat berhasil dihapus.');
     }
 
 
     // SISI USER INBOX
-    public function konfirmasiHadir($id)
-    {
-        $hlc = HLCManajement::findOrFail($id);
-
-        // 1. Ubah status menjadi approved (sudah hadir/selesai)
-        $hlc->update(['status' => 'setuju']);
-
-        // 2. TRIGGER REKAP DIPANGGIL DI SINI
-        $this->updateRekapBulanan(
-            $hlc->nrp,
-            date('Y', strtotime($hlc->tanggal_mulai)),
-            date('n', strtotime($hlc->tanggal_mulai))
-        );
-
-        return redirect()->back()->with('success', 'Kehadiran berhasil dikonfirmasi. Jam diklat telah ditambahkan!');
-    }
 
     public function hadirHLC($id)
     {
@@ -252,7 +244,7 @@ class HLCController extends Controller
         return back()->with('success', 'Absensi berhasil disimpan.');
     }
 
-    public function uploadBukti(Request $request, $id)
+    public function uploadBuktiHLC(Request $request, $id)
     {
 
 

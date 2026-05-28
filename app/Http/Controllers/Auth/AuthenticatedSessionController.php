@@ -38,11 +38,11 @@ class AuthenticatedSessionController extends Controller
 
         // return redirect()->intended(route('dashboard', absolute: false));
 
-        if(in_array('admin_diklat', $roles)){
+        if (in_array('admin_diklat', $roles)) {
             return redirect()->intended(route('dashboard', absolute: false));
-        } 
-        
-        return redirect()->intended(route('diklat.home'));
+        }
+
+        return redirect()->intended(route('dashboard.user'));
     }
 
     /**

@@ -36,7 +36,7 @@ const approvalMenus = ref([
         title: 'Diklat HLC',
         description: 'Persetujuan kegiatan Hotel Learning Center (HLC) atau pelatihan internal yang bersifat intensif.',
         icon: 'building',
-        routeName: 'persetujuan.hlc.index',
+        routeName: 'persetujuan.hlc',
         stats: 5,
         statsLabel: 'Menunggu Review',
         colors: {
