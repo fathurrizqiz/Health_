@@ -10,22 +10,20 @@ const props = defineProps<{
     impersonateRequests: any[];
 }>();
 
+// --- State Loading & Modal ---
 const isLoading = ref<number | null>(null);
 const loadingAction = ref<'setuju' | 'tolak' | null>(null);
 
-// HELPERS
+// State untuk Modal Penolakan
+const showRejectModal = ref(false);
+const itemToReject = ref<{ id: number; type: 'hlc' | 'external' } | null>(null);
+const rejectReason = ref('');
+
 // HELPERS
 const formatDate = (date: string | null | undefined) => {
-    // Cek jika date kosong, null, atau undefined
     if (!date) return '-';
-
     const parsedDate = new Date(date);
-
-    // Cek jika date tidak valid (NaN)
-    if (isNaN(parsedDate.getTime())) {
-        return '-';
-    }
-
+    if (isNaN(parsedDate.getTime())) return '-';
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'long',
@@ -39,19 +37,45 @@ const handleAction = (
     action: 'setuju' | 'tolak',
     type: 'hlc' | 'external',
 ) => {
+    // Jika aksinya TOLAK, buka modal dulu, jangan kirim request langsung
+    if (action === 'tolak') {
+        itemToReject.value = { id, type };
+        rejectReason.value = ''; // Reset alasan
+        showRejectModal.value = true;
+        return;
+    }
+
+    // Jika aksinya SETUJU, langsung proses
+    processAction(id, 'setuju', type);
+};
+
+// Fungsi khusus untuk memproses request ke backend
+const processAction = (
+    id: number,
+    action: 'setuju' | 'tolak',
+    type: 'hlc' | 'external',
+    reason: string = '', // Parameter alasan (opsional untuk setuju)
+) => {
     isLoading.value = id;
     loadingAction.value = action;
 
     const baseRoute = type === 'hlc' ? '/HLC/Home' : '/Eksternal/Home';
-
+    // Catatan: Pastikan Route di backend sesuai
+    // Jika backend Anda menggunakan Route::post('/hlc/home/tolak/{id}'), gunakan url biasa
+    // Jika menggunakan named route, gunakan route()
+    
+    // Kita gunakan URL construction manual sesuai kode Anda sebelumnya
     const routeName =
         action === 'setuju'
             ? `${baseRoute}/konfirmasi/${id}`
             : `${baseRoute}/tolak/${id}`;
 
+    // Data yang dikirim
+    const dataPayload = action === 'tolak' ? { alasan: reason } : {};
+
     router.post(
         routeName,
-        {},
+        dataPayload,
         {
             preserveScroll: true,
             onSuccess: () => {
@@ -60,9 +84,14 @@ const handleAction = (
                         ? 'Diklat berhasil dimasukkan ke jadwal'
                         : 'Undangan berhasil ditolak',
                 );
+                // Tutup modal jika sukses
+                if (action === 'tolak') {
+                    closeRejectModal();
+                }
             },
-            onError: () => {
+            onError: (errors) => {
                 toast.error('Terjadi kesalahan');
+                console.error(errors);
             },
             onFinish: () => {
                 isLoading.value = null;
@@ -71,6 +100,31 @@ const handleAction = (
         },
     );
 };
+
+// Fungsi Konfirmasi dari dalam Modal
+const confirmReject = () => {
+    if (!itemToReject.value) return;
+    
+    // Validasi sederhana
+    if (!rejectReason.value.trim()) {
+        toast.error('Mohon isi alasan penolakan');
+        return;
+    }
+
+    processAction(
+        itemToReject.value.id, 
+        'tolak', 
+        itemToReject.value.type, 
+        rejectReason.value
+    );
+};
+
+const closeRejectModal = () => {
+    showRejectModal.value = false;
+    itemToReject.value = null;
+    rejectReason.value = '';
+};
+
 // impersonate response
 const respondImpersonate = (
     requestId: number,
@@ -336,7 +390,7 @@ const lihatDokumen = (dokumen: string) => {
                                         >
                                             Penyelenggara:
                                             <span class="font-semibold">{{
-                                                item.penyelenggara
+                                                item.penyelenggara || 'lihat undangan'
                                             }}</span>
                                         </p>
 
@@ -349,7 +403,7 @@ const lihatDokumen = (dokumen: string) => {
                                                 <p
                                                     class="text-xs font-medium text-slate-500"
                                                 >
-                                                    Jadwal
+                                                    Jadwal mulai
                                                 </p>
                                                 <p
                                                     class="mt-1 text-sm font-semibold text-slate-800 dark:text-white"
@@ -357,6 +411,24 @@ const lihatDokumen = (dokumen: string) => {
                                                     {{
                                                         formatDate(
                                                             item.tanggal_mulai,
+                                                        )
+                                                    }}
+                                                </p>
+                                            </div>
+                                            <div
+                                                class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50"
+                                            >
+                                                <p
+                                                    class="text-xs font-medium text-slate-500"
+                                                >
+                                                    Jadwal selesai
+                                                </p>
+                                                <p
+                                                    class="mt-1 text-sm font-semibold text-slate-800 dark:text-white"
+                                                >
+                                                    {{
+                                                        formatDate(
+                                                            item.tanggal_selesai,
                                                         )
                                                     }}
                                                 </p>
@@ -505,7 +577,7 @@ const lihatDokumen = (dokumen: string) => {
                                         </p>
                                         Penyelenggara:
                                         <span class="font-semibold">{{
-                                            item.penyelenggara
+                                            item.penyelenggara || 'lihat undangan'
                                         }}</span>
 
                                         <div
@@ -517,7 +589,7 @@ const lihatDokumen = (dokumen: string) => {
                                                 <p
                                                     class="text-xs font-medium text-slate-500"
                                                 >
-                                                    Jadwal
+                                                    Jadwal Mulai
                                                 </p>
                                                 <p
                                                     class="mt-1 text-sm font-semibold text-slate-800 dark:text-white"
@@ -525,6 +597,24 @@ const lihatDokumen = (dokumen: string) => {
                                                     {{
                                                         formatDate(
                                                             item.tanggal_mulai,
+                                                        )
+                                                    }}
+                                                </p>
+                                            </div>
+                                            <div
+                                                class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50"
+                                            >
+                                                <p
+                                                    class="text-xs font-medium text-slate-500"
+                                                >
+                                                    Jadwal Selesai
+                                                </p>
+                                                <p
+                                                    class="mt-1 text-sm font-semibold text-slate-800 dark:text-white"
+                                                >
+                                                    {{
+                                                        formatDate(
+                                                            item.tanggal_selesai,
                                                         )
                                                     }}
                                                 </p>
@@ -639,6 +729,55 @@ const lihatDokumen = (dokumen: string) => {
                 <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
                     Belum ada rekomendasi diklat baru untuk Anda.
                 </p>
+            </div>
+        </div>
+
+        <!-- MODAL ALASAN PENOLAKAN -->
+        <div
+            v-if="showRejectModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-opacity"
+        >
+            <div
+                class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900"
+            >
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white">
+                        Konfirmasi Penolakan
+                    </h3>
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Mohon berikan alasan mengapa Anda menolak undangan
+                        diklat ini. Alasan akan disimpan ke dalam sistem.
+                    </p>
+                </div>
+
+                <div class="mb-6">
+                    <label
+                        class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300"
+                    >
+                        Alasan Penolakan
+                    </label>
+                    <textarea
+                        v-model="rejectReason"
+                        rows="4"
+                        class="w-full rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
+                        
+                    ></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button
+                        @click="closeRejectModal"
+                        class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        @click="confirmReject"
+                        class="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+                    >
+                        Kirim Penolakan
+                    </button>
+                </div>
             </div>
         </div>
     </AppLayout>

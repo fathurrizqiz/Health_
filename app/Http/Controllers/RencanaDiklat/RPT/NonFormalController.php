@@ -47,11 +47,15 @@ class NonFormalController extends Controller
             'penyelenggara' => 'nullable|string|max:255',
             'nrp' => 'nullable|string|max:255',
             'dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg|max:2048',
-        ],[
-        // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
-        'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
-        'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
-    ]);
+        ], [
+            // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
+            'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
+            'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+        ]);
+
+        if ($validate['jam_diklat'] >= 10) {
+            return redirect()->back()->with('error', 'Jam diklat per hari tidak boleh lebih dari 10 jam.');
+        }
 
         // Default approved karena admin yang input
         $validate['status'] = 'menunggu_persetujuan';

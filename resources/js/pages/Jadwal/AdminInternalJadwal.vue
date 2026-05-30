@@ -590,7 +590,7 @@ const absenHariIniHLC = (hlc: any) => {
                                         Lokasi
                                     </p>
                                     <p class="font-medium dark:text-slate-300">
-                                        {{ item.lokasi }}
+                                        {{ item.tempat }}
                                     </p>
                                 </div>
                                 <div
@@ -896,7 +896,8 @@ const absenHariIniHLC = (hlc: any) => {
                                                             'Setuju' &&
                                                         isHariTerakhir(
                                                             eks.tanggal_selesai,
-                                                        )
+                                                        ) && 
+                                                        sudahAbsenHariIni(eks)
                                                     "
                                                     @click="
                                                         openModalUpload(

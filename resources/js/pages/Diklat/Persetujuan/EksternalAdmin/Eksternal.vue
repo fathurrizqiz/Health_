@@ -108,6 +108,12 @@ const getAbsenStatusClass = (status: string | null) => {
 const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 };
+
+const getStatusLabel = (status) => {
+    return status === 'Hadir'
+        ? 'Sedang Berlangsung'
+        : status
+}
 </script>
 
 <template>
@@ -144,7 +150,7 @@ const formatDate = (date: string) => {
                                 <th class="px-6 py-3.5 text-center">Rekap Absen</th>
                                 <th class="px-6 py-3.5 text-center">Jam Diklat</th>
                                 <th class="px-6 py-3.5 text-center">Bukti</th>
-                                <!-- <th class="px-6 py-3.5 text-center">Status Verifikasi</th> -->
+                                <th class="px-6 py-3.5 text-center">Status</th>
                                 <th class="px-6 py-3.5 text-center">Aksi</th>
                             </tr>
                         </thead>
@@ -179,11 +185,11 @@ const formatDate = (date: string) => {
                                     </a>
                                     <span v-else class="text-xs text-slate-400">Belum ada</span>
                                 </td>
-                                <!-- <td class="px-6 py-4 text-center">
+                                <td class="px-6 py-4 text-center">
                                     <span class="inline-block rounded-full px-3 py-1 text-xs font-semibold" :class="getStatusVerifClass(item.status_verifikasi)">
-                                        {{ item.status_verifikasi || 'Menunggu' }}
+                                        {{ getStatusLabel(item.status) }}
                                     </span>
-                                </td> -->
+                                </td>
                                 <td class="px-6 py-4 text-center">
                                     <button @click="openModal(item)" class="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
                                         Detail & Verifikasi

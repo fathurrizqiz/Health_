@@ -31,6 +31,8 @@ interface DiklatRow {
     tanggal_mulai: string | null;
     tanggal_selesai: string | null;
     jam_diklat: number;
+    status: string | null;
+    catatan_penolakan: string | null;
 }
 
 interface Program {
@@ -79,6 +81,9 @@ const currentPage = ref(1);
 const isModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
 const selectedProgramId = ref<number | null>(null);
+
+const showReasonModal = ref(false);
+const selectedReason = ref('');
 
 const newProgram = ref({
     nama_program: '',
@@ -232,7 +237,12 @@ const tambahProgram = () => {
 };
 
 const tambahDetail = () => {
-    
+    const jam = Number(newDetail.value.jam_diklat);
+
+    if (jam < 1 || jam > 9) {
+        toast.error('Jam diklat per hari harus antara 1-9 jam.');
+        return;
+    }
 
     isLoading.value = true;
     router.post('/HLC/Home/storeDetail', newDetail.value, {
@@ -240,7 +250,7 @@ const tambahDetail = () => {
             toast.success('Detail Diklat berhasil ditambahkan!');
             closeDetailModal();
             resetToPage1();
-            // 👇 Auto-refresh relevant data (e.g., 'details' or 'program')
+            //  Auto-refresh relevant data (e.g., 'details' or 'program')
             // Adjust the key(s) based on your Inertia page props
             router.reload({ only: ['program'] }); // or ['details'], or both
         },
@@ -339,11 +349,17 @@ const handleFileUpload = (event: Event) => {
 };
 
 const lihatDokumen = (dokumen: string) => {
-    window.open(`/storage/${dokumen}`, '_blank')
-}
+    window.open(`/storage/${dokumen}`, '_blank');
+};
 
 // fungsi untuk sett tanggal hari ini
-const today = new Date().toISOString().split("T")[0]
+const today = new Date().toISOString().split('T')[0];
+
+const openReasonModal = (reason: string) => {
+    if (!reason) return; // Jangan buka modal jika kosong
+    selectedReason.value = reason;
+    showReasonModal.value = true;
+};
 </script>
 
 <template>
@@ -612,7 +628,17 @@ const today = new Date().toISOString().split("T")[0]
                                         <th
                                             class="px-4 py-3 font-semibold tracking-wider uppercase"
                                         >
-                                            Peserta
+                                            Jam Diklat
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 font-semibold tracking-wider uppercase"
+                                        >
+                                            Status
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 font-semibold tracking-wider uppercase"
+                                        >
+                                            Alasan
                                         </th>
                                     </tr>
                                 </thead>
@@ -627,14 +653,18 @@ const today = new Date().toISOString().split("T")[0]
                                         <td
                                             class="px-4 py-3 font-medium text-slate-900 dark:text-slate-200"
                                         >
-                                        <span v-if="row.nama_diklat">
-                                            {{ row.nama_diklat }}
-                                        </span>
-                                        <button v-else
-                                        @click="lihatDokumen(row.dokumen)"
-        class="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"> Lihat undangan
-
-                                        </button>
+                                            <span v-if="row.nama_diklat">
+                                                {{ row.nama_diklat }}
+                                            </span>
+                                            <button
+                                                v-else
+                                                @click="
+                                                    lihatDokumen(row.dokumen)
+                                                "
+                                                class="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+                                            >
+                                                Lihat undangan
+                                            </button>
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
@@ -645,6 +675,32 @@ const today = new Date().toISOString().split("T")[0]
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
                                             {{ row.tanggal_selesai }}
+                                        </td>
+                                        <td
+                                            class="px-4 py-3 text-slate-600 dark:text-slate-300"
+                                        >
+                                            {{ row.jam_diklat }} jam
+                                        </td>
+                                        <td
+                                            class="px-4 py-3 text-slate-600 dark:text-slate-300"
+                                        >
+                                            {{ row.status || '-' }}
+                                        </td>
+                                        <td
+                                            class="px-4 py-3 text-slate-600 dark:text-slate-300"
+                                        >
+                                            <button
+                                                v-if="row.catatan_penolakan"
+                                                @click="
+                                                    openReasonModal(
+                                                        row.catatan_penolakan,
+                                                    )
+                                                "
+                                                class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300"
+                                                title="Lihat Alasan Lengkap"
+                                            >
+                                                Lihat Alasan
+                                            </button>
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
@@ -1128,6 +1184,36 @@ const today = new Date().toISOString().split("T")[0]
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Alasan Penolakan -->
+        <div
+            v-if="showReasonModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            @click.self="showReasonModal = false"
+        >
+            <div
+                class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
+            >
+                <h3
+                    class="mb-2 text-lg font-bold text-slate-900 dark:text-white"
+                >
+                    Alasan Penolakan
+                </h3>
+                <div
+                    class="max-h-60 overflow-y-auto rounded-lg bg-slate-50 p-4 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                >
+                    {{ selectedReason }}
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button
+                        @click="showReasonModal = false"
+                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    >
+                        Tutup
+                    </button>
                 </div>
             </div>
         </div>

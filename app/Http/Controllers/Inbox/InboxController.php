@@ -18,13 +18,13 @@ class InboxController extends Controller
     {
         $user = auth()->user();
         $undangan = HLCManajement::where('nrp', $user->nrp)
-            ->where('status', 'menunggu_persetujuan') 
-            ->whereDate('tanggal_selesai', '>=', now()) 
+            ->where('status', 'menunggu_persetujuan')
+            ->whereDate('tanggal_selesai', '>=', now())
             ->orderBy('created_at', 'desc')
             ->get();
         $undanganexternal = DiklatEksternal::where('nrp', $user->nrp)
-            ->where('status', 'menunggu_persetujuan') 
-            ->whereDate('tanggal_selesai', '>=', now()) 
+            ->where('status', 'menunggu_persetujuan')
+            ->whereDate('tanggal_selesai', '>=', now())
             ->orderBy('created_at', 'desc')
             ->get();
         $impersonateRequests = ImpersonateRequestModel::where('target_nrp', $user->nrp)
@@ -65,14 +65,21 @@ class InboxController extends Controller
 
         return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
     }
-    public function tolakRekomendasihlc($id)
+    public function tolakRekomendasihlc(Request $request, $id)
     {
+        $request->validate([
+            'alasan' => 'required|string|max:255',
+        ]);
+
         $hlc = HLCManajement::findOrFail($id);
 
-        // Ubah status menjadi rejected (artinya ditolak)
-        $hlc->update(['status' => 'Tolak']);
+        // Ubah status menjadi rejected dan simpan alasan
+        $hlc->update([
+            'status' => 'Tolak',
+            'catatan_penolakan' => $request->alasan
+        ]);
 
-        return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
+        return redirect()->back()->with('success', 'Undangan berhasil ditolak.');
     }
     public function setujuRekomendasieksternal($id)
     {
@@ -83,14 +90,24 @@ class InboxController extends Controller
 
         return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
     }
-    public function tolakRekomendasieksternal($id)
+    public function tolakRekomendasieksternal(Request $request, $id)
     {
-        $hlc = DiklatEksternal::findOrFail($id);
+        // 1. Validasi input alasan agar tidak kosong
+        $request->validate([
+            'alasan' => 'required|string|max:255',
+        ]);
 
-        // Ubah status menjadi rejected (artinya ditolak)
-        $hlc->update(['status' => 'Tolak']);
+        // 2. Cari data berdasarkan ID
+        $eksternal = DiklatEksternal::findOrFail($id);
 
-        return redirect()->back()->with('success', 'Diklat berhasil ditambahkan ke jadwal Anda.');
+        // 3. Update status dan simpan catatan penolakan
+        $eksternal->update([
+            'status' => 'Tolak',
+            'catatan_penolakan' => $request->alasan,
+        ]);
+
+        // 4. Redirect kembali dengan pesan sukses (Opsional: disesuaikan pesannya)
+        return redirect()->back()->with('success', 'Undangan diklat eksternal berhasil ditolak.');
     }
 
     public function respondImpersonate(Request $request, $requestId)

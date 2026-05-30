@@ -20,7 +20,8 @@ class DiklatEksternal extends Model
         'bukti_hadir',
         'status_verifikasi',
         'uploaded_at',
-        'catatan_verifikasi'
+        'catatan_verifikasi',
+        'catatan_penolakan',
     ];
 
     public function kehadiran()

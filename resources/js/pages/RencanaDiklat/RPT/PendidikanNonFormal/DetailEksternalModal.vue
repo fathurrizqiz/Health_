@@ -84,6 +84,10 @@ const handleFileUpload = (event: Event) => {
 };
 
 const submit = () => {
+    if (!form.value.jam_diklat || form.value.jam_diklat < 1 || form.value.jam_diklat > 10) {
+        toast.error('Jam diklat optimalnya antara 1 dan 9 jam');
+        return;
+    }
     const url = props.detail
         ? `/RencanaDiklat/RPT/PN/Detail/Update/${props.detail.id}`
         : '/RencanaDiklat/RPT/PN/Detail';

@@ -49,6 +49,7 @@ interface DiklatEksternal {
     penyelenggara: string;
     nrp: string;
     status: string;
+    catatan_penolakan: string;
 }
 
 interface ProgramEksternal {
@@ -77,6 +78,9 @@ const selectedProgramId = ref<number | null>(null);
 
 const editingProgram = ref(null);
 const editingDetail = ref(null);
+
+const showReasonModal = ref(false);
+const selectedReason = ref('');
 
 // --- Computed Properties ---
 const filteredPrograms = computed(() => {
@@ -172,8 +176,8 @@ const hapusDetail = (detailId: number) => {
 };
 
 const lihatDokumen = (dokumen: string) => {
-    window.open(`/storage/${dokumen}`, '_blank')
-}
+    window.open(`/storage/${dokumen}`, '_blank');
+};
 </script>
 
 <template>
@@ -215,7 +219,6 @@ const lihatDokumen = (dokumen: string) => {
             <div
                 class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
             >
-                
                 <button
                     @click="openProgramModal()"
                     class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
@@ -416,11 +419,16 @@ const lihatDokumen = (dokumen: string) => {
                                         >
                                             Jam Diklat
                                         </th>
-                                        
+
                                         <th
                                             class="px-4 py-3 font-semibold tracking-wider uppercase"
                                         >
                                             Status
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 font-semibold tracking-wider uppercase"
+                                        >
+                                            Alasan
                                         </th>
                                         <th
                                             class="px-4 py-3 text-center font-semibold tracking-wider uppercase"
@@ -443,12 +451,9 @@ const lihatDokumen = (dokumen: string) => {
                                             <div
                                                 class="flex items-center gap-2"
                                             >
-                                            
-
                                                 <div
                                                     class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                                                 >
-                                                
                                                     {{
                                                         detail.nama_karyawan?.charAt(
                                                             0,
@@ -456,8 +461,6 @@ const lihatDokumen = (dokumen: string) => {
                                                     }}
                                                 </div>
                                                 {{ detail.nama_karyawan }}
-                                           
-                                            
                                             </div>
                                         </td>
                                         <td
@@ -468,12 +471,14 @@ const lihatDokumen = (dokumen: string) => {
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
-                                        <button
-                                            @click="lihatDokumen(detail.dokumen)"
-                                            class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                                        >
-                                            Lihat Dokumen
-                                        </button>
+                                            <button
+                                                @click="
+                                                    lihatDokumen(detail.dokumen)
+                                                "
+                                                class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                            >
+                                                Lihat Dokumen
+                                            </button>
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
@@ -494,11 +499,27 @@ const lihatDokumen = (dokumen: string) => {
                                                 {{ detail.jam_diklat }} Jam
                                             </span>
                                         </td>
-                                        
+
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
                                             {{ detail.status }}
+                                        </td>
+                                        <td
+                                            class="px-4 py-3 text-slate-600 dark:text-slate-300"
+                                        >
+                                            <button
+                                                v-if="detail.catatan_penolakan"
+                                                @click="
+                                                    openReasonModal(
+                                                        detail.catatan_penolakan,
+                                                    )
+                                                "
+                                                class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300"
+                                                title="Lihat Alasan Lengkap"
+                                            >
+                                                Lihat Alasan
+                                            </button>
                                         </td>
                                         <td
                                             class="flex justify-center gap-1 px-4 py-3 text-center"
@@ -651,5 +672,36 @@ const lihatDokumen = (dokumen: string) => {
             :karyawan="props.karyawan"
             @close="isDetailModalOpen = false"
         />
+
+        <!-- modal alasan penolakan -->
+        <!-- Modal Alasan Penolakan -->
+        <div
+            v-if="showReasonModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            @click.self="showReasonModal = false"
+        >
+            <div
+                class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
+            >
+                <h3
+                    class="mb-2 text-lg font-bold text-slate-900 dark:text-white"
+                >
+                    Alasan Penolakan
+                </h3>
+                <div
+                    class="max-h-60 overflow-y-auto rounded-lg bg-slate-50 p-4 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                >
+                    {{ selectedReason }}
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button
+                        @click="showReasonModal = false"
+                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    >
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
     </AppLayout>
 </template>
