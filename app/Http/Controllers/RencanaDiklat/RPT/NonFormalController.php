@@ -53,7 +53,7 @@ class NonFormalController extends Controller
             'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
         ]);
 
-        if ($validate['jam_diklat'] >= 10) {
+        if ($validate['jam_diklat'] > 9) {
             return redirect()->back()->with('error', 'Jam diklat per hari tidak boleh lebih dari 10 jam.');
         }
 

@@ -106,6 +106,10 @@ class HLCController extends Controller
             'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
         ]);
 
+        if ($validated['jam_diklat'] > 9) {
+            return redirect()->back()->with('error', 'Jam diklat per hari tidak boleh lebih dari 9 jam.');
+        }
+
         // Default approved karena admin yang input
         $validated['status'] = 'menunggu_persetujuan';
 

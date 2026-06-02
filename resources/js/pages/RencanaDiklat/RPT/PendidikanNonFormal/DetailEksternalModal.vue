@@ -84,7 +84,7 @@ const handleFileUpload = (event: Event) => {
 };
 
 const submit = () => {
-    if (!form.value.jam_diklat || form.value.jam_diklat < 1 || form.value.jam_diklat > 10) {
+    if (!form.value.jam_diklat || form.value.jam_diklat < 1 || form.value.jam_diklat > 9) {
         toast.error('Jam diklat optimalnya antara 1 dan 9 jam');
         return;
     }

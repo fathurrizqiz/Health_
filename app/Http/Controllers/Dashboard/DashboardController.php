@@ -177,135 +177,200 @@ class DashboardController extends Controller
         $nrp = $karyawan->nrp;
         $kategori = $karyawan->klinis_non_klinis;
         $yearNow = now()->year;
+        $monthNow = now()->month;
+        $today = Carbon::today()->toDateString();
 
         // ==========================================
-        // 1. TOTAL JAM DIKLAT (REAL-TIME CALCULATION)
+        // 1. TOTAL JAM DIKLAT TAHUNAN (REAL-TIME)
         // ==========================================
+        $jamEksternalThn = DiklatEksternal::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->where('status', 'approved')->sum('jam_diklat');
+        $jamHLCThn = HLCManajement::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->where('status', 'approved')->sum('jam_diklat');
+        $jamMandiriThn = DiklatKaryawan::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->where('status', 'approved')->sum('jam_diklat');
 
-        // a. Diklat Eksternal (Status Disetujui/Hadir)
-        $jamEksternal = DiklatEksternal::where('nrp', $nrp)
-            ->whereYear('tanggal_mulai', $yearNow)
-            ->where('status', 'approved') // Hanya yang disetujui admin
-            ->sum('jam_diklat');
+        // Diklat Internal Tahunan
+        $periodeIdsLewatThn = \App\Models\PeriodeUtama::whereYear('tanggal', $yearNow)->whereDate('tanggal', '<=', now())->pluck('id');
+        $pesertaInternalThn = PeriodeBagianDetailInternal::where('nrp', $nrp)->whereIn('periode_id', $periodeIdsLewatThn)->with(['periode.aksi'])->get();
 
-        // b. Diklat HLC (Status Hadir/Disetujui)
-        // Asumsi: kolom status atau status_verifikasi yang menentukan sahnya
-        $jamHLC = HLCManajement::where('nrp', $nrp)
-            ->whereYear('tanggal_mulai', $yearNow)
-            ->where('status', 'approved') // Atau status_verifikasi == 'Disetujui'
-            ->sum('jam_diklat');
-
-        // c. Diklat Mandiri (Status Disetujui)
-        $jamMandiri = DiklatKaryawan::where('nrp', $nrp)
-            ->whereYear('tanggal_mulai', $yearNow)
-            ->where('status', 'approved')
-            ->sum('jam_diklat');
-
-        // d. Diklat Internal
-        // Logic: Cari di tabel PeriodeUtama (jadwal) yang sudah lewat tanggalnya, 
-        // lalu cek apakah user ada di peserta (PeriodeBagianDetailInternal).
-        // Ambil jam_diklat dari relasi aksi/program.
-
-        // Ambil semua ID periode yang tanggalnya TIDAK di masa depan (sudah lewat atau hari ini)
-        $periodeIdsLewat = \App\Models\PeriodeUtama::whereDate('tanggal', '<=', now())
-            ->pluck('id');
-
-        // Cek kepesertaan
-        $pesertaInternal = PeriodeBagianDetailInternal::where('nrp', $nrp)
-            ->whereIn('periode_id', $periodeIdsLewat)
-            ->with(['periode.aksi']) // Load jam dari setting aksi
-            ->get();
-
-        $jamInternal = 0;
-        foreach ($pesertaInternal as $peserta) {
-            // Tambah jam jika ada data aksi
+        $jamInternalThn = 0;
+        foreach ($pesertaInternalThn as $peserta) {
             if ($peserta->periode && $peserta->periode->aksi) {
-                $jamInternal += ($peserta->periode->aksi->jam_diklat ?? 0);
+                $jamInternalThn += ($peserta->periode->aksi->jam_diklat ?? 0);
             }
         }
 
-        // Total Realtime
-        $totalJamRealtime = $jamEksternal + $jamHLC + $jamMandiri + $jamInternal;
+        $totalJamFinal = $jamEksternalThn + $jamHLCThn + $jamMandiriThn + $jamInternalThn;
 
         // ==========================================
-        // 2. STATISTIK REKAP (DARI TABEL REKAP)
+        // 2. TOTAL JAM DIKLAT BULANAN (REAL-TIME)
+        // ==========================================
+        $jamEksternalBln = DiklatEksternal::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->whereMonth('tanggal_mulai', $monthNow)->where('status', 'approved')->sum('jam_diklat');
+        $jamHLCBln = HLCManajement::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->whereMonth('tanggal_mulai', $monthNow)->where('status', 'approved')->sum('jam_diklat');
+        $jamMandiriBln = DiklatKaryawan::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->whereMonth('tanggal_mulai', $monthNow)->where('status', 'approved')->sum('jam_diklat');
+
+        // Diklat Internal Bulanan
+        $periodeIdsLewatBln = \App\Models\PeriodeUtama::whereYear('tanggal', $yearNow)->whereMonth('tanggal', $monthNow)->whereDate('tanggal', '<=', now())->pluck('id');
+        $pesertaInternalBln = PeriodeBagianDetailInternal::where('nrp', $nrp)->whereIn('periode_id', $periodeIdsLewatBln)->with(['periode.aksi'])->get();
+
+        $jamInternalBln = 0;
+        foreach ($pesertaInternalBln as $peserta) {
+            if ($peserta->periode && $peserta->periode->aksi) {
+                $jamInternalBln += ($peserta->periode->aksi->jam_diklat ?? 0);
+            }
+        }
+
+        $totalJamFinalBulanan = $jamEksternalBln + $jamHLCBln + $jamMandiriBln + $jamInternalBln;
+
+        // ==========================================
+        // 3. TARGET KATEGORI & PROMOSI KUMULATIF 6 BULAN
         // ==========================================
 
-        $totalJamRekap = RekapJamDiklat::where('nrp', $nrp)
-            ->where('tahun', $yearNow)
-            ->sum('total_jam');
-
-        // Gunakan total realtime jika rekap belum terupdate, atau gunakan rekap sesuai kebutuhan bisnis
-        // Disini saya gunakan Realtime agar dashboard user selalu update terbaru
-        $totalJamFinal = $totalJamRealtime;
-
-        // ==========================================
-        // 3. TARGET & PERSENTASE
-        // ==========================================
+        // Ambil target tahunan dari database (tetap di-load untuk data statistik dasar)
         $targetData = TargetJamModels::where('kategori', $kategori)->first();
         $targetJam = $targetData ? $targetData->target_jam : 0;
 
-        $persentase = $targetJam > 0 ? round(($totalJamFinal / $targetJam) * 100, 2) : 0;
+        // Hardcode target per BULAN berdasarkan kategori login
+        $targetBulanan = match (strtolower($kategori)) {
+            'klinis' => 20.0,
+            'nonklinis' => 12.5,
+            'manajerial klinis' => 15.0,
+            'manajerial non klinis' => 15.0,
+            default => 0.0
+        };
+
+        // Target Akumulasi penuh untuk blok 6 Bulan (Semesteran)
+        $targetJam6Bulan = $targetBulanan * 6; // Contoh Manajerial Klinis: 15 * 6 = 90 Jam
+
+        // Tentukan rentang bulan semester berjalan saat ini (Jan-Jun atau Jul-Des)
+        $startMonth = $monthNow <= 6 ? 1 : 7;
+        $endMonth = $monthNow <= 6 ? 6 : 12;
+
+        // Hitung TOTAL JAM REALISASI khusus dalam rentang 6 bulan semester berjalan ini
+        $jamEksternal6Bln = DiklatEksternal::where('nrp', $nrp)
+            ->whereYear('tanggal_mulai', $yearNow)
+            ->whereBetween(\DB::raw('EXTRACT(MONTH FROM tanggal_mulai)'), [$startMonth, $endMonth])
+            ->where('status', 'approved')
+            ->sum('jam_diklat');
+
+        $jamHLC6Bln = HLCManajement::where('nrp', $nrp)
+            ->whereYear('tanggal_mulai', $yearNow)
+            ->whereBetween(\DB::raw('EXTRACT(MONTH FROM tanggal_mulai)'), [$startMonth, $endMonth])
+            ->where('status', 'approved')
+            ->sum('jam_diklat');
+
+        $jamMandiri6Bln = DiklatKaryawan::where('nrp', $nrp)
+            ->whereYear('tanggal_mulai', $yearNow)
+            ->whereBetween(\DB::raw('EXTRACT(MONTH FROM tanggal_mulai)'), [$startMonth, $endMonth])
+            ->where('status', 'approved')
+            ->sum('jam_diklat');
+
+        $periodeIds6Bln = \App\Models\PeriodeUtama::whereYear('tanggal', $yearNow)
+            ->whereBetween(\DB::raw('EXTRACT(MONTH FROM tanggal)'), [$startMonth, $endMonth])
+            ->whereDate('tanggal', '<=', now())
+            ->pluck('id');
+
+        $pesertaInternal6Bln = PeriodeBagianDetailInternal::where('nrp', $nrp)
+            ->whereIn('periode_id', $periodeIds6Bln)
+            ->with(['periode.aksi'])
+            ->get();
+
+        $jamInternal6Bln = 0;
+        foreach ($pesertaInternal6Bln as $peserta) {
+            $jamInternal6Bln += ($peserta->periode->aksi->jam_diklat ?? 0);
+        }
+
+        // Gabungan total jam semester berjalan
+        $totalJamSemesterIni = $jamEksternal6Bln + $jamHLC6Bln + $jamMandiri6Bln + $jamInternal6Bln;
+
+        // Hitung konsistensi pemenuhan target bulanan individu untuk validasi status promosi
+        $bulanTerpujiCount = 0;
+        $bulanHarusLolos = 0;
+
+        for ($m = $startMonth; $m <= $endMonth; $m++) {
+            if ($m <= $monthNow) {
+                $bulanHarusLolos++;
+
+                $eksternalM = DiklatEksternal::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->whereMonth('tanggal_mulai', $m)->where('status', 'approved')->sum('jam_diklat');
+                $hlcM = HLCManajement::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->whereMonth('tanggal_mulai', $m)->where('status', 'approved')->sum('jam_diklat');
+                $mandiriM = DiklatKaryawan::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->whereMonth('tanggal_mulai', $m)->where('status', 'approved')->sum('jam_diklat');
+
+                $periodeIdsM = \App\Models\PeriodeUtama::whereYear('tanggal', $yearNow)->whereMonth('tanggal', $m)->whereDate('tanggal', '<=', now())->pluck('id');
+                $pesertaInternalM = PeriodeBagianDetailInternal::where('nrp', $nrp)->whereIn('periode_id', $periodeIdsM)->with(['periode.aksi'])->get();
+
+                $internalM = 0;
+                foreach ($pesertaInternalM as $peserta) {
+                    $internalM += ($peserta->periode->aksi->jam_diklat ?? 0);
+                }
+
+                if (($eksternalM + $hlcM + $mandiriM + $internalM) >= $targetBulanan) {
+                    $bulanTerpujiCount++;
+                }
+            }
+        }
+
+        // Persentase Progress Bar menuju target 6 bulan penuh (misal mencapai 90 Jam)
+        $persentasePromosi = $targetJam6Bulan > 0 ? round(($totalJamSemesterIni / $targetJam6Bulan) * 100, 2) : 0;
+
+        // Karyawan lulus promosi jika jam kumulatif semester tercapai DAN konsisten lulus di tiap bulan berjalan
+        $promosi = ($totalJamSemesterIni >= $targetJam6Bulan) && ($bulanTerpujiCount === $bulanHarusLolos);
+
+        if ($promosi) {
+            $pesanPromosi = "Memenuhi syarat promosi. Akumulasi semester ini ({$totalJamSemesterIni} Jam) telah memenuhi target minimal {$targetJam6Bulan} Jam.";
+        } else {
+            $pesanPromosi = "Belum memenuhi syarat promosi. Pencapaian Anda baru {$totalJamSemesterIni} Jam dari target {$targetJam6Bulan} Jam semester ini.";
+        }
+
+        $persentaseTahunan = $targetJam > 0 ? round(($totalJamFinal / $targetJam) * 100, 2) : 0;
+        $persentaseBulananRealtime = $targetBulanan > 0 ? round(($totalJamFinalBulanan / $targetBulanan) * 100, 2) : 0;
 
         // ==========================================
-        // 4. STATISTIK PER JENIS DIKLAT
+        // 4. STATISTIK PER JENIS DIKLAT (TAHUNAN)
         // ==========================================
-
-        // Hitung masing-masing tipe untuk visualisasi grafik/pie
         $statsPerTipe = [
             [
                 'tipe' => 'Eksternal',
-                'total_jam' => $jamEksternal,
-                'count' => DiklatEksternal::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->where('status_verifikasi', 'Disetujui')->count(),
-                'warna' => 'bg-emerald-500', // Hijau
+                'total_jam' => $jamEksternalThn,
+                'count' => DiklatEksternal::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->where('status', 'approved')->count(),
+                'warna' => 'bg-emerald-500',
                 'icon' => 'globe'
             ],
             [
                 'tipe' => 'HLC',
-                'total_jam' => $jamHLC,
-                'count' => HLCManajement::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->where('status', 'Hadir')->count(),
-                'warna' => 'bg-violet-500', // Ungu
+                'total_jam' => $jamHLCThn,
+                'count' => HLCManajement::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->where('status', 'approved')->count(),
+                'warna' => 'bg-violet-500',
                 'icon' => 'building'
             ],
             [
                 'tipe' => 'Mandiri',
-                'total_jam' => $jamMandiri,
-                'count' => DiklatKaryawan::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->where('status', 'Disetujui')->count(),
-                'warna' => 'bg-blue-500', // Biru
+                'total_jam' => $jamMandiriThn,
+                'count' => DiklatKaryawan::where('nrp', $nrp)->whereYear('tanggal_mulai', $yearNow)->where('status', 'approved')->count(),
+                'warna' => 'bg-blue-500',
                 'icon' => 'user'
             ],
             [
                 'tipe' => 'Internal',
-                'total_jam' => $jamInternal,
-                'count' => $pesertaInternal->count(), // Hitung berapa kali diundang
-                'warna' => 'bg-amber-500', // Kuning/Orange
+                'total_jam' => $jamInternalThn,
+                'count' => $pesertaInternalThn->count(),
+                'warna' => 'bg-amber-500',
                 'icon' => 'briefcase'
             ]
         ];
 
         // ==========================================
-        // 5. DATA JADWAL & PENDING (TETAP SAMA)
+        // 5. JADWAL PENDING & MENDATANG
         // ==========================================
+        $pendingEksternal = DiklatEksternal::where('nrp', $nrp)->where('status', 'menunggu_persetujuan')->get(['id', 'dokumen', 'tanggal_mulai', 'tanggal_selesai', 'penyelenggara']);
+        $pendingHLC = HLCManajement::where('nrp', $nrp)->where('status', 'menunggu_persetujuan')->get(['id', 'nama_diklat', 'dokumen', 'tanggal_mulai', 'tanggal_selesai', 'penyelenggara']);
 
-        // 1. Ambil Data Eksternal
-        $pendingEksternal = DiklatEksternal::where('nrp', $nrp)
-            ->where('status', 'menunggu_persetujuan')
-            ->get(['id', 'diklat', 'dokumen', 'tanggal_mulai', 'penyelenggara']);
-
-        // 2. Ambil Data HLC
-        $pendingHLC = HLCManajement::where('nrp', $nrp)
-            ->where('status', 'menunggu_persetujuan')
-            ->get(['id', 'nama_diklat', 'dokumen', 'tanggal_mulai', 'penyelenggara']);
-
-        // 3. Gabungkan Map & Tambah Tipe
         $allPending = $pendingEksternal->map(function ($item) {
             return [
                 'id' => $item->id,
                 'nama_diklat' => $item->nama_diklat,
                 'penyelenggara' => $item->penyelenggara ?? '-',
                 'tanggal_mulai' => $item->tanggal_mulai,
+                'tanggal_selesai' => $item->tanggal_selesai,
                 'dokumen' => $item->dokumen,
-                'tipe' => 'Eksternal', // Tipe untuk Vue
+                'tipe' => 'Eksternal',
             ];
         })->concat($pendingHLC->map(function ($item) {
             return [
@@ -313,91 +378,49 @@ class DashboardController extends Controller
                 'nama_diklat' => $item->nama_diklat,
                 'penyelenggara' => $item->penyelenggara ?? '-',
                 'tanggal_mulai' => $item->tanggal_mulai,
+                'tanggal_selesai' => $item->tanggal_selesai,
                 'dokumen' => $item->dokumen,
-                'tipe' => 'HLC', // Tipe untuk Vue
+                'tipe' => 'HLC',
             ];
-        }))->sortBy('tanggal_mulai')->values(); // Urutkan berdasarkan tanggal mulai
+        }))->filter(function ($item) {
+            return Carbon::parse($item['tanggal_selesai'])->endOfDay()->greaterThanOrEqualTo(now());
+        })->sortBy('tanggal_mulai')->values();
 
-        // Jadwal Internal Mendatang
-        $periodeIdsMendatang = \App\Models\PeriodeUtama::whereDate('tanggal', '>=', now())
-            ->pluck('id');
-
-        $periodeIdsMendatang = \App\Models\PeriodeUtama::whereDate('tanggal', '>=', now())
-            ->pluck('id');
+        $periodeIdsMendatang = \App\Models\PeriodeUtama::whereDate('tanggal', '>=', now())->pluck('id');
 
         $jadwalInternal = PeriodeBagianDetailInternal::where('nrp', $nrp)
             ->whereIn('periode_id', $periodeIdsMendatang)
             ->with(['periode.detailProgram', 'periode.aksi'])
             ->get()
             ->map(function ($item) {
-                $namaDiklat = 'Internal Training';
-                if ($item->periode && $item->periode->detailProgram) {
-                    $namaDiklat = $item->periode->detailProgram->nama_diklat ?? $namaDiklat;
-                }
-
+                $namaDiklat = $item->periode->detailProgram->nama_diklat ?? 'Internal Training';
                 return [
                     'id' => $item->id,
                     'nama_diklat' => $namaDiklat,
                     'tanggal' => $item->periode->tanggal,
                     'jam_diklat' => ($item->periode->aksi->jam_diklat ?? 0),
                     'tempat' => $item->periode->tempat,
-                    'tipe' => 'Internal', // Tandai sebagai Internal
-                    'status' => 'Terjadwal', // Internal status default
+                    'tipe' => 'Internal',
+                    'status' => 'Terjadwal',
                 ];
             });
 
-        // 2. Jadwal Eksternal Mendatang
-        // Ambil tanggal hari ini
-        $today = Carbon::today()->toDateString();
-
-        // ==========================================
-        // 2. Jadwal Eksternal Mendatang (Dengan Logika Absensi)
-        // ==========================================
-        $allEksternal = DiklatEksternal::where('nrp', $nrp)
-            ->whereDate('tanggal_selesai', '>=', now()) // Cek jangkauan waktu masih valid
-            ->where('status', 'Setuju')
-            ->with([
-                'kehadiran' => function ($query) use ($today) {
-                    // Hanya load absensi hari ini
-                    $query->where('tanggal', $today);
-                }
-            ])
-            ->get();
+        $allEksternal = DiklatEksternal::where('nrp', $nrp)->whereDate('tanggal_selesai', '>=', now())->where('status', 'Setuju')->with([
+            'kehadiran' => function ($query) use ($today) {
+                $query->where('tanggal', $today); }
+        ])->get();
 
         $jadwalEksternal = $allEksternal->filter(function ($item) use ($today) {
-            // LOGIKA:
-            // 1. Ambil tanggal mulai diklat.
-            // 2. Jika hari ini LEBIH BESAR dari tanggal mulai, jadwalnya bergeser.
-            // 3. Namun, kita harus cek apakah user ABSEN pada tanggal yang dimaksud.
-
-            // Cari tanggal absen terakhir user untuk diklat ini
             $lastAbsen = $item->kehadiran->where('status', 'hadir')->max('tanggal');
-
-            // Tentukan 'tanggal jadwal berikutnya'
-            if ($lastAbsen) {
-                // Kita gunakan Carbon untuk menambah 1 hari
-                $nextDate = Carbon::parse($lastAbsen)->addDay()->toDateString();
-            } else {
-                // Jika belum absen sama sekali, jadwalnya adalah tanggal mulai diklat
-                $nextDate = $item->tanggal_mulai;
-            }
-
-            // Agar tidak muncul tanggal kemarin yang sudah lewat:
+            $nextDate = $lastAbsen ? Carbon::parse($lastAbsen)->addDay()->toDateString() : $item->tanggal_mulai;
             return $nextDate >= $today && $nextDate <= $item->tanggal_selesai;
-
-        })->map(function ($item) use ($today) {
-            // Ulangi logika penentuan tanggal untuk ditampilkan di view
+        })->map(function ($item) {
             $lastAbsen = $item->kehadiran->where('status', 'hadir')->max('tanggal');
-            if ($lastAbsen) {
-                $displayDate = Carbon::parse($lastAbsen)->addDay()->toDateString();
-            } else {
-                $displayDate = $item->tanggal_mulai;
-            }
-
+            $displayDate = $lastAbsen ? Carbon::parse($lastAbsen)->addDay()->toDateString() : $item->tanggal_mulai;
             return [
                 'id' => $item->id,
                 'nama_diklat' => $item->nama_diklat,
-                'tanggal' => $displayDate, // Tanggal dinamis (bisa 29 jika 28 sudah absen)
+                'tanggal' => $displayDate,
                 'jam_diklat' => $item->jam_diklat,
                 'tempat' => $item->penyelenggara,
                 'tipe' => 'Eksternal',
@@ -405,40 +428,18 @@ class DashboardController extends Controller
             ];
         });
 
-
-        // ==========================================
-        // 3. Jadwal HLC Mendatang (Sama Logikanya)
-        // ==========================================
-        $allHLC = HLCManajement::where('nrp', $nrp)
-            ->whereDate('tanggal_selesai', '>=', now())
-            ->where('status', 'Setuju')
-            // ->where('status', '!=', 'Ditolak')
-            ->with([
-                'kehadiran' => function ($query) use ($today) {
-                    $query->where('tanggal', $today);
-                }
-            ])
-            ->get();
+        $allHLC = HLCManajement::where('nrp', $nrp)->whereDate('tanggal_selesai', '>=', now())->where('status', 'Setuju')->with([
+            'kehadiran' => function ($query) use ($today) {
+                $query->where('tanggal', $today); }
+        ])->get();
 
         $jadwalHLC = $allHLC->filter(function ($item) use ($today) {
             $lastAbsen = $item->kehadiran->where('status', 'hadir')->max('tanggal');
-
-            if ($lastAbsen) {
-                $nextDate = Carbon::parse($lastAbsen)->addDay()->toDateString();
-            } else {
-                $nextDate = $item->tanggal_mulai;
-            }
-
+            $nextDate = $lastAbsen ? Carbon::parse($lastAbsen)->addDay()->toDateString() : $item->tanggal_mulai;
             return $nextDate >= $today && $nextDate <= $item->tanggal_selesai;
-
-        })->map(function ($item) use ($today) {
+        })->map(function ($item) {
             $lastAbsen = $item->kehadiran->where('status', 'hadir')->max('tanggal');
-            if ($lastAbsen) {
-                $displayDate = Carbon::parse($lastAbsen)->addDay()->toDateString();
-            } else {
-                $displayDate = $item->tanggal_mulai;
-            }
-
+            $displayDate = $lastAbsen ? Carbon::parse($lastAbsen)->addDay()->toDateString() : $item->tanggal_mulai;
             return [
                 'id' => $item->id,
                 'nama_diklat' => $item->nama_diklat,
@@ -450,21 +451,70 @@ class DashboardController extends Controller
             ];
         });
 
-        // 4. Gabungkan, Urutkan, dan Batasi
-        $allJadwal = $jadwalInternal->concat($jadwalEksternal)->concat($jadwalHLC)
-            ->sortBy('tanggal') // Urutkan berdasarkan tanggal terdekat
-            ->take(3) // Ambil 3 terdekat
-            ->values();
+        $allJadwal = $jadwalInternal->concat($jadwalEksternal)->concat($jadwalHLC)->sortBy('tanggal')->take(3)->values();
 
+        // ==========================================
+        // 6. CHART DATA
+        // ==========================================
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+        $baseBulan = array_fill(1, 12, 0);
+
+        $mapBulanan = function ($query) use ($baseBulan, $yearNow) {
+            $data = $query->selectRaw('EXTRACT(MONTH FROM tanggal_mulai)::integer as bulan, SUM(jam_diklat) as total')
+                ->whereYear('tanggal_mulai', $yearNow)
+                ->groupBy('bulan')
+                ->orderBy('bulan')
+                ->pluck('total', 'bulan')
+                ->toArray();
+
+            $result = [];
+            foreach ($baseBulan as $bulan => $val) {
+                $result[] = $data[$bulan] ?? 0;
+            }
+            return $result;
+        };
+
+        $chartData = [
+            'labels' => $months,
+            'datasets' => [
+                ['label' => 'Eksternal', 'data' => $mapBulanan(DiklatEksternal::where('nrp', $nrp)->where('status', 'approved')), 'borderColor' => '#10b981', 'tension' => 0.4],
+                ['label' => 'HLC', 'data' => $mapBulanan(HLCManajement::where('nrp', $nrp)->where('status', 'approved')), 'borderColor' => '#8b5cf6', 'tension' => 0.4],
+                ['label' => 'Mandiri', 'data' => $mapBulanan(DiklatKaryawan::where('nrp', $nrp)->where('status', 'approved')), 'borderColor' => '#3b82f6', 'tension' => 0.4],
+            ]
+        ];
+
+        $internalPerBulan = $baseBulan;
+        foreach ($pesertaInternalThn as $peserta) {
+            if ($peserta->periode && $peserta->periode->aksi && $peserta->periode->tanggal) {
+                $bulan = (int) date('n', strtotime($peserta->periode->tanggal));
+                $internalPerBulan[$bulan] += ($peserta->periode->aksi->jam_diklat ?? 0);
+            }
+        }
+        $chartData['datasets'][] = ['label' => 'Internal', 'data' => array_values($internalPerBulan), 'borderColor' => '#f59e0b', 'tension' => 0.4];
+
+        // ==========================================
+        // 7. RETURN INTERTIA DATA VIEW
+        // ==========================================
         return Inertia::render('DashboardUser', [
             'totalJam' => $totalJamFinal,
+            'totalJamBulanan' => $totalJamFinalBulanan,
             'targetJam' => $targetJam,
-            'persentase' => $persentase,
-            'statsPerTipe' => $statsPerTipe, // Data baru untuk breakdown statistik
+            'targetBulanan' => $targetBulanan,
+            'targetJam6Bulan' => $targetJam6Bulan,
+            'totalJamSemesterIni' => $totalJamSemesterIni,
+            'persentase' => $persentaseTahunan,
+            'persentaseBulanan' => $persentaseBulananRealtime,
+            'persentasePromosi' => $persentasePromosi,
+            'statsPerTipe' => $statsPerTipe,
             'pendingDiklat' => $allPending,
             'jadwalInternal' => $allJadwal,
             'namaKaryawan' => $karyawan->nama_karyawan,
             'kategori' => $kategori,
+            'chartData' => $chartData,
+            'promosi' => $promosi,
+            'pesanPromosi' => $pesanPromosi,
+            'bulanTerpujiCount' => $bulanTerpujiCount,
+            'bulanHarusLolos' => $bulanHarusLolos,
         ]);
     }
 }
