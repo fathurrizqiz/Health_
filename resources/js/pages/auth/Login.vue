@@ -1,55 +1,117 @@
 <template>
-    <img src="../../../../resources/assets/images/FrameFirst.jpg" alt="" class="absolute object-cover h-full w-full ">
-    <div class="flex min-h-screen w-full items-center justify-center p-4">
-        <div class="flex flex-col md:flex-row shadow-xl backdrop-blur-sm">
-            <!-- Left image section -->
-            <div class="relative h-60 w-full md:h-[315px] md:w-64 overflow-hidden rounded-t-xl md:rounded-l-xl md:rounded-tr-none bg-white">
-                <img src="../../../assets/images/Diklat.png" alt="Login Visual" class="h-full w-full object-cover" />
-                <div class="absolute top-10 md:top-20 left-1/2 md:left-[10%] transform -translate-x-1/2 md:translate-x-0 z-10 flex flex-col md:flex-row items-center gap-3 rounded px-2">
-                    <img src="../../../assets/images/Hermina.png" alt="Logo" class="h-12 w-12 md:h-16 md:w-16 object-contain" />
-                    <div class="text-lg md:text-xl text-white text-center font-semibold font-serif">Eichar</div>
-                </div>      
+    <div
+        class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-slate-100 to-cyan-50 px-4"
+    >
+        <!-- Logo -->
+        <div class="mb-10 mt-10 gap-5 flex items-center">
+            <img
+                src="/icon_baru.png"
+                alt="Logo"
+                class="h-24 w-24 object-contain"
+            />
+
+            <h1
+                class="mt-3 text-6xl font-bold bg-gradient-to-r from-blue-700 to-cyan-400 bg-clip-text text-transparent"
+            >
+                Eichar
+            </h1>
+        </div>
+
+        <!-- Login Card -->
+        <div
+            class="w-full max-w-md rounded-3xl bg-white p-10 shadow-xl"
+        >
+            <div class="text-center">
+                <h2 class="text-4xl font-bold text-slate-900">
+                    Welcome back
+                </h2>
+
+                <p class="mt-2 text-slate-500">
+                    Sign in to access your Eichar workspace
+                </p>
             </div>
-            <!-- Right form section -->
-            <div class="w-full md:w-80 rounded-b-xl md:rounded-r-xl md:rounded-bl-none bg-white relative">
-                <form @submit.prevent="handleLogin">
-                    <div class="m-4 md:m-5">
-                        <div class="flex justify-center gap-2">
-                            <div class="flex justify-center text-xl">L</div>
-                            <div class="flex justify-center text-xl">O</div>
-                            <div class="flex justify-center text-xl">G</div>
-                            <div class="flex justify-center text-xl">I</div>
-                            <div class="flex justify-center text-xl">N</div>
-                        </div>
 
-                        <div class="mt-5 ml-0 md:ml-3 text-sm">
-                            ID Pengguna
-                            <div class="mt-2 h-8 w-full md:w-60 rounded-md border">
-                                <input v-model="form.nrp" type="text" name="nrp" class="h-full w-full px-2 focus:outline-none" />
-                            </div>
-                            <span class="text-xs text-red-500" v-if="form.errors.nrp">{{ form.errors.nrp }}</span>
-                        </div>
+            <form
+                @submit.prevent="handleLogin"
+                class="mt-10 space-y-6"
+            >
+                <!-- NRP -->
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-slate-700">
+                        Employee ID
+                    </label>
 
-                        <div class="mt-5 ml-0 md:ml-3 text-sm">
-                            Password
-                            <div class="mt-2 h-8 w-full md:w-60 rounded-md border">
-                                <input v-model="form.password" type="password" name="password" class="h-full w-full px-2 focus:outline-none" />
-                            </div>
-                            <span class="text-xs text-red-500" v-if="form.errors.password">{{ form.errors.password }}</span>
-                        </div>
+                    <input
+                        v-model="form.nrp"
+                        type="text"
+                        placeholder="Enter your Employee ID"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:border-blue-500 focus:outline-none"
+                    />
 
-                        <div class="mt-8 md:mt-14 flex justify-end">
-                            <button
-                                type="submit"
-                                class="flex h-7 w-20 items-center justify-center rounded-xl bg-[#00990F] text-sm text-white shadow-xl hover:bg-green-800"
-                                :disabled="form.processing"
-                            >
-                                {{ form.processing ? 'Loading...' : 'Login' }}
-                            </button>
-                        </div>
+                    <div
+                        v-if="form.errors.nrp"
+                        class="mt-1 text-sm text-red-500"
+                    >
+                        {{ form.errors.nrp }}
                     </div>
-                </form>
-            </div>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-slate-700">
+                        Password
+                    </label>
+
+                    <input
+                        v-model="form.password"
+                        type="password"
+                        placeholder="Enter Password"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:border-blue-500 focus:outline-none"
+                    />
+
+                    <div
+                        v-if="form.errors.password"
+                        class="mt-1 text-sm text-red-500"
+                    >
+                        {{ form.errors.password }}
+                    </div>
+                </div>
+
+                <!-- Remember -->
+                <div class="flex items-center justify-between text-sm">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" />
+                        Remember me
+                    </label>
+
+                    <a
+                        href="#"
+                        class="font-medium text-cyan-600 hover:text-cyan-700"
+                    >
+                        Forgot password?
+                    </a>
+                </div>
+
+                <!-- Button -->
+                <button
+                    type="submit"
+                    :disabled="form.processing"
+                    class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 py-3 font-semibold text-white shadow-lg transition hover:scale-[1.01]"
+                >
+                    {{
+                        form.processing
+                            ? 'Signing in...'
+                            : 'Sign in →'
+                    }}
+                </button>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-10 text-center text-sm text-slate-500">
+            © {{ new Date().getFullYear() }} Eichar HR System.
+            <br />
+            Developed & maintained by Fathur.
         </div>
     </div>
 </template>
@@ -62,16 +124,19 @@ const form = useForm({
     nrp: '',
     password: '',
 });
+
 const handleLogin = () => {
     form.post(route('login'), {
         onSuccess: () => {
             toast.success('Login berhasil!');
-            router.reload(); // ✅ hanya reload props global, tidak full reload halaman
+            router.reload();
         },
         onError: () => {
             toast.error('Login gagal. Pastikan NRP dan Password benar.');
         },
-        onFinish: () => form.reset('password'),
+        onFinish: () => {
+            form.reset('password');
+        },
     });
 };
 </script>

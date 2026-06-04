@@ -26,7 +26,7 @@ const props = defineProps<{
 
 
 
-// ✅ Breadcrumbs
+//  Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Library', href: '/dashboard' },
 ];
@@ -40,7 +40,7 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 //     { title: 'Materi Ditolak', href: '/MateriDiklat/reject' },
 // ];
 
-// ✅ State
+//  State
 const materiList = ref(props.materi || []);
 const isVerifyModalOpen = ref(false);
 const isRejectModalOpen = ref(false);

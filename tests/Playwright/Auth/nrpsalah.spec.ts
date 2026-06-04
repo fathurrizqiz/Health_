@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
 
-test('test', async ({ page }) => {
-  await page.goto('http://localhost:8000/');
-  await page.getByText('Klik di mana saja untuk').click();
-  await page.locator('input[name="nrp"]').click();
-  await page.locator('input[name="nrp"]').fill('123456789');
-  await page.locator('input[name="password"]').click();
-  await page.locator('input[name="password"]').fill('005100439');
-  await page.getByRole('button', { name: 'Login' }).click();
+test('Test Login NRP Salah - Menunggu Toast Gagal Muncul', async ({ page }) => {
+  await page.goto('http://localhost:8000/login');
+  await page.getByRole('textbox', { name: 'Enter your Employee ID' }).click();
+  await page.getByRole('textbox', { name: 'Enter your Employee ID' }).fill('0051007362');
+  await page.getByRole('textbox', { name: 'Enter Password' }).click();
+  await page.getByRole('textbox', { name: 'Enter Password' }).fill('005100439');
+  await page.goto('http://localhost:8000/login');
+  await page.getByRole('button', { name: 'Sign in →' }).click();
+  await expect(page.locator('text=Login gagal. Pastikan NRP dan Password benar.')).toBeVisible();
 });

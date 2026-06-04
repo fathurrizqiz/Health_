@@ -142,6 +142,7 @@ class DashboardController extends Controller
             }
         }
 
+        // dd($trenBulanan);
         return Inertia::render('Dashboard', [
             'totalKaryawans' => $karyawan,
             'totalPerKategori' => $dataFinal,
@@ -229,11 +230,11 @@ class DashboardController extends Controller
         $targetJam = $targetData ? $targetData->target_jam : 0;
 
         // Hardcode target per BULAN berdasarkan kategori login
-        $targetBulanan = match (strtolower($kategori)) {
-            'klinis' => 20.0,
-            'nonklinis' => 12.5,
-            'manajerial klinis' => 15.0,
-            'manajerial non klinis' => 15.0,
+        $targetBulanan = match (strtoupper($kategori)) {
+            'KLINIS' => 20.0,
+            'NON KLINIS' => 12.5,
+            'MANAJERIAL KLINIS' => 15.0,
+            'MANAJERIAL NON KLINIS' => 15.0,
             default => 0.0
         };
 
@@ -311,7 +312,8 @@ class DashboardController extends Controller
         $persentasePromosi = $targetJam6Bulan > 0 ? round(($totalJamSemesterIni / $targetJam6Bulan) * 100, 2) : 0;
 
         // Karyawan lulus promosi jika jam kumulatif semester tercapai DAN konsisten lulus di tiap bulan berjalan
-        $promosi = ($totalJamSemesterIni >= $targetJam6Bulan) && ($bulanTerpujiCount === $bulanHarusLolos);
+        $promosi = ($totalJamSemesterIni >= $targetJam6Bulan);
+        // && ($bulanTerpujiCount === $bulanHarusLolos);
 
         if ($promosi) {
             $pesanPromosi = "Memenuhi syarat promosi. Akumulasi semester ini ({$totalJamSemesterIni} Jam) telah memenuhi target minimal {$targetJam6Bulan} Jam.";
@@ -319,6 +321,7 @@ class DashboardController extends Controller
             $pesanPromosi = "Belum memenuhi syarat promosi. Pencapaian Anda baru {$totalJamSemesterIni} Jam dari target {$targetJam6Bulan} Jam semester ini.";
         }
 
+        
         $persentaseTahunan = $targetJam > 0 ? round(($totalJamFinal / $targetJam) * 100, 2) : 0;
         $persentaseBulananRealtime = $targetBulanan > 0 ? round(($totalJamFinalBulanan / $targetBulanan) * 100, 2) : 0;
 
