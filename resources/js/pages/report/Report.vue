@@ -211,7 +211,7 @@ function generateExcel() {
                 />
                 <button
                     @click="applyFilter"
-                    class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-blue-700"
+                    class="flex w-28 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                 >
                     Terapkan
                 </button>
@@ -242,13 +242,13 @@ function generateExcel() {
 
                         <button
                             @click="applyFilter"
-                            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                            class="flex w-36 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                         >
                             Terapkan Filter
                         </button>
                         <button
                             @click="generateExcel"
-                            class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                            class="flex w-36 justify-center gap-2 rounded-xl bg-gradient-to-r from-green-600 via-green-800 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                         >
                             Unduh Excel
                         </button>

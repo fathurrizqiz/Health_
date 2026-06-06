@@ -221,7 +221,7 @@ const lihatDokumen = (dokumen: string) => {
             >
                 <button
                     @click="openProgramModal()"
-                    class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
+                    class="flex w-42 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                 >
                     <svg
                         class="h-5 w-5"
@@ -357,7 +357,7 @@ const lihatDokumen = (dokumen: string) => {
                             </button>
                             <button
                                 @click="openDetailModal(prog.id)"
-                                class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
+                                class="flex w-42 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                             >
                                 <svg
                                     class="h-4 w-4"

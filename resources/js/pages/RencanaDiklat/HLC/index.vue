@@ -403,7 +403,7 @@ const openReasonModal = (reason: string) => {
             >
                 <button
                     @click="openAddProgram"
-                    class="m-2 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
+                    class="flex mb-2 w-42 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                 >
                     <svg
                         class="h-5 w-5"
@@ -531,7 +531,7 @@ const openReasonModal = (reason: string) => {
                         <div class="flex gap-3">
                             <button
                                 @click="openDetailModal(program.id)"
-                                class="inline-flex shrink-0 items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
+                                class="flex w-42 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                             >
                                 <svg
                                     class="h-4 w-4"
@@ -546,10 +546,11 @@ const openReasonModal = (reason: string) => {
                                         d="M12 4v16m8-8H4"
                                     />
                                 </svg>
+                                Tambah Detail
                             </button>
                             <button
                                 @click="openEditProgram(program)"
-                                class="inline-flex shrink-0 items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
+                                class="flex items-center w-20 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -568,10 +569,16 @@ const openReasonModal = (reason: string) => {
                                     />
                                     <path d="m15 5 4 4" />
                                 </svg>
+                                Edit
                             </button>
                             <button
                                 @click="destroyprogram(program.id)"
-                                class="text-red-600"
+                                class="flex w-28 justify-center gap-2 rounded-xl
+       bg-gradient-to-r from-red-600 via-rose-500 to-orange-400
+       bg-[length:200%_100%] bg-left
+       py-3 font-semibold text-white shadow-lg
+       transition-all duration-500
+       hover:scale-[1.01] hover:bg-right"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -579,7 +586,7 @@ const openReasonModal = (reason: string) => {
                                     height="24"
                                     viewBox="0 0 24 24"
                                     fill="none"
-                                    stroke="#ff0000"
+                                    stroke="#ffffff"
                                     stroke-width="1.25"
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
@@ -593,6 +600,7 @@ const openReasonModal = (reason: string) => {
                                         d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
                                     />
                                 </svg>
+                                Hapus
                             </button>
                         </div>
                     </div>
@@ -913,7 +921,7 @@ const openReasonModal = (reason: string) => {
                             <button
                                 @click="tambahProgram"
                                 :disabled="isLoading"
-                                class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="flex w-28 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                             >
                                 <svg
                                     v-if="isLoading"
@@ -1155,7 +1163,7 @@ const openReasonModal = (reason: string) => {
                             <button
                                 @click="tambahDetail"
                                 :disabled="isLoading"
-                                class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="flex w-32 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                             >
                                 <svg
                                     v-if="isLoading"

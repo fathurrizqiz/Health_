@@ -256,7 +256,7 @@ function periode(id: number) {
             <div class="mb-6 flex items-center justify-between">
                 <button
                     @click="openAddProgramModal"
-                    class="flex items-center rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors hover:bg-blue-700"
+                    class="flex w-46 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                 >
                     <svg
                         class="mr-2 h-5 w-5"
@@ -305,7 +305,7 @@ function periode(id: number) {
                             <!-- Button to open the Add Detail Modal -->
                             <button
                                 @click="openDetailModal(program.id)"
-                                class="flex items-center rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                                class="flex w-38 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                             >
                                 <svg
                                     class="mr-1 h-4 w-4"
@@ -390,7 +390,7 @@ function periode(id: number) {
                                     >
                                         <button
                                             @click.stop="detail(details.id)"
-                                            class="cursor-pointer rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-700"
+                                            class="flex w-20 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                                         >
                                             Aksi
                                         </button>
@@ -398,7 +398,7 @@ function periode(id: number) {
                                             @click.stop="
                                                 deleteDetail(details.id)
                                             "
-                                            class="cursor-pointer rounded bg-red-500 px-5 py-2 text-white hover:bg-red-700"
+                                            class="flex w-20 justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 via-rose-500 to-violet-600 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                                         >
                                             Hapus
                                         </button>

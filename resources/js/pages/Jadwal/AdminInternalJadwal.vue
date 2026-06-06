@@ -424,7 +424,7 @@ const absenHariIniHLC = (hlc: any) => {
             <div class="flex gap-3">
                 <button
                     @click="goHP"
-                    class="flex gap-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-2"
+                    class="flex w-48 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -451,7 +451,7 @@ const absenHariIniHLC = (hlc: any) => {
                     Tambah Nomor HP
                 </button>
                 <button
-                    class="flex h-10 w-26 rounded bg-green-500 p-2 text-white hover:bg-green-600"
+                    class="flex w-28 justify-center gap-2 rounded-xl bg-gradient-to-r from-green-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                     @click="history"
                 >
                     <svg

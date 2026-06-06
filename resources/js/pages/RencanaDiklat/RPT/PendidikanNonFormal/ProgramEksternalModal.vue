@@ -41,7 +41,7 @@ const submit = () => {
                 <Input v-model="form.tahun" placeholder="Tahun" class="w-full rounded-lg border-slate-300" />
                 <div class="flex justify-end gap-2 mt-4">
                     <button @click="$emit('close')" class="px-4 py-2">Batal</button>
-                    <button @click="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Simpan</button>
+                    <button @click="submit" class="lex w-28 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right">Simpan</button>
                 </div>
             </div>
         </div>
