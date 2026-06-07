@@ -26,7 +26,8 @@ const submit = () => {
         onSuccess: () => {
             toast.success(props.program ? 'Program diperbarui' : 'Program dibuat');
             emit('close');
-        }
+        },
+        onError: () => toast.error('Periksa kembali data yang dimasukkan'),
     });
 };
 </script>

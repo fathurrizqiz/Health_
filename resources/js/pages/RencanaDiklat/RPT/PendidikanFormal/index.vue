@@ -107,7 +107,7 @@ const addProgram = () => {
         onSuccess: () => {
             toast.success('Program Berhasil Ditambah!');
             closeAddProgramModal();
-            window.location.reload();
+            router.reload();
         },
         onError: (errors) => {
             // Display validation errors from the backend
@@ -575,7 +575,7 @@ function periode(id: number) {
                                         v-model="detailForm.nama_diklat"
                                         id="nama_diklat"
                                         type="text"
-                                        required
+                                        
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                     />
                                     <p
@@ -595,7 +595,7 @@ function periode(id: number) {
                                         v-model="detailForm.keterangan"
                                         id="keterangan"
                                         type="text"
-                                        required
+                                        
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                     />
                                     <p
@@ -615,7 +615,7 @@ function periode(id: number) {
                                         v-model="detailForm.pengajar"
                                         id="pengajar"
                                         type="text"
-                                        required
+                                        
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                     />
                                     <p

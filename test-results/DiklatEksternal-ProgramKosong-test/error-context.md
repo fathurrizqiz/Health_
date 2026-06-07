@@ -1,0 +1,688 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: DiklatEksternal\ProgramKosong.spec.ts >> test
+- Location: tests\Playwright\DiklatEksternal\ProgramKosong.spec.ts:3:1
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded.
+```
+
+```
+Error: locator.click: Test timeout of 30000ms exceeded.
+Call log:
+  - waiting for getByRole('textbox', { name: 'Nama Program', exact: true })
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - generic [ref=e7]:
+    - list [ref=e9]:
+      - listitem [ref=e10]:
+        - link "Eichar" [ref=e11] [cursor=pointer]:
+          - /url: /dashboard
+          - generic [ref=e14]: Eichar
+    - generic [ref=e16]:
+      - generic [ref=e17]: Platform
+      - list [ref=e18]:
+        - listitem [ref=e19]:
+          - link "Dashboard Diklat (admin)" [ref=e20] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e22]
+            - generic [ref=e28]: Dashboard Diklat (admin)
+        - listitem [ref=e29]:
+          - link "Dashboard Diklat (user)" [ref=e30] [cursor=pointer]:
+            - /url: http://localhost:8000/dashboard/user
+            - img [ref=e32]
+            - generic [ref=e38]: Dashboard Diklat (user)
+        - listitem [ref=e39]:
+          - link "Diklat" [ref=e40] [cursor=pointer]:
+            - /url: /Diklat
+            - img [ref=e42]
+            - generic [ref=e46]: Diklat
+        - listitem [ref=e47]:
+          - link "Sertifikat Internal" [ref=e48] [cursor=pointer]:
+            - /url: /DiklatInternal/user
+            - img [ref=e50]
+            - generic [ref=e56]: Sertifikat Internal
+        - listitem [ref=e57]:
+          - link "Persetujuan" [ref=e58] [cursor=pointer]:
+            - /url: /Persetujuan
+            - img [ref=e60]
+            - generic [ref=e63]: Persetujuan
+        - listitem [ref=e64]:
+          - link "Library Materi" [ref=e65] [cursor=pointer]:
+            - /url: /Materi
+            - img [ref=e67]
+            - generic [ref=e70]: Library Materi
+        - listitem [ref=e71]:
+          - link "Rencana Diklat" [ref=e72] [cursor=pointer]:
+            - /url: /RencanaDiklat/RPT/PF
+            - img [ref=e74]
+            - generic [ref=e78]: Rencana Diklat
+        - listitem [ref=e79]:
+          - link "Jadwal Diklat 3" [ref=e80] [cursor=pointer]:
+            - /url: /JadwalDiklat/Internal
+            - img [ref=e82]
+            - generic [ref=e85]:
+              - generic [ref=e86]: Jadwal Diklat
+              - generic [ref=e87]: "3"
+        - listitem [ref=e88]:
+          - link "Evaluasi" [ref=e89] [cursor=pointer]:
+            - /url: /Diklat/Evaluasi
+            - img [ref=e91]
+            - generic [ref=e95]: Evaluasi
+        - listitem [ref=e96]:
+          - link "Laporan" [ref=e97] [cursor=pointer]:
+            - /url: /Laporan/Diklat
+            - img [ref=e99]
+            - generic [ref=e105]: Laporan
+        - listitem [ref=e106]:
+          - link "Master Data" [ref=e107] [cursor=pointer]:
+            - /url: /MasterData/home
+            - img [ref=e109]
+            - generic [ref=e114]: Master Data
+        - listitem [ref=e115]:
+          - link "Whattsapp Settings" [ref=e116] [cursor=pointer]:
+            - /url: /Settings
+            - img [ref=e118]
+            - generic [ref=e122]: Whattsapp Settings
+        - listitem [ref=e123]:
+          - link "Inbox" [ref=e124] [cursor=pointer]:
+            - /url: /HLC/Home/user
+            - img [ref=e126]
+            - generic [ref=e130]: Inbox
+    - generic [ref=e131]:
+      - generic [ref=e132]:
+        - generic:
+          - list
+      - list [ref=e133]:
+        - listitem [ref=e134]:
+          - button "EE EVA EFFENDI" [ref=e135]:
+            - generic [ref=e137]: EE
+            - generic [ref=e139]: EVA EFFENDI
+            - img [ref=e140]
+  - main [ref=e143]:
+    - navigation [ref=e144]:
+      - link "Internal" [ref=e145] [cursor=pointer]:
+        - /url: /RencanaDiklat/RPT/PF
+      - link "Eksternal" [ref=e146] [cursor=pointer]:
+        - /url: /RencanaDiklat/RPT/PN
+      - link "HLC" [ref=e147] [cursor=pointer]:
+        - /url: /HLC/Home/manajemen
+    - generic [ref=e148]:
+      - img [ref=e149]
+      - generic [ref=e151]:
+        - heading "Diklat Eksternal" [level=1] [ref=e152]
+        - paragraph [ref=e153]: Kelola daftar program pelatihan dan detail peserta diklat eksternal.
+    - generic [ref=e154]:
+      - button "Tambah Program" [ref=e156]:
+        - img [ref=e157]
+        - text: Tambah Program
+      - generic [ref=e159]:
+        - generic [ref=e160]:
+          - generic [ref=e161]: Cari Program
+          - generic [ref=e162]:
+            - textbox "Ketik nama program..." [ref=e163]
+            - img [ref=e164]
+        - generic [ref=e166]:
+          - generic [ref=e167]: Tahun
+          - combobox [ref=e168]:
+            - option "Semua Tahun" [selected]
+            - option "2026"
+        - generic [ref=e169]:
+          - generic [ref=e170]: Tampilan
+          - combobox [ref=e171]:
+            - option "5 baris" [selected]
+            - option "10 baris"
+            - option "20 baris"
+      - generic [ref=e172]: Menampilkan 4 dari 4 program
+      - generic [ref=e173]:
+        - generic [ref=e174]:
+          - generic [ref=e175]:
+            - generic [ref=e176]:
+              - heading "Klinis" [level=3] [ref=e177]
+              - generic [ref=e179]: "Tahun: 2026"
+            - generic [ref=e180]:
+              - button "Edit Program" [ref=e181]
+              - button "Hapus" [ref=e182]
+              - button "Tambah Peserta" [ref=e183]:
+                - img [ref=e184]
+                - text: Tambah Peserta
+          - table [ref=e188]:
+            - rowgroup [ref=e189]:
+              - row "Nama Karyawan NRP Diklat Tanggal Mulai Tanggal Selesai Jam Diklat Status Alasan Aksi" [ref=e190]:
+                - columnheader "Nama Karyawan" [ref=e191]
+                - columnheader "NRP" [ref=e192]
+                - columnheader "Diklat" [ref=e193]
+                - columnheader "Tanggal Mulai" [ref=e194]
+                - columnheader "Tanggal Selesai" [ref=e195]
+                - columnheader "Jam Diklat" [ref=e196]
+                - columnheader "Status" [ref=e197]
+                - columnheader "Alasan" [ref=e198]
+                - columnheader "Aksi" [ref=e199]
+            - rowgroup [ref=e200]:
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-01-21 2026-01-21 2 Jam approved" [ref=e201]:
+                - cell "E EVA EFFENDI" [ref=e202]:
+                  - generic [ref=e203]:
+                    - generic [ref=e204]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e205]
+                - cell "Lihat Dokumen" [ref=e206]:
+                  - button "Lihat Dokumen" [ref=e207]
+                - cell "2026-01-21" [ref=e208]
+                - cell "2026-01-21" [ref=e209]
+                - cell "2 Jam" [ref=e210]:
+                  - generic [ref=e211]: 2 Jam
+                - cell "approved" [ref=e212]
+                - cell [ref=e213]
+                - cell [ref=e214]:
+                  - button "Edit Diklat" [ref=e215]:
+                    - img [ref=e216]
+                  - button "Hapus Diklat" [ref=e218]:
+                    - img [ref=e219]
+              - row "S SURYAN LESTIANTO 005190902 Lihat Dokumen 2026-05-30 2026-05-31 4 Jam Setuju" [ref=e221]:
+                - cell "S SURYAN LESTIANTO" [ref=e222]:
+                  - generic [ref=e223]:
+                    - generic [ref=e224]: S
+                    - text: SURYAN LESTIANTO
+                - cell "005190902" [ref=e225]
+                - cell "Lihat Dokumen" [ref=e226]:
+                  - button "Lihat Dokumen" [ref=e227]
+                - cell "2026-05-30" [ref=e228]
+                - cell "2026-05-31" [ref=e229]
+                - cell "4 Jam" [ref=e230]:
+                  - generic [ref=e231]: 4 Jam
+                - cell "Setuju" [ref=e232]
+                - cell [ref=e233]
+                - cell [ref=e234]:
+                  - button "Edit Diklat" [ref=e235]:
+                    - img [ref=e236]
+                  - button "Hapus Diklat" [ref=e238]:
+                    - img [ref=e239]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-26 2026-05-26 1 Jam approved" [ref=e241]:
+                - cell "E EVA EFFENDI" [ref=e242]:
+                  - generic [ref=e243]:
+                    - generic [ref=e244]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e245]
+                - cell "Lihat Dokumen" [ref=e246]:
+                  - button "Lihat Dokumen" [ref=e247]
+                - cell "2026-05-26" [ref=e248]
+                - cell "2026-05-26" [ref=e249]
+                - cell "1 Jam" [ref=e250]:
+                  - generic [ref=e251]: 1 Jam
+                - cell "approved" [ref=e252]
+                - cell [ref=e253]
+                - cell [ref=e254]:
+                  - button "Edit Diklat" [ref=e255]:
+                    - img [ref=e256]
+                  - button "Hapus Diklat" [ref=e258]:
+                    - img [ref=e259]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-26 2026-05-28 9 Jam approved" [ref=e261]:
+                - cell "E EVA EFFENDI" [ref=e262]:
+                  - generic [ref=e263]:
+                    - generic [ref=e264]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e265]
+                - cell "Lihat Dokumen" [ref=e266]:
+                  - button "Lihat Dokumen" [ref=e267]
+                - cell "2026-05-26" [ref=e268]
+                - cell "2026-05-28" [ref=e269]
+                - cell "9 Jam" [ref=e270]:
+                  - generic [ref=e271]: 9 Jam
+                - cell "approved" [ref=e272]
+                - cell [ref=e273]
+                - cell [ref=e274]:
+                  - button "Edit Diklat" [ref=e275]:
+                    - img [ref=e276]
+                  - button "Hapus Diklat" [ref=e278]:
+                    - img [ref=e279]
+              - row "M MUHAMMAD NUR SALAM 005180106 Lihat Dokumen 2026-05-29 2026-05-30 2 Jam Setuju" [ref=e281]:
+                - cell "M MUHAMMAD NUR SALAM" [ref=e282]:
+                  - generic [ref=e283]:
+                    - generic [ref=e284]: M
+                    - text: MUHAMMAD NUR SALAM
+                - cell "005180106" [ref=e285]
+                - cell "Lihat Dokumen" [ref=e286]:
+                  - button "Lihat Dokumen" [ref=e287]
+                - cell "2026-05-29" [ref=e288]
+                - cell "2026-05-30" [ref=e289]
+                - cell "2 Jam" [ref=e290]:
+                  - generic [ref=e291]: 2 Jam
+                - cell "Setuju" [ref=e292]
+                - cell [ref=e293]
+                - cell [ref=e294]:
+                  - button "Edit Diklat" [ref=e295]:
+                    - img [ref=e296]
+                  - button "Hapus Diklat" [ref=e298]:
+                    - img [ref=e299]
+              - row "M MASRUKHA 005001106 Lihat Dokumen 2026-05-30 2026-05-30 9 Jam Tolak Lihat Alasan" [ref=e301]:
+                - cell "M MASRUKHA" [ref=e302]:
+                  - generic [ref=e303]:
+                    - generic [ref=e304]: M
+                    - text: MASRUKHA
+                - cell "005001106" [ref=e305]
+                - cell "Lihat Dokumen" [ref=e306]:
+                  - button "Lihat Dokumen" [ref=e307]
+                - cell "2026-05-30" [ref=e308]
+                - cell "2026-05-30" [ref=e309]
+                - cell "9 Jam" [ref=e310]:
+                  - generic [ref=e311]: 9 Jam
+                - cell "Tolak" [ref=e312]
+                - cell "Lihat Alasan" [ref=e313]:
+                  - button "Lihat Alasan" [ref=e314]
+                - cell [ref=e315]:
+                  - button "Edit Diklat" [ref=e316]:
+                    - img [ref=e317]
+                  - button "Hapus Diklat" [ref=e319]:
+                    - img [ref=e320]
+        - generic [ref=e322]:
+          - generic [ref=e323]:
+            - generic [ref=e324]:
+              - heading "UMUM" [level=3] [ref=e325]
+              - generic [ref=e327]: "Tahun: 2026"
+            - generic [ref=e328]:
+              - button "Edit Program" [ref=e329]
+              - button "Hapus" [ref=e330]
+              - button "Tambah Peserta" [ref=e331]:
+                - img [ref=e332]
+                - text: Tambah Peserta
+          - table [ref=e336]:
+            - rowgroup [ref=e337]:
+              - row "Nama Karyawan NRP Diklat Tanggal Mulai Tanggal Selesai Jam Diklat Status Alasan Aksi" [ref=e338]:
+                - columnheader "Nama Karyawan" [ref=e339]
+                - columnheader "NRP" [ref=e340]
+                - columnheader "Diklat" [ref=e341]
+                - columnheader "Tanggal Mulai" [ref=e342]
+                - columnheader "Tanggal Selesai" [ref=e343]
+                - columnheader "Jam Diklat" [ref=e344]
+                - columnheader "Status" [ref=e345]
+                - columnheader "Alasan" [ref=e346]
+                - columnheader "Aksi" [ref=e347]
+            - rowgroup [ref=e348]:
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-04-11 2026-04-11 2 Jam approved" [ref=e349]:
+                - cell "E EVA EFFENDI" [ref=e350]:
+                  - generic [ref=e351]:
+                    - generic [ref=e352]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e353]
+                - cell "Lihat Dokumen" [ref=e354]:
+                  - button "Lihat Dokumen" [ref=e355]
+                - cell "2026-04-11" [ref=e356]
+                - cell "2026-04-11" [ref=e357]
+                - cell "2 Jam" [ref=e358]:
+                  - generic [ref=e359]: 2 Jam
+                - cell "approved" [ref=e360]
+                - cell [ref=e361]
+                - cell [ref=e362]:
+                  - button "Edit Diklat" [ref=e363]:
+                    - img [ref=e364]
+                  - button "Hapus Diklat" [ref=e366]:
+                    - img [ref=e367]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-19 2026-05-19 1 Jam approved" [ref=e369]:
+                - cell "E EVA EFFENDI" [ref=e370]:
+                  - generic [ref=e371]:
+                    - generic [ref=e372]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e373]
+                - cell "Lihat Dokumen" [ref=e374]:
+                  - button "Lihat Dokumen" [ref=e375]
+                - cell "2026-05-19" [ref=e376]
+                - cell "2026-05-19" [ref=e377]
+                - cell "1 Jam" [ref=e378]:
+                  - generic [ref=e379]: 1 Jam
+                - cell "approved" [ref=e380]
+                - cell [ref=e381]
+                - cell [ref=e382]:
+                  - button "Edit Diklat" [ref=e383]:
+                    - img [ref=e384]
+                  - button "Hapus Diklat" [ref=e386]:
+                    - img [ref=e387]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-19 2026-05-19 1 Jam approved" [ref=e389]:
+                - cell "E EVA EFFENDI" [ref=e390]:
+                  - generic [ref=e391]:
+                    - generic [ref=e392]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e393]
+                - cell "Lihat Dokumen" [ref=e394]:
+                  - button "Lihat Dokumen" [ref=e395]
+                - cell "2026-05-19" [ref=e396]
+                - cell "2026-05-19" [ref=e397]
+                - cell "1 Jam" [ref=e398]:
+                  - generic [ref=e399]: 1 Jam
+                - cell "approved" [ref=e400]
+                - cell [ref=e401]
+                - cell [ref=e402]:
+                  - button "Edit Diklat" [ref=e403]:
+                    - img [ref=e404]
+                  - button "Hapus Diklat" [ref=e406]:
+                    - img [ref=e407]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-24 2026-05-24 1 Jam approved" [ref=e409]:
+                - cell "E EVA EFFENDI" [ref=e410]:
+                  - generic [ref=e411]:
+                    - generic [ref=e412]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e413]
+                - cell "Lihat Dokumen" [ref=e414]:
+                  - button "Lihat Dokumen" [ref=e415]
+                - cell "2026-05-24" [ref=e416]
+                - cell "2026-05-24" [ref=e417]
+                - cell "1 Jam" [ref=e418]:
+                  - generic [ref=e419]: 1 Jam
+                - cell "approved" [ref=e420]
+                - cell [ref=e421]
+                - cell [ref=e422]:
+                  - button "Edit Diklat" [ref=e423]:
+                    - img [ref=e424]
+                  - button "Hapus Diklat" [ref=e426]:
+                    - img [ref=e427]
+              - row "M MUHAMMAD NUR SALAM 005180106 Lihat Dokumen 2026-05-27 2026-05-27 3 Jam approved" [ref=e429]:
+                - cell "M MUHAMMAD NUR SALAM" [ref=e430]:
+                  - generic [ref=e431]:
+                    - generic [ref=e432]: M
+                    - text: MUHAMMAD NUR SALAM
+                - cell "005180106" [ref=e433]
+                - cell "Lihat Dokumen" [ref=e434]:
+                  - button "Lihat Dokumen" [ref=e435]
+                - cell "2026-05-27" [ref=e436]
+                - cell "2026-05-27" [ref=e437]
+                - cell "3 Jam" [ref=e438]:
+                  - generic [ref=e439]: 3 Jam
+                - cell "approved" [ref=e440]
+                - cell [ref=e441]
+                - cell [ref=e442]:
+                  - button "Edit Diklat" [ref=e443]:
+                    - img [ref=e444]
+                  - button "Hapus Diklat" [ref=e446]:
+                    - img [ref=e447]
+              - row "S SURYAN LESTIANTO 005190902 Lihat Dokumen 2026-05-29 2026-05-30 2 Jam approved" [ref=e449]:
+                - cell "S SURYAN LESTIANTO" [ref=e450]:
+                  - generic [ref=e451]:
+                    - generic [ref=e452]: S
+                    - text: SURYAN LESTIANTO
+                - cell "005190902" [ref=e453]
+                - cell "Lihat Dokumen" [ref=e454]:
+                  - button "Lihat Dokumen" [ref=e455]
+                - cell "2026-05-29" [ref=e456]
+                - cell "2026-05-30" [ref=e457]
+                - cell "2 Jam" [ref=e458]:
+                  - generic [ref=e459]: 2 Jam
+                - cell "approved" [ref=e460]
+                - cell [ref=e461]
+                - cell [ref=e462]:
+                  - button "Edit Diklat" [ref=e463]:
+                    - img [ref=e464]
+                  - button "Hapus Diklat" [ref=e466]:
+                    - img [ref=e467]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-06-05 2026-06-05 1 Jam menunggu_persetujuan" [ref=e469]:
+                - cell "E EVA EFFENDI" [ref=e470]:
+                  - generic [ref=e471]:
+                    - generic [ref=e472]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e473]
+                - cell "Lihat Dokumen" [ref=e474]:
+                  - button "Lihat Dokumen" [ref=e475]
+                - cell "2026-06-05" [ref=e476]
+                - cell "2026-06-05" [ref=e477]
+                - cell "1 Jam" [ref=e478]:
+                  - generic [ref=e479]: 1 Jam
+                - cell "menunggu_persetujuan" [ref=e480]
+                - cell [ref=e481]
+                - cell [ref=e482]:
+                  - button "Edit Diklat" [ref=e483]:
+                    - img [ref=e484]
+                  - button "Hapus Diklat" [ref=e486]:
+                    - img [ref=e487]
+        - generic [ref=e489]:
+          - generic [ref=e490]:
+            - generic [ref=e491]:
+              - heading "public speaking" [level=3] [ref=e492]
+              - generic [ref=e494]: "Tahun: 2026"
+            - generic [ref=e495]:
+              - button "Edit Program" [ref=e496]
+              - button "Hapus" [ref=e497]
+              - button "Tambah Peserta" [ref=e498]:
+                - img [ref=e499]
+                - text: Tambah Peserta
+          - table [ref=e503]:
+            - rowgroup [ref=e504]:
+              - row "Nama Karyawan NRP Diklat Tanggal Mulai Tanggal Selesai Jam Diklat Status Alasan Aksi" [ref=e505]:
+                - columnheader "Nama Karyawan" [ref=e506]
+                - columnheader "NRP" [ref=e507]
+                - columnheader "Diklat" [ref=e508]
+                - columnheader "Tanggal Mulai" [ref=e509]
+                - columnheader "Tanggal Selesai" [ref=e510]
+                - columnheader "Jam Diklat" [ref=e511]
+                - columnheader "Status" [ref=e512]
+                - columnheader "Alasan" [ref=e513]
+                - columnheader "Aksi" [ref=e514]
+            - rowgroup [ref=e515]:
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-04-29 2026-04-29 1 Jam approved" [ref=e516]:
+                - cell "E EVA EFFENDI" [ref=e517]:
+                  - generic [ref=e518]:
+                    - generic [ref=e519]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e520]
+                - cell "Lihat Dokumen" [ref=e521]:
+                  - button "Lihat Dokumen" [ref=e522]
+                - cell "2026-04-29" [ref=e523]
+                - cell "2026-04-29" [ref=e524]
+                - cell "1 Jam" [ref=e525]:
+                  - generic [ref=e526]: 1 Jam
+                - cell "approved" [ref=e527]
+                - cell [ref=e528]
+                - cell [ref=e529]:
+                  - button "Edit Diklat" [ref=e530]:
+                    - img [ref=e531]
+                  - button "Hapus Diklat" [ref=e533]:
+                    - img [ref=e534]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-06 2026-05-06 2 Jam approved" [ref=e536]:
+                - cell "E EVA EFFENDI" [ref=e537]:
+                  - generic [ref=e538]:
+                    - generic [ref=e539]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e540]
+                - cell "Lihat Dokumen" [ref=e541]:
+                  - button "Lihat Dokumen" [ref=e542]
+                - cell "2026-05-06" [ref=e543]
+                - cell "2026-05-06" [ref=e544]
+                - cell "2 Jam" [ref=e545]:
+                  - generic [ref=e546]: 2 Jam
+                - cell "approved" [ref=e547]
+                - cell [ref=e548]
+                - cell [ref=e549]:
+                  - button "Edit Diklat" [ref=e550]:
+                    - img [ref=e551]
+                  - button "Hapus Diklat" [ref=e553]:
+                    - img [ref=e554]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-11 2026-05-11 2 Jam approved" [ref=e556]:
+                - cell "E EVA EFFENDI" [ref=e557]:
+                  - generic [ref=e558]:
+                    - generic [ref=e559]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e560]
+                - cell "Lihat Dokumen" [ref=e561]:
+                  - button "Lihat Dokumen" [ref=e562]
+                - cell "2026-05-11" [ref=e563]
+                - cell "2026-05-11" [ref=e564]
+                - cell "2 Jam" [ref=e565]:
+                  - generic [ref=e566]: 2 Jam
+                - cell "approved" [ref=e567]
+                - cell [ref=e568]
+                - cell [ref=e569]:
+                  - button "Edit Diklat" [ref=e570]:
+                    - img [ref=e571]
+                  - button "Hapus Diklat" [ref=e573]:
+                    - img [ref=e574]
+              - row "S SURYAN LESTIANTO 005190902 Lihat Dokumen 2026-05-28 2026-05-29 4 Jam Hadir" [ref=e576]:
+                - cell "S SURYAN LESTIANTO" [ref=e577]:
+                  - generic [ref=e578]:
+                    - generic [ref=e579]: S
+                    - text: SURYAN LESTIANTO
+                - cell "005190902" [ref=e580]
+                - cell "Lihat Dokumen" [ref=e581]:
+                  - button "Lihat Dokumen" [ref=e582]
+                - cell "2026-05-28" [ref=e583]
+                - cell "2026-05-29" [ref=e584]
+                - cell "4 Jam" [ref=e585]:
+                  - generic [ref=e586]: 4 Jam
+                - cell "Hadir" [ref=e587]
+                - cell [ref=e588]
+                - cell [ref=e589]:
+                  - button "Edit Diklat" [ref=e590]:
+                    - img [ref=e591]
+                  - button "Hapus Diklat" [ref=e593]:
+                    - img [ref=e594]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-18 2026-05-18 1 Jam rejected" [ref=e596]:
+                - cell "E EVA EFFENDI" [ref=e597]:
+                  - generic [ref=e598]:
+                    - generic [ref=e599]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e600]
+                - cell "Lihat Dokumen" [ref=e601]:
+                  - button "Lihat Dokumen" [ref=e602]
+                - cell "2026-05-18" [ref=e603]
+                - cell "2026-05-18" [ref=e604]
+                - cell "1 Jam" [ref=e605]:
+                  - generic [ref=e606]: 1 Jam
+                - cell "rejected" [ref=e607]
+                - cell [ref=e608]
+                - cell [ref=e609]:
+                  - button "Edit Diklat" [ref=e610]:
+                    - img [ref=e611]
+                  - button "Hapus Diklat" [ref=e613]:
+                    - img [ref=e614]
+              - row "M MUHAMMAD NUR SALAM 005180106 Lihat Dokumen 2026-05-28 2026-05-29 2 Jam approved" [ref=e616]:
+                - cell "M MUHAMMAD NUR SALAM" [ref=e617]:
+                  - generic [ref=e618]:
+                    - generic [ref=e619]: M
+                    - text: MUHAMMAD NUR SALAM
+                - cell "005180106" [ref=e620]
+                - cell "Lihat Dokumen" [ref=e621]:
+                  - button "Lihat Dokumen" [ref=e622]
+                - cell "2026-05-28" [ref=e623]
+                - cell "2026-05-29" [ref=e624]
+                - cell "2 Jam" [ref=e625]:
+                  - generic [ref=e626]: 2 Jam
+                - cell "approved" [ref=e627]
+                - cell [ref=e628]
+                - cell [ref=e629]:
+                  - button "Edit Diklat" [ref=e630]:
+                    - img [ref=e631]
+                  - button "Hapus Diklat" [ref=e633]:
+                    - img [ref=e634]
+        - generic [ref=e636]:
+          - generic [ref=e637]:
+            - generic [ref=e638]:
+              - heading "Diklat Kebersihan" [level=3] [ref=e639]
+              - generic [ref=e641]: "Tahun: 2026"
+            - generic [ref=e642]:
+              - button "Edit Program" [ref=e643]
+              - button "Hapus" [ref=e644]
+              - button "Tambah Peserta" [ref=e645]:
+                - img [ref=e646]
+                - text: Tambah Peserta
+          - table [ref=e650]:
+            - rowgroup [ref=e651]:
+              - row "Nama Karyawan NRP Diklat Tanggal Mulai Tanggal Selesai Jam Diklat Status Alasan Aksi" [ref=e652]:
+                - columnheader "Nama Karyawan" [ref=e653]
+                - columnheader "NRP" [ref=e654]
+                - columnheader "Diklat" [ref=e655]
+                - columnheader "Tanggal Mulai" [ref=e656]
+                - columnheader "Tanggal Selesai" [ref=e657]
+                - columnheader "Jam Diklat" [ref=e658]
+                - columnheader "Status" [ref=e659]
+                - columnheader "Alasan" [ref=e660]
+                - columnheader "Aksi" [ref=e661]
+            - rowgroup [ref=e662]:
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-10 2026-05-10 1 Jam approved" [ref=e663]:
+                - cell "E EVA EFFENDI" [ref=e664]:
+                  - generic [ref=e665]:
+                    - generic [ref=e666]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e667]
+                - cell "Lihat Dokumen" [ref=e668]:
+                  - button "Lihat Dokumen" [ref=e669]
+                - cell "2026-05-10" [ref=e670]
+                - cell "2026-05-10" [ref=e671]
+                - cell "1 Jam" [ref=e672]:
+                  - generic [ref=e673]: 1 Jam
+                - cell "approved" [ref=e674]
+                - cell [ref=e675]
+                - cell [ref=e676]:
+                  - button "Edit Diklat" [ref=e677]:
+                    - img [ref=e678]
+                  - button "Hapus Diklat" [ref=e680]:
+                    - img [ref=e681]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-14 2026-05-14 2 Jam approved" [ref=e683]:
+                - cell "E EVA EFFENDI" [ref=e684]:
+                  - generic [ref=e685]:
+                    - generic [ref=e686]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e687]
+                - cell "Lihat Dokumen" [ref=e688]:
+                  - button "Lihat Dokumen" [ref=e689]
+                - cell "2026-05-14" [ref=e690]
+                - cell "2026-05-14" [ref=e691]
+                - cell "2 Jam" [ref=e692]:
+                  - generic [ref=e693]: 2 Jam
+                - cell "approved" [ref=e694]
+                - cell [ref=e695]
+                - cell [ref=e696]:
+                  - button "Edit Diklat" [ref=e697]:
+                    - img [ref=e698]
+                  - button "Hapus Diklat" [ref=e700]:
+                    - img [ref=e701]
+              - row "E EVA EFFENDI 005100439 Lihat Dokumen 2026-05-28 2026-05-28 1 Jam menunggu_persetujuan" [ref=e703]:
+                - cell "E EVA EFFENDI" [ref=e704]:
+                  - generic [ref=e705]:
+                    - generic [ref=e706]: E
+                    - text: EVA EFFENDI
+                - cell "005100439" [ref=e707]
+                - cell "Lihat Dokumen" [ref=e708]:
+                  - button "Lihat Dokumen" [ref=e709]
+                - cell "2026-05-28" [ref=e710]
+                - cell "2026-05-28" [ref=e711]
+                - cell "1 Jam" [ref=e712]:
+                  - generic [ref=e713]: 1 Jam
+                - cell "menunggu_persetujuan" [ref=e714]
+                - cell [ref=e715]
+                - cell [ref=e716]:
+                  - button "Edit Diklat" [ref=e717]:
+                    - img [ref=e718]
+                  - button "Hapus Diklat" [ref=e720]:
+                    - img [ref=e721]
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | 
+  3  | test('test', async ({ page }) => {
+  4  |   await page.goto('http://localhost:8000/login');
+  5  |   await page.getByRole('textbox', { name: 'Enter your Employee ID' }).click();
+  6  |   await page.getByRole('textbox', { name: 'Enter your Employee ID' }).fill('005100439');
+  7  |   await page.getByRole('textbox', { name: 'Enter Password' }).click();
+  8  |   await page.getByRole('textbox', { name: 'Enter Password' }).fill('005100439');
+  9  |   await page.getByRole('button', { name: 'Sign in →' }).click();
+  10 |   await page.getByRole('link', { name: 'Rencana Diklat' }).click();
+  11 |   await page.getByRole('link', { name: 'Eksternal' }).click();
+  12 |   await page.getByRole('button', { name: 'Tambah Program' }).click();
+> 13 |   await page.getByRole('textbox', { name: 'Nama Program', exact: true }).click();
+     |                                                                          ^ Error: locator.click: Test timeout of 30000ms exceeded.
+  14 |   await page.getByRole('button', { name: 'Simpan' }).click();
+  15 |   await expect(page.locator('text=Periksa kembali data yang dimasukkan')).toBeVisible();
+  16 | });
+```
