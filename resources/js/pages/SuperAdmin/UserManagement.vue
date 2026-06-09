@@ -123,6 +123,29 @@ const cancelImpersonate = () => {
     loadingImpersonate.value = null;
 };
 const formatCountdown = (s) => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+
+const store = useForm({
+    name: '',
+    nrp: '',
+    employee_id: 'null',
+    password: '',
+    password_confirmation: '',
+});
+
+const submit = () => {
+    if(!store.name || !store.nrp || !store.password || !store.password_confirmation) {
+        toast.error('Gagal membuat user. Pastikan semua field diisi dengan benar.', {});
+        return;
+    }
+    store.post(route('superadmin.users.store'), {
+        onSuccess: () => {
+            toast.success('User berhasil dibuat', {});
+            store.reset();
+        },onError: () => {
+            toast.error('Gagal membuat user. Pastikan semua field diisi dengan benar.', {});
+        },
+    });
+};
 </script>
 
 <template>
@@ -363,6 +386,7 @@ const formatCountdown = (s) => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0
                                 Batal
                             </button>
                             <button
+                            @click="submit"
                                 type="submit"
                                 :disabled="userForm.processing"
                                 class="flex-1 rounded-2xl bg-cyan-500 py-3 font-bold text-slate-900 shadow-lg shadow-cyan-500/20 transition-all hover:bg-cyan-400 active:scale-95"
